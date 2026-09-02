@@ -1,0 +1,7 @@
+{
+  "name": "Nexus Medical Dashboard",
+  "description": "Enterprise multi-tenant medical portal featuring Super Admin, Founder, Accounting, and ERP/Inventory dashboards with dual theme, bilingual AR/EN support, and real-time operations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
