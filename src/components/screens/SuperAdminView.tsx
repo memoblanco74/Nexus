@@ -59,7 +59,7 @@ export const SuperAdminView: React.FC = () => {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim()) return;
+    if (!chatInput.trim() || !selectedChat) return;
     sendChatMessage(selectedChat.id, chatInput);
     setChatInput('');
   };
@@ -367,7 +367,7 @@ export const SuperAdminView: React.FC = () => {
           {/* Chat Thread Selector Bar */}
           <div className="flex gap-2 overflow-x-auto border-b border-slate-800/60 bg-slate-950/40 p-2 text-xs">
             {chats.map((c) => {
-              const isSelected = c.id === selectedChat.id;
+              const isSelected = selectedChat ? c.id === selectedChat.id : false;
               return (
                 <button
                   key={c.id}
@@ -378,7 +378,9 @@ export const SuperAdminView: React.FC = () => {
                       : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
                   }`}
                 >
-                  <img src={c.avatar} alt={c.senderName} className="h-5 w-5 rounded-full object-cover" />
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-700 text-[9px] font-bold text-white">
+                    {c.tenant.charAt(0).toUpperCase()}
+                  </span>
                   <span className="font-medium text-xs">{c.tenant}</span>
                 </button>
               );
@@ -386,68 +388,80 @@ export const SuperAdminView: React.FC = () => {
           </div>
 
           {/* Active Chat Conversation Feed */}
-          <div className="flex-1 space-y-3 overflow-y-auto p-4">
-            {/* Sender Info Banner */}
-            <div className="flex items-center gap-3 rounded-xl bg-slate-900/60 p-2.5 border border-slate-800/50">
-              <img src={selectedChat.avatar} alt={selectedChat.senderName} className="h-8 w-8 rounded-full object-cover" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-white truncate">{selectedChat.senderName}</p>
-                  <span className="text-[10px] text-slate-400">{selectedChat.projectId}</span>
-                </div>
-                <p className="text-[10px] text-blue-400 truncate">
-                  {language === 'ar' ? selectedChat.senderRoleAr : selectedChat.senderRole} • {selectedChat.tenant}
-                </p>
-              </div>
+          {!selectedChat ? (
+            <div className="flex-1 flex items-center justify-center p-6 text-center">
+              <p className="text-xs text-slate-500">
+                {isRTL ? 'لا توجد محادثات دعم حتى الآن' : 'No support conversations yet'}
+              </p>
             </div>
-
-            {/* Message Bubbles */}
-            {selectedChat.messages.map((msg) => {
-              const isAdmin = msg.sender === 'admin';
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex flex-col ${isAdmin ? (isRTL ? 'items-start' : 'items-end') : isRTL ? 'items-end' : 'items-start'}`}
-                >
-                  <div
-                    className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
-                      isAdmin
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-none'
-                        : 'bg-slate-800/90 text-slate-200 rounded-tl-none border border-slate-700/60'
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                  <span className="mt-1 text-[10px] text-slate-500 px-1">
-                    {msg.timestamp}
+          ) : (
+            <>
+              <div className="flex-1 space-y-3 overflow-y-auto p-4">
+                {/* Sender Info Banner */}
+                <div className="flex items-center gap-3 rounded-xl bg-slate-900/60 p-2.5 border border-slate-800/50">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                    {selectedChat.senderName.charAt(0).toUpperCase()}
                   </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-white truncate">{selectedChat.senderName}</p>
+                      <span className="text-[10px] text-slate-400">{selectedChat.projectId}</span>
+                    </div>
+                    <p className="text-[10px] text-blue-400 truncate">
+                      {language === 'ar' ? selectedChat.senderRoleAr : selectedChat.senderRole} • {selectedChat.tenant}
+                    </p>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Chat Input Form */}
-          <form onSubmit={handleSendMessage} className="border-t border-slate-800/80 p-3 bg-slate-950/60">
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder={
-                  isRTL
-                    ? `رد على ${selectedChat.senderName}...`
-                    : `Reply to ${selectedChat.senderName}...`
-                }
-                className="flex-1 rounded-xl border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition active:scale-95 shrink-0"
-              >
-                <Send className="h-4 w-4" />
-              </button>
-            </div>
-          </form>
+                {/* Message Bubbles */}
+                {selectedChat.messages.map((msg) => {
+                  const isAdmin = msg.sender === 'admin';
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex flex-col ${isAdmin ? (isRTL ? 'items-start' : 'items-end') : isRTL ? 'items-end' : 'items-start'}`}
+                    >
+                      <div
+                        className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
+                          isAdmin
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-none'
+                            : 'bg-slate-800/90 text-slate-200 rounded-tl-none border border-slate-700/60'
+                        }`}
+                      >
+                        {msg.text}
+                      </div>
+                      <span className="mt-1 text-[10px] text-slate-500 px-1">
+                        {msg.timestamp}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Chat Input Form */}
+              <form onSubmit={handleSendMessage} className="border-t border-slate-800/80 p-3 bg-slate-950/60">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder={
+                      isRTL
+                        ? `رد على ${selectedChat.senderName}...`
+                        : `Reply to ${selectedChat.senderName}...`
+                    }
+                    className="flex-1 rounded-xl border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition active:scale-95 shrink-0"
+                  >
+                    <Send className="h-4 w-4" />
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
 
         {/* Subscriptions Table (7 Cols) */}
