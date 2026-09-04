@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ScreenId,
   Language,
@@ -14,17 +14,20 @@ import {
   Project,
 } from '../types';
 import {
-  INITIAL_TENANTS,
-  INITIAL_SUBSCRIPTIONS,
-  INITIAL_CHATS,
-  INITIAL_INVENTORY,
   INITIAL_AUTO_DEDUCTIONS,
-  INITIAL_INVOICES,
-  INITIAL_PATIENTS,
-  INITIAL_BOOKINGS,
-  INITIAL_PROJECTS,
   FINANCIAL_METRICS,
 } from '../data/mockData';
+import { supabase } from '../lib/supabaseClient';
+import { useAuth } from './AuthContext';
+import {
+  mapTenantRow,
+  tenantToSubscription,
+  mapPatientRow,
+  mapBookingRow,
+  mapInventoryRow,
+  mapInvoiceRow,
+  mapProjectRow,
+} from '../lib/dataMappers';
 
 interface AppContextType {
   screen: ScreenId;
@@ -37,62 +40,46 @@ interface AppContextType {
   toggleTheme: () => void;
   isRTL: boolean;
 
-  // Active Tenant
-  activeTenant: Tenant;
+  activeTenant: Tenant | null;
   setActiveTenant: (tenant: Tenant) => void;
   tenants: Tenant[];
   addTenant: (tenant: Omit<Tenant, 'id'>) => void;
   updateTenant: (id: string, updates: Partial<Tenant>) => void;
 
-  // Subscriptions
   subscriptions: Subscription[];
-  updateSubscriptionStatus: (
-    id: string,
-    status: 'Active' | 'Expiring Soon' | 'Suspended'
-  ) => void;
+  updateSubscriptionStatus: (id: string, status: 'Active' | 'Expiring Soon' | 'Suspended') => void;
   applyDiscountCode: (id: string, code: string) => void;
 
-  // Live Chat
   chats: ChatMessage[];
   selectedChatId: string;
   setSelectedChatId: (id: string) => void;
   sendChatMessage: (chatId: string, text: string) => void;
 
-  // Announcement & Global Discount
   announcement: { title: string; titleAr: string; message: string; messageAr: string };
-  updateAnnouncement: (announcement: {
-    title: string;
-    titleAr: string;
-    message: string;
-    messageAr: string;
-  }) => void;
+  updateAnnouncement: (a: { title: string; titleAr: string; message: string; messageAr: string }) => void;
   defaultDiscount: string;
   setDefaultDiscount: (discount: string) => void;
 
-  // Inventory & ERP
   inventory: InventoryItem[];
   autoDeductLogs: AutoDeductLog[];
   toggleAutoDeduct: (id: string) => void;
   adjustStock: (id: string, newStock: number, reason?: string) => void;
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void;
 
-  // Accounting & Invoices
   invoices: Invoice[];
   financials: typeof FINANCIAL_METRICS;
+  addExpense: (expense: { category: string; description: string; amount: number; date: string }) => void;
   addInvoice: (invoice: Omit<Invoice, 'id'>) => void;
   updateInvoiceStatus: (id: string, status: 'paid' | 'pending' | 'overdue') => void;
 
-  // Patients & Bookings
   patients: Patient[];
   addPatient: (patient: Omit<Patient, 'id'>) => void;
   bookings: Booking[];
   addBooking: (booking: Omit<Booking, 'id'>) => void;
   updateBookingStatus: (id: string, status: 'confirmed' | 'pending' | 'cancelled') => void;
 
-  // Projects
   projects: Project[];
 
-  // Modals & UI helpers
   isCreateInvoiceOpen: boolean;
   setIsCreateInvoiceOpen: (open: boolean) => void;
   isAddPatientOpen: boolean;
@@ -113,16 +100,13 @@ interface AppContextType {
   setPdfExportTitle: (title: string) => void;
   openPdfExport: (title: string) => void;
 
-  // Toast / Notification banner
   toastMessage: string | null;
   showToast: (msg: string) => void;
 
-  // Translation helper
   t: (key: string) => string;
 }
 
 const DICTIONARY: Record<string, { en: string; ar: string }> = {
-  // Navigation
   'nav.super_admin': { en: 'Super Admin', ar: 'المشرف العام' },
   'nav.founder': { en: 'Founder & Clinic', ar: 'المؤسس والعيادة' },
   'nav.assistant': { en: 'Assistant Desk', ar: 'مكتب المساعد' },
@@ -135,8 +119,6 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
   'nav.settings': { en: 'Settings', ar: 'الإعدادات' },
   'nav.support': { en: 'Support', ar: 'الدعم الفني' },
   'nav.collapse': { en: 'Collapse', ar: 'طي القائمة' },
-
-  // Super Admin Header & Badges
   'super_admin.title': { en: 'Super Admin Control Center', ar: 'مركز تحكم المشرف العام' },
   'super_admin.badge': { en: 'Nexus Cloud v2.4 (Enterprise)', ar: 'سحابة نيكسوس الإصدار ٢.٤ (المؤسسات)' },
   'super_admin.system_status': { en: 'System Operational: All 12 Data Centers Normal', ar: 'النظام يعمل بكفاءة: جميع مراكز البيانات الـ١٢ طبيعية' },
@@ -151,10 +133,8 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
   'super_admin.add_tenant': { en: 'Add Tenant', ar: 'إضافة مستأجر جديد' },
   'super_admin.export_csv': { en: 'Export CSV', ar: 'تصدير CSV' },
   'super_admin.search_placeholder': { en: 'Search tenant, project ID or code...', ar: 'ابحث عن مستأجر، معرف المشروع أو الرمز...' },
-
-  // Founder Dashboard
   'founder.title': { en: 'Founder & Clinic Overview', ar: 'نظرة عامة للمؤسس والعيادة' },
-  'founder.welcome': { en: 'Welcome back, Dr. Julian Vance', ar: 'مرحباً بعودتك، د. جوليان فانس' },
+  'founder.welcome': { en: 'Welcome back', ar: 'مرحباً بعودتك' },
   'founder.subtitle': { en: 'Here is what is happening across your clinics today.', ar: 'إليك ملخص ما يحدث في عياداتك ومراكزك اليوم.' },
   'founder.add_patient': { en: 'Add Patient', ar: 'إضافة مريض' },
   'founder.new_booking': { en: 'New Booking', ar: 'حجز جديد' },
@@ -165,8 +145,6 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
   'founder.inventory_alerts': { en: 'Inventory Alerts', ar: 'تنبيهات المخزون الحرجة' },
   'founder.financial_overview': { en: 'Financial Overview', ar: 'الملخص المالي' },
   'founder.export_pdf': { en: 'Export PDF', ar: 'تصدير PDF' },
-
-  // Inventory
   'inventory.title': { en: 'ERP & Medical Inventory', ar: 'إدارة المخزون الطبي ونظام ERP' },
   'inventory.subtitle': { en: 'Automated booking deductions, smart purchase history, & live stock level controls.', ar: 'الاستقطاع التلقائي للحجوزات، سجل المشتريات الذكي، ومراقبة المخزون المباشرة.' },
   'inventory.total_items': { en: 'Total Tracked Items', ar: 'إجمالي المواد المتابعة' },
@@ -179,8 +157,6 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
   'inventory.scan_qr': { en: 'Scan QR / Barcode', ar: 'مسح الباركود / QR' },
   'inventory.adjust_stock': { en: 'Adjust Stock', ar: 'تعديل المخزون' },
   'inventory.add_item': { en: 'Add Item', ar: 'إضافة مادة' },
-
-  // Accounting
   'accounting.title': { en: 'Financial & Accounting Overview', ar: 'الملخص المالي والمحاسبي' },
   'accounting.subtitle': { en: 'Real-time cash flow, automated tax estimation, profit & loss, and client invoices.', ar: 'التدفقات النقدية اللحظية، تقدير الضرائب الآلي، الأرباح والخسائر وفواتير العملاء.' },
   'accounting.total_income': { en: 'Total Income', ar: 'إجمالي الإيرادات' },
@@ -191,8 +167,6 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
   'accounting.recent_invoices': { en: 'Recent Client & Corporate Invoices', ar: 'أحدث فواتير العملاء والشركات' },
   'accounting.create_invoice': { en: 'Create Invoice', ar: 'إنشاء فاتورة جديدة' },
   'accounting.export_excel': { en: 'Export Excel', ar: 'تصدير إكسيل' },
-
-  // Common Table Headers & Labels
   'common.tenant': { en: 'Tenant / Organization', ar: 'المستأجر / المؤسسة' },
   'common.project_id': { en: 'Project ID', ar: 'معرف المشروع' },
   'common.plan_type': { en: 'Plan Type', ar: 'نوع الباقة' },
@@ -225,14 +199,17 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [screen, setScreen] = useState<ScreenId>('super_admin');
+  const { profile, activeTenantId, setActiveTenantId, tenantMemberships } = useAuth();
+
+  const [screen, setScreen] = useState<ScreenId>('founder');
   const [language, setLanguage] = useState<Language>('en');
   const [theme, setTheme] = useState<ThemeMode>('dark');
-  const [tenants, setTenants] = useState<Tenant[]>(INITIAL_TENANTS);
-  const [activeTenant, setActiveTenant] = useState<Tenant>(INITIAL_TENANTS[0]);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>(INITIAL_SUBSCRIPTIONS);
-  const [chats, setChats] = useState<ChatMessage[]>(INITIAL_CHATS);
-  const [selectedChatId, setSelectedChatId] = useState<string>('chat-1');
+
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [activeTenant, setActiveTenantState] = useState<Tenant | null>(null);
+
+  const [chats, setChats] = useState<ChatMessage[]>([]);
+  const [selectedChatId, setSelectedChatId] = useState<string>('');
 
   const [announcement, setAnnouncement] = useState({
     title: 'Scheduled Maintenance',
@@ -242,15 +219,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
   const [defaultDiscount, setDefaultDiscount] = useState<string>('15%');
 
-  const [inventory, setInventory] = useState<InventoryItem[]>(INITIAL_INVENTORY);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [autoDeductLogs, setAutoDeductLogs] = useState<AutoDeductLog[]>(INITIAL_AUTO_DEDUCTIONS);
-  const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
-  const [patients, setPatients] = useState<Patient[]>(INITIAL_PATIENTS);
-  const [bookings, setBookings] = useState<Booking[]>(INITIAL_BOOKINGS);
-  const [projects] = useState<Project[]>(INITIAL_PROJECTS);
-  const [financials] = useState(FINANCIAL_METRICS);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [expenses, setExpenses] = useState<
+    { id: string; category: string; description: string; amount: number; date: string }[]
+  >([]);
 
-  // Modals state
   const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
@@ -266,11 +244,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const isRTL = language === 'ar';
 
   useEffect(() => {
-    // Synchronize HTML lang & dir
     const htmlEl = document.documentElement;
     htmlEl.lang = language;
     htmlEl.dir = isRTL ? 'rtl' : 'ltr';
-
     if (theme === 'dark') {
       htmlEl.classList.add('dark');
       htmlEl.classList.remove('light');
@@ -280,20 +256,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [language, isRTL, theme]);
 
+  useEffect(() => {
+    if (!profile) return;
+    if (profile.roleCode === 'super_admin') setScreen('super_admin');
+    else if (profile.roleCode === 'assistant') setScreen('assistant');
+    else setScreen('founder');
+  }, [profile]);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage((prev) => (prev === msg ? null : prev));
-    }, 3500);
+    setTimeout(() => setToastMessage((prev) => (prev === msg ? null : prev)), 3500);
   };
 
-  const toggleLanguage = () => {
-    setLanguage((prev) => (prev === 'en' ? 'ar' : 'en'));
-  };
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
+  const toggleLanguage = () => setLanguage((prev) => (prev === 'en' ? 'ar' : 'en'));
+  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
 
   const t = (key: string): string => {
     const entry = DICTIONARY[key];
@@ -301,142 +277,269 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return entry[language] || entry.en;
   };
 
-  const addTenant = (tenant: Omit<Tenant, 'id'>) => {
-    const newId = `t-${Date.now()}`;
-    const newTenant: Tenant = { ...tenant, id: newId };
-    setTenants((prev) => [newTenant, ...prev]);
+  const refreshTenants = useCallback(async () => {
+    if (!profile) return;
+    let query = supabase.from('tenants').select('*');
+    if (profile.roleCode !== 'super_admin') {
+      const ids = tenantMemberships.map((m) => m.tenantId);
+      if (ids.length === 0) {
+        setTenants([]);
+        return;
+      }
+      query = query.in('id', ids);
+    }
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error || !data) return;
+    const mapped = data.map(mapTenantRow);
+    setTenants(mapped);
+    if (!activeTenantId && mapped.length > 0) {
+      setActiveTenantId(mapped[0].id);
+    }
+  }, [profile, tenantMemberships, activeTenantId, setActiveTenantId]);
+
+  useEffect(() => {
+    refreshTenants();
+  }, [refreshTenants]);
+
+  useEffect(() => {
+    const found = tenants.find((tn) => tn.id === activeTenantId);
+    if (found) setActiveTenantState(found);
+  }, [tenants, activeTenantId]);
+
+  const subscriptions: Subscription[] = tenants.map(tenantToSubscription);
+
+  const refreshPatients = useCallback(async () => {
+    if (!activeTenantId) return;
+    const { data } = await supabase.from('patients').select('*').eq('tenant_id', activeTenantId).order('created_at', { ascending: false });
+    if (data) setPatients(data.map(mapPatientRow));
+  }, [activeTenantId]);
+
+  const refreshBookings = useCallback(async () => {
+    if (!activeTenantId) return;
+    const { data } = await supabase
+      .from('bookings')
+      .select('*, patients(full_name)')
+      .eq('tenant_id', activeTenantId)
+      .order('scheduled_at', { ascending: false });
+    if (data) setBookings(data.map(mapBookingRow));
+  }, [activeTenantId]);
+
+  const refreshInventory = useCallback(async () => {
+    if (!activeTenantId) return;
+    const { data } = await supabase
+      .from('inventory_items')
+      .select('*, inventory_stock(quantity_on_hand), inventory_price_history(purchase_price, effective_date)')
+      .eq('tenant_id', activeTenantId);
+    if (data) setInventory(data.map(mapInventoryRow));
+  }, [activeTenantId]);
+
+  const refreshInvoices = useCallback(async () => {
+    if (!activeTenantId) return;
+    const { data } = await supabase
+      .from('invoices')
+      .select('*, invoice_items(*), patients(full_name)')
+      .eq('tenant_id', activeTenantId)
+      .order('issued_at', { ascending: false });
+    if (data) setInvoices(data.map(mapInvoiceRow));
+  }, [activeTenantId]);
+
+  const refreshExpenses = useCallback(async () => {
+    if (!activeTenantId) return;
+    const { data } = await supabase
+      .from('expenses')
+      .select('*')
+      .eq('tenant_id', activeTenantId)
+      .order('expense_date', { ascending: false });
+    if (data) {
+      setExpenses(
+        data.map((e: any) => ({
+          id: e.id,
+          category: e.category || '',
+          description: e.description,
+          amount: Number(e.amount),
+          date: e.expense_date,
+        }))
+      );
+    }
+  }, [activeTenantId]);
+
+  const refreshProjects = useCallback(async () => {
+    if (!profile) return;
+    let query = supabase.from('projects').select('*, tenants(name)');
+    if (profile.roleCode !== 'super_admin') {
+      if (!activeTenantId) {
+        setProjects([]);
+        return;
+      }
+      query = query.eq('tenant_id', activeTenantId);
+    }
+    const { data } = await query.order('created_at', { ascending: false });
+    if (data) setProjects(data.map(mapProjectRow));
+  }, [profile, activeTenantId]);
+
+  const refreshChats = useCallback(async () => {
+    if (!profile || profile.roleCode !== 'super_admin') return;
+
+    const { data: conversations } = await supabase
+      .from('support_conversations')
+      .select('id, tenant_id, tenants(name)')
+      .order('created_at', { ascending: false });
+
+    if (!conversations || conversations.length === 0) {
+      setChats([]);
+      return;
+    }
+
+    const mapped: ChatMessage[] = [];
+    for (const conv of conversations) {
+      const { data: msgs } = await supabase
+        .from('support_messages')
+        .select('id, body, sender_user_id, created_at, users(full_name)')
+        .eq('conversation_id', conv.id)
+        .order('created_at', { ascending: true });
+
+      const tenantName = (conv as any).tenants ? (conv as any).tenants.name : 'Unknown';
+      const messages = (msgs || []).map((m: any) => ({
+        id: m.id,
+        text: m.body,
+        sender: m.sender_user_id === profile.id ? ('admin' as const) : ('user' as const),
+        timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }));
+      const last = messages[messages.length - 1];
+
+      mapped.push({
+        id: conv.id,
+        tenant: tenantName,
+        senderName: tenantName,
+        senderRole: 'Project Founder',
+        senderRoleAr: 'مؤسس المشروع',
+        projectId: (conv.tenant_id as string).slice(0, 8).toUpperCase(),
+        lastMessage: last ? last.text : '',
+        timeAgo: last ? last.timestamp : '',
+        avatar: '',
+        isOnline: true,
+        statusColor: 'green',
+        messages,
+      });
+    }
+
+    setChats(mapped);
+    if (!selectedChatId && mapped.length > 0) setSelectedChatId(mapped[0].id);
+  }, [profile, selectedChatId]);
+
+  useEffect(() => {
+    refreshPatients();
+    refreshBookings();
+    refreshInventory();
+    refreshInvoices();
+    refreshProjects();
+    refreshExpenses();
+  }, [refreshPatients, refreshBookings, refreshInventory, refreshInvoices, refreshProjects, refreshExpenses]);
+
+  useEffect(() => {
+    refreshChats();
+  }, [refreshChats]);
+
+  const addTenant = async (tenant: Omit<Tenant, 'id'>) => {
+    const { error } = await supabase.from('tenants').insert({
+      name: tenant.name,
+      name_ar: tenant.nameAr,
+      code: tenant.code,
+      logo_url: tenant.logo,
+      plan: tenant.plan,
+      status: tenant.status,
+      discount_code: tenant.discountCode || null,
+      subscription_renews_at: tenant.expiryDate || null,
+      mrr: tenant.mrr,
+      location: tenant.location,
+    });
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshTenants();
     showToast(isRTL ? 'تمت إضافة المستأجر الجديد بنجاح' : 'New tenant added successfully');
   };
 
-  const updateTenant = (id: string, updates: Partial<Tenant>) => {
-    setTenants((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
-    );
-    if (activeTenant.id === id) {
-      setActiveTenant((prev) => ({ ...prev, ...updates }));
+  const updateTenant = async (id: string, updates: Partial<Tenant>) => {
+    const payload: Record<string, any> = {};
+    if (updates.name !== undefined) payload.name = updates.name;
+    if (updates.nameAr !== undefined) payload.name_ar = updates.nameAr;
+    if (updates.code !== undefined) payload.code = updates.code;
+    if (updates.logo !== undefined) payload.logo_url = updates.logo;
+    if (updates.plan !== undefined) payload.plan = updates.plan;
+    if (updates.status !== undefined) payload.status = updates.status;
+    if (updates.discountCode !== undefined) payload.discount_code = updates.discountCode;
+    if (updates.expiryDate !== undefined) payload.subscription_renews_at = updates.expiryDate;
+    if (updates.mrr !== undefined) payload.mrr = updates.mrr;
+    if (updates.location !== undefined) payload.location = updates.location;
+
+    const { error } = await supabase.from('tenants').update(payload).eq('id', id);
+    if (error) {
+      showToast(error.message);
+      return;
     }
+    await refreshTenants();
   };
 
-  const updateSubscriptionStatus = (
-    id: string,
-    status: 'Active' | 'Expiring Soon' | 'Suspended'
-  ) => {
-    setSubscriptions((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, status } : s))
-    );
-    showToast(
-      isRTL
-        ? `تم تحديث حالة الاشتراك إلى "${status}"`
-        : `Subscription status updated to "${status}"`
-    );
+  const setActiveTenant = (tenant: Tenant) => setActiveTenantId(tenant.id);
+
+  const updateSubscriptionStatus = (id: string, status: 'Active' | 'Expiring Soon' | 'Suspended') => {
+    updateTenant(id, { status });
+    showToast(isRTL ? `تم تحديث حالة الاشتراك إلى "${status}"` : `Subscription status updated to "${status}"`);
   };
 
   const applyDiscountCode = (id: string, code: string) => {
-    setSubscriptions((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, discount: code } : s))
-    );
-    showToast(
-      isRTL ? `تم تطبيق كود الخصم "${code}"` : `Discount code "${code}" applied`
-    );
+    updateTenant(id, { discountCode: code });
+    showToast(isRTL ? `تم تطبيق كود الخصم "${code}"` : `Discount code "${code}" applied`);
   };
 
-  const sendChatMessage = (chatId: string, text: string) => {
-    if (!text.trim()) return;
-    const newMsg = {
-      id: `m-${Date.now()}`,
-      text,
-      sender: 'admin' as const,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setChats((prev) =>
-      prev.map((c) => {
-        if (c.id === chatId) {
-          return {
-            ...c,
-            lastMessage: text,
-            messages: [...c.messages, newMsg],
-          };
-        }
-        return c;
-      })
-    );
-
-    // Auto-reply simulation for interactive immersion
-    setTimeout(() => {
-      const repliesEn = [
-        'Received. Our clinic IT supervisor is syncing the database nodes right now.',
-        'Thank you! That resolved our billing module calculation.',
-        'Great! We will test the auto-deduct flow during our next scheduled shift.',
-      ];
-      const repliesAr = [
-        'تم الاستلام. يقوم المشرف التقني لدينا بمزامنة خوادم قواعد البيانات الآن.',
-        'شكراً جزيلاً! تم حل احتساب نموذج الفوترة بنجاح.',
-        'ممتاز! سنقوم باختبار مسار الاستقطاع التلقائي خلال الوردية القادمة.',
-      ];
-      const randomReply = isRTL
-        ? repliesAr[Math.floor(Math.random() * repliesAr.length)]
-        : repliesEn[Math.floor(Math.random() * repliesEn.length)];
-
-      const userReply = {
-        id: `m-reply-${Date.now()}`,
-        text: randomReply,
-        sender: 'user' as const,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-
-      setChats((prev) =>
-        prev.map((c) => {
-          if (c.id === chatId) {
-            return {
-              ...c,
-              lastMessage: randomReply,
-              messages: [...c.messages, userReply],
-            };
-          }
-          return c;
-        })
-      );
-    }, 1400);
+  const sendChatMessage = async (chatId: string, text: string) => {
+    if (!text.trim() || !profile) return;
+    const { error } = await supabase.from('support_messages').insert({
+      conversation_id: chatId,
+      sender_user_id: profile.id,
+      body: text,
+    });
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshChats();
   };
 
-  const updateAnnouncement = (ann: {
-    title: string;
-    titleAr: string;
-    message: string;
-    messageAr: string;
-  }) => {
+  const updateAnnouncement = (ann: { title: string; titleAr: string; message: string; messageAr: string }) => {
     setAnnouncement(ann);
     showToast(isRTL ? 'تم تحديث الإعلان العام للنظام' : 'System announcement updated');
   };
 
-  const toggleAutoDeduct = (id: string) => {
-    setInventory((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, autoDeduct: !item.autoDeduct } : item
-      )
-    );
-  };
-
-  const adjustStock = (id: string, newStock: number, reason?: string) => {
+  const toggleAutoDeduct = async (id: string) => {
     const item = inventory.find((i) => i.id === id);
     if (!item) return;
+    const { error } = await supabase.from('inventory_items').update({ auto_deduct: !item.autoDeduct }).eq('id', id);
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshInventory();
+  };
 
+  const adjustStock = async (id: string, newStock: number, reason?: string) => {
+    const item = inventory.find((i) => i.id === id);
+    if (!item) return;
     const diff = newStock - item.stockLevel;
-    const newStatus: 'critical' | 'low' | 'normal' =
-      newStock <= item.minReq / 2
-        ? 'critical'
-        : newStock <= item.minReq
-        ? 'low'
-        : 'normal';
 
-    setInventory((prev) =>
-      prev.map((i) =>
-        i.id === id ? { ...i, stockLevel: newStock, status: newStatus } : i
-      )
-    );
+    const { error } = await supabase
+      .from('inventory_stock')
+      .update({ quantity_on_hand: newStock, updated_at: new Date().toISOString() })
+      .eq('item_id', id);
+    if (error) {
+      showToast(error.message);
+      return;
+    }
 
-    // Log the adjustment
+    await refreshInventory();
+
     if (diff !== 0) {
       const newLog: AutoDeductLog = {
         id: `log-${Date.now()}`,
@@ -451,88 +554,239 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     showToast(
-      isRTL
-        ? `تم تحديث رصيد ${item.nameAr} إلى ${newStock} ${item.unit}`
-        : `Updated ${item.nameEn} stock to ${newStock} ${item.unit}`
+      isRTL ? `تم تحديث رصيد ${item.nameAr} إلى ${newStock} ${item.unit}` : `Updated ${item.nameEn} stock to ${newStock} ${item.unit}`
     );
   };
 
-  const addInventoryItem = (item: Omit<InventoryItem, 'id'>) => {
-    const newItem: InventoryItem = {
-      ...item,
-      id: `inv-${Date.now()}`,
-    };
-    setInventory((prev) => [newItem, ...prev]);
+  const addInventoryItem = async (item: Omit<InventoryItem, 'id'>) => {
+    if (!activeTenantId) return;
+    const { data, error } = await supabase
+      .from('inventory_items')
+      .insert({
+        tenant_id: activeTenantId,
+        name_en: item.nameEn,
+        name_ar: item.nameAr,
+        sku: item.sku,
+        category: item.category,
+        category_ar: item.categoryAr,
+        unit: item.unit,
+        max_stock: item.maxStock,
+        reorder_level: item.minReq,
+        unit_cost: item.unitCost,
+        auto_deduct: item.autoDeduct,
+        location: item.location,
+        supplier: item.supplier,
+      })
+      .select()
+      .single();
+
+    if (error || !data) {
+      showToast(error?.message || 'Error');
+      return;
+    }
+
+    await supabase.from('inventory_stock').insert({ item_id: data.id, quantity_on_hand: item.stockLevel });
+    if (item.unitCost) {
+      await supabase.from('inventory_price_history').insert({ item_id: data.id, purchase_price: item.unitCost, supplier: item.supplier });
+    }
+
+    await refreshInventory();
     showToast(isRTL ? 'تمت إضافة الصنف إلى المخزون' : 'Item added to inventory');
   };
 
-  const addInvoice = (invoice: Omit<Invoice, 'id'>) => {
-    const newInvoice: Invoice = {
-      ...invoice,
-      id: `inv-${Date.now()}`,
-    };
-    setInvoices((prev) => [newInvoice, ...prev]);
-    showToast(
-      isRTL
-        ? `تم إنشاء الفاتورة ${invoice.invoiceNumber} بنجاح`
-        : `Invoice ${invoice.invoiceNumber} created successfully`
-    );
-  };
+  const addInvoice = async (invoice: Omit<Invoice, 'id'>) => {
+    if (!activeTenantId) return;
+    const { data, error } = await supabase
+      .from('invoices')
+      .insert({
+        tenant_id: activeTenantId,
+        invoice_number: invoice.invoiceNumber,
+        client_name: invoice.clientName,
+        client_name_ar: invoice.clientNameAr || null,
+        total_amount: invoice.amount,
+        status: invoice.status,
+        due_date: invoice.dueDate || null,
+      })
+      .select()
+      .single();
 
-  const updateInvoiceStatus = (
-    id: string,
-    status: 'paid' | 'pending' | 'overdue'
-  ) => {
-    setInvoices((prev) =>
-      prev.map((inv) => (inv.id === id ? { ...inv, status } : inv))
-    );
-    showToast(
-      isRTL
-        ? `تم تحديث حالة الفاتورة إلى "${status}"`
-        : `Invoice status updated to "${status}"`
-    );
-  };
+    if (error || !data) {
+      showToast(error?.message || 'Error');
+      return;
+    }
 
-  const addPatient = (patient: Omit<Patient, 'id'>) => {
-    const newPatient: Patient = {
-      ...patient,
-      id: `pat-${Date.now()}`,
-    };
-    setPatients((prev) => [newPatient, ...prev]);
-    showToast(isRTL ? 'تم تسجيل المريض الجديد بنجاح' : 'Patient registered successfully');
-  };
-
-  const addBooking = (booking: Omit<Booking, 'id'>) => {
-    const newBooking: Booking = {
-      ...booking,
-      id: `b-${Date.now()}`,
-    };
-    setBookings((prev) => [newBooking, ...prev]);
-
-    // Perform simulated auto-deduction if inventory items are linked
-    const consumableItem = inventory.find((i) => i.autoDeduct && i.stockLevel > 0);
-    if (consumableItem) {
-      adjustStock(
-        consumableItem.id,
-        consumableItem.stockLevel - 1,
-        `Auto-Deduct (Booking #${booking.bookingNumber})`
+    if (invoice.items.length > 0) {
+      await supabase.from('invoice_items').insert(
+        invoice.items.map((it) => ({
+          invoice_id: data.id,
+          description: it.description,
+          quantity: it.quantity,
+          unit_price: it.unitPrice,
+        }))
       );
     }
 
-    showToast(
-      isRTL
-        ? `تم تأكيد حجز الموعد ${booking.bookingNumber}`
-        : `Booking ${booking.bookingNumber} confirmed`
-    );
+    await refreshInvoices();
+    showToast(isRTL ? `تم إنشاء الفاتورة ${invoice.invoiceNumber} بنجاح` : `Invoice ${invoice.invoiceNumber} created successfully`);
   };
 
-  const updateBookingStatus = (
-    id: string,
-    status: 'confirmed' | 'pending' | 'cancelled'
-  ) => {
-    setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, status } : b))
-    );
+  const addExpense = async (expense: { category: string; description: string; amount: number; date: string }) => {
+    if (!activeTenantId) return;
+    const { error } = await supabase.from('expenses').insert({
+      tenant_id: activeTenantId,
+      category: expense.category,
+      description: expense.description,
+      amount: expense.amount,
+      expense_date: expense.date,
+      created_by: profile?.id || null,
+    });
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshExpenses();
+    showToast(isRTL ? 'تم تسجيل المصروف بنجاح' : 'Expense recorded successfully');
+  };
+
+  const monthKey = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return `${d.getFullYear()}-${d.getMonth()}`;
+  };
+  const monthLabel = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString(undefined, { month: 'short' });
+
+  const financials = useMemo(() => {
+    const now = new Date();
+    const months: { key: string; label: string }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleDateString(undefined, { month: 'short' }) });
+    }
+
+    const paidInvoices = invoices.filter((inv) => inv.status === 'paid');
+    const totalIncome = paidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const netProfit = totalIncome - totalExpenses;
+    const estimatedTaxes = Math.max(netProfit, 0) * 0.15;
+
+    const monthlyTrends = months.map((m) => {
+      const income = paidInvoices
+        .filter((inv) => inv.date && monthKey(inv.date) === m.key)
+        .reduce((sum, inv) => sum + inv.amount, 0);
+      const exp = expenses
+        .filter((e) => e.date && monthKey(e.date) === m.key)
+        .reduce((sum, e) => sum + e.amount, 0);
+      return { month: m.label, income, expenses: exp, profit: income - exp };
+    });
+
+    const maxIncome = Math.max(1, ...monthlyTrends.map((m) => m.income));
+    const maxLoss = Math.max(1, ...monthlyTrends.map((m) => Math.max(m.expenses, m.profit)));
+    const trendsWithPct = monthlyTrends.map((m) => ({
+      ...m,
+      barPct: Math.round((m.income / maxIncome) * 100),
+      lossPct: Math.round((Math.max(m.expenses, m.profit) / maxLoss) * 100),
+    }));
+
+    const thisMonth = monthlyTrends[monthlyTrends.length - 1];
+    const lastMonth = monthlyTrends[monthlyTrends.length - 2];
+    const pctChange = (curr: number, prev: number) => {
+      if (!prev) return curr > 0 ? '+100%' : '0.0%';
+      const pct = ((curr - prev) / prev) * 100;
+      return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}% vs last month`;
+    };
+
+    return {
+      totalIncome,
+      incomeChange: lastMonth ? pctChange(thisMonth.income, lastMonth.income) : '0.0%',
+      totalExpenses,
+      expensesChange: lastMonth ? pctChange(thisMonth.expenses, lastMonth.expenses) : '0.0%',
+      netProfit,
+      profitChange: lastMonth ? pctChange(thisMonth.profit, lastMonth.profit) : '0.0%',
+      estimatedTaxes,
+      taxesChange: '0.0%',
+      totalRevenueMrr: activeTenant?.mrr || 0,
+      mrrChange: '0.0%',
+      monthlyTrends: trendsWithPct,
+    };
+  }, [invoices, expenses, activeTenant]);
+
+  const updateInvoiceStatus = async (id: string, status: 'paid' | 'pending' | 'overdue') => {
+    const { error } = await supabase.from('invoices').update({ status }).eq('id', id);
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshInvoices();
+    showToast(isRTL ? `تم تحديث حالة الفاتورة إلى "${status}"` : `Invoice status updated to "${status}"`);
+  };
+
+  const addPatient = async (patient: Omit<Patient, 'id'>) => {
+    if (!activeTenantId) return;
+    const { error } = await supabase.from('patients').insert({
+      tenant_id: activeTenantId,
+      full_name: patient.nameEn,
+      name_en: patient.nameEn,
+      name_ar: patient.nameAr,
+      age: patient.age,
+      gender: patient.gender,
+      phone: patient.phone,
+      blood_type: patient.bloodType,
+      national_id: patient.nationalId,
+      doctor: patient.doctor,
+      condition: patient.condition,
+      status: patient.status,
+    });
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshPatients();
+    showToast(isRTL ? 'تم تسجيل المريض الجديد بنجاح' : 'Patient registered successfully');
+  };
+
+  const addBooking = async (booking: Omit<Booking, 'id'>) => {
+    if (!activeTenantId) return;
+    const { error } = await supabase.from('bookings').insert({
+      tenant_id: activeTenantId,
+      patient_id: patients.find((p) => p.nameEn === booking.patientName || p.nameAr === booking.patientNameAr)?.id || null,
+      booking_number: booking.bookingNumber,
+      patient_name_ar: booking.patientNameAr,
+      doctor_name: booking.doctorName,
+      doctor_name_ar: booking.doctorNameAr,
+      department: booking.department,
+      department_ar: booking.departmentAr,
+      time_label: booking.time,
+      date_label: booking.date,
+      status: booking.status,
+      booking_type: booking.type,
+      service_name: booking.department,
+    });
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshBookings();
+
+    const consumableItem = inventory.find((i) => i.autoDeduct && i.stockLevel > 0);
+    if (consumableItem) {
+      await supabase.from('inventory_consumption_log').insert({
+        item_id: consumableItem.id,
+        quantity_used: 1,
+        created_by: profile?.id || null,
+      });
+      await refreshInventory();
+    }
+
+    showToast(isRTL ? `تم تأكيد حجز الموعد ${booking.bookingNumber}` : `Booking ${booking.bookingNumber} confirmed`);
+  };
+
+  const updateBookingStatus = async (id: string, status: 'confirmed' | 'pending' | 'cancelled') => {
+    const { error } = await supabase.from('bookings').update({ status }).eq('id', id);
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshBookings();
   };
 
   const openPdfExport = (title: string) => {
@@ -552,7 +806,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setTheme,
         toggleTheme,
         isRTL,
-        activeTenant,
+        activeTenant: activeTenant as Tenant,
         setActiveTenant,
         tenants,
         addTenant,
@@ -575,6 +829,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addInventoryItem,
         invoices,
         financials,
+        addExpense,
         addInvoice,
         updateInvoiceStatus,
         patients,

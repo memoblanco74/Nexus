@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { ScreenId } from '../../types';
 import {
   ShieldCheck,
@@ -34,6 +35,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
     isRTL,
     t,
   } = useApp();
+  const { profile } = useAuth();
+
+  const ROLE_SCREENS: Record<string, ScreenId[]> = {
+    super_admin: ['super_admin', 'settings', 'support'],
+    founder: ['founder', 'projects', 'patients', 'bookings', 'inventory', 'accounting', 'reports', 'settings', 'support'],
+    assistant: ['assistant', 'patients', 'bookings', 'inventory', 'settings', 'support'],
+  };
+  const allowedScreens = profile ? ROLE_SCREENS[profile.roleCode] || [] : [];
 
   const navItems: Array<{
     id: ScreenId;
@@ -107,6 +116,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
     },
   ];
 
+  const visibleNavItems = navItems.filter((item) => allowedScreens.includes(item.id));
+
   const handleNavClick = (id: ScreenId) => {
     setScreen(id);
     if (isOpenMobile) {
@@ -161,31 +172,39 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
         </div>
 
         {/* Tenant Quick Switcher Header Card */}
-        <div className="p-3 border-b border-slate-800/60 dark:border-slate-800/60 light:border-slate-200">
-          <button
-            onClick={() => setIsTenantModalOpen(true)}
-            className="flex w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 p-2.5 text-left text-xs transition hover:border-slate-700 hover:bg-slate-900 dark:border-slate-800 dark:bg-slate-900/60 light:border-slate-200 light:bg-slate-50 light:hover:bg-slate-100"
-          >
-            <div className="flex items-center gap-2.5 overflow-hidden">
-              <img
-                src={activeTenant.logo}
-                alt={activeTenant.name}
-                className="h-7 w-7 rounded-lg object-cover ring-1 ring-slate-700"
-              />
-              <div className="truncate">
-                <p className="font-semibold text-white dark:text-white light:text-slate-900 truncate">
-                  {language === 'ar' ? activeTenant.nameAr : activeTenant.name}
-                </p>
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                  <span>{activeTenant.code}</span>
-                  <span>•</span>
-                  <span className="text-emerald-400 font-medium">{activeTenant.plan}</span>
+        {activeTenant && (
+          <div className="p-3 border-b border-slate-800/60 dark:border-slate-800/60 light:border-slate-200">
+            <button
+              onClick={() => setIsTenantModalOpen(true)}
+              className="flex w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 p-2.5 text-left text-xs transition hover:border-slate-700 hover:bg-slate-900 dark:border-slate-800 dark:bg-slate-900/60 light:border-slate-200 light:bg-slate-50 light:hover:bg-slate-100"
+            >
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                {activeTenant.logo ? (
+                  <img
+                    src={activeTenant.logo}
+                    alt={activeTenant.name}
+                    className="h-7 w-7 rounded-lg object-cover ring-1 ring-slate-700"
+                  />
+                ) : (
+                  <div className="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400">
+                    <Building className="h-3.5 w-3.5" />
+                  </div>
+                )}
+                <div className="truncate">
+                  <p className="font-semibold text-white dark:text-white light:text-slate-900 truncate">
+                    {language === 'ar' ? activeTenant.nameAr : activeTenant.name}
+                  </p>
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                    <span>{activeTenant.code}</span>
+                    <span>•</span>
+                    <span className="text-emerald-400 font-medium">{activeTenant.plan}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
-          </button>
-        </div>
+              <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
+            </button>
+          </div>
+        )}
 
         {/* Navigation list */}
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
@@ -193,7 +212,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
             {language === 'ar' ? 'الوحدات الرئيسية' : 'Portals & Modules'}
           </div>
 
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = screen === item.id;
             return (
               <button

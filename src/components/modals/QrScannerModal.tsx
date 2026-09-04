@@ -184,7 +184,7 @@ export const TenantSwitcherModal: React.FC = () => {
           <div className="mt-4 space-y-3">
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
               {tenants.map((t) => {
-                const isActive = t.id === activeTenant.id;
+                const isActive = activeTenant ? t.id === activeTenant.id : false;
                 return (
                   <button
                     key={t.id}
@@ -329,7 +329,7 @@ export const ExportPdfModal: React.FC = () => {
             <div>
               <h2 className="text-base font-extrabold text-white">{pdfExportTitle}</h2>
               <p className="text-[11px] text-blue-400 font-medium mt-0.5">
-                {activeTenant.name} ({activeTenant.code}) • Generated on {new Date().toLocaleDateString()}
+                {activeTenant ? `${activeTenant.name} (${activeTenant.code})` : ''} • Generated on {new Date().toLocaleDateString()}
               </p>
             </div>
             <span className="rounded bg-emerald-500/20 text-emerald-400 px-2 py-1 text-[10px] font-bold">

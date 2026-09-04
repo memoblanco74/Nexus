@@ -5,6 +5,8 @@
 
 import React, { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthScreen } from './components/auth/AuthScreen';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
@@ -83,10 +85,30 @@ const DashboardContent: React.FC = () => {
   );
 };
 
-export default function App() {
+const AuthGate: React.FC = () => {
+  const { session, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0b0f17] text-slate-400 text-xs">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!session) return <AuthScreen />;
+
   return (
     <AppProvider>
       <DashboardContent />
     </AppProvider>
+  );
+};
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AuthGate />
+    </AuthProvider>
   );
 }

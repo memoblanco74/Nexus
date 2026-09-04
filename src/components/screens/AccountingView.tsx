@@ -28,8 +28,28 @@ export const AccountingView: React.FC = () => {
     setIsCreateInvoiceOpen,
     openPdfExport,
     showToast,
+    addExpense,
     t,
   } = useApp();
+
+  const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
+  const [expenseCategory, setExpenseCategory] = useState('');
+  const [expenseDescription, setExpenseDescription] = useState('');
+  const [expenseAmount, setExpenseAmount] = useState('');
+
+  const handleAddExpense = () => {
+    if (!expenseDescription.trim() || !expenseAmount) return;
+    addExpense({
+      category: expenseCategory || 'General',
+      description: expenseDescription,
+      amount: Number(expenseAmount),
+      date: new Date().toISOString().slice(0, 10),
+    });
+    setExpenseCategory('');
+    setExpenseDescription('');
+    setExpenseAmount('');
+    setIsExpenseFormOpen(false);
+  };
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending' | 'overdue'>('all');
@@ -92,6 +112,14 @@ export const AccountingView: React.FC = () => {
           >
             <Plus className="h-4 w-4" />
             <span>{t('accounting.create_invoice')}</span>
+          </button>
+
+          <button
+            onClick={() => setIsExpenseFormOpen(true)}
+            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700 dark:bg-slate-900 light:border-slate-300 light:bg-slate-100 light:text-slate-800"
+          >
+            <TrendingDown className="h-4 w-4 text-red-400" />
+            <span>{isRTL ? 'إضافة مصروف' : 'Add Expense'}</span>
           </button>
 
           <button
@@ -239,7 +267,12 @@ export const AccountingView: React.FC = () => {
 
         {/* Dynamic Chart Container */}
         <div className="mt-6 grid grid-cols-6 gap-3 items-end h-48 pt-4">
-          {financials.monthlyTrends.map((m) => {
+          {(() => {
+            const chartMax = Math.max(
+              1,
+              ...financials.monthlyTrends.map((m) => Math.max(m.income, m.expenses, m.profit))
+            );
+            return financials.monthlyTrends.map((m) => {
             return (
               <div key={m.month} className="flex flex-col items-center gap-2 h-full justify-end group">
                 <div className="w-full flex items-end justify-center gap-1.5 h-36">
@@ -251,13 +284,13 @@ export const AccountingView: React.FC = () => {
                   />
                   {/* Expense bar */}
                   <div
-                    style={{ height: `${(m.expenses / 124500) * 100}%` }}
+                    style={{ height: `${(m.expenses / chartMax) * 100}%` }}
                     className="w-4 rounded-t-md bg-slate-700 group-hover:bg-slate-600 transition-all"
                     title={`Expenses: $${m.expenses.toLocaleString()}`}
                   />
                   {/* Profit bar */}
                   <div
-                    style={{ height: `${(m.profit / 124500) * 100}%` }}
+                    style={{ height: `${(m.profit / chartMax) * 100}%` }}
                     className="w-4 rounded-t-md bg-emerald-500 group-hover:bg-emerald-400 transition-all shadow-sm shadow-emerald-500/20"
                     title={`Profit: $${m.profit.toLocaleString()}`}
                   />
@@ -268,7 +301,8 @@ export const AccountingView: React.FC = () => {
                 </div>
               </div>
             );
-          })}
+            });
+          })()}
         </div>
       </div>
 
@@ -394,6 +428,47 @@ export const AccountingView: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {isExpenseFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-3">
+            <h3 className="text-sm font-bold text-white">{isRTL ? 'إضافة مصروف جديد' : 'Add New Expense'}</h3>
+            <input
+              value={expenseCategory}
+              onChange={(e) => setExpenseCategory(e.target.value)}
+              placeholder={isRTL ? 'الفئة (مثال: إيجار، رواتب)' : 'Category (e.g. Rent, Payroll)'}
+              className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+            />
+            <input
+              value={expenseDescription}
+              onChange={(e) => setExpenseDescription(e.target.value)}
+              placeholder={isRTL ? 'الوصف' : 'Description'}
+              className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+            />
+            <input
+              type="number"
+              value={expenseAmount}
+              onChange={(e) => setExpenseAmount(e.target.value)}
+              placeholder={isRTL ? 'المبلغ' : 'Amount'}
+              className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+            />
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setIsExpenseFormOpen(false)}
+                className="flex-1 rounded-xl border border-slate-700 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-900"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleAddExpense}
+                className="flex-1 rounded-xl bg-blue-600 py-2 text-xs font-semibold text-white hover:bg-blue-500"
+              >
+                {t('common.save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

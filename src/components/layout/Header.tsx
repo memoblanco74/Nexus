@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   Search,
   Bell,
@@ -12,6 +13,7 @@ import {
   CheckCircle2,
   Sparkles,
   Layers,
+  LogOut,
 } from 'lucide-react';
 
 export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSidebar }) => {
@@ -26,6 +28,7 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
     isRTL,
     t,
   } = useApp();
+  const { profile, signOut } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
@@ -83,20 +86,26 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
         {/* Right section: System Badge, Tenant Selector, Language & Theme Controls, Profile */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Tenant Switcher Button */}
-          <button
-            onClick={() => setIsTenantModalOpen(true)}
-            className="hidden md:flex items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-900/80 px-2.5 py-1.5 text-xs text-slate-200 hover:border-slate-600 dark:border-slate-800 dark:bg-slate-900/80 light:border-slate-300 light:bg-slate-100 light:text-slate-800 transition"
-          >
-            <img
-              src={activeTenant.logo}
-              alt={activeTenant.name}
-              className="h-5 w-5 rounded-full object-cover ring-1 ring-blue-500/40"
-            />
-            <span className="font-medium truncate max-w-[110px]">
-              {language === 'ar' ? activeTenant.nameAr : activeTenant.name}
-            </span>
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-          </button>
+          {activeTenant && (
+            <button
+              onClick={() => setIsTenantModalOpen(true)}
+              className="hidden md:flex items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-900/80 px-2.5 py-1.5 text-xs text-slate-200 hover:border-slate-600 dark:border-slate-800 dark:bg-slate-900/80 light:border-slate-300 light:bg-slate-100 light:text-slate-800 transition"
+            >
+              {activeTenant.logo ? (
+                <img
+                  src={activeTenant.logo}
+                  alt={activeTenant.name}
+                  className="h-5 w-5 rounded-full object-cover ring-1 ring-blue-500/40"
+                />
+              ) : (
+                <Building2 className="h-4 w-4 text-blue-400" />
+              )}
+              <span className="font-medium truncate max-w-[110px]">
+                {language === 'ar' ? activeTenant.nameAr : activeTenant.name}
+              </span>
+              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+            </button>
+          )}
 
           {/* System Operational Indicator */}
           <div className="hidden xl:flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-400 border border-emerald-500/20">
@@ -167,16 +176,25 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
             )}
           </div>
 
-          {/* User Profile Headshot */}
+          {/* User Profile & Sign Out */}
           <div className="flex items-center gap-2 pl-1">
+            <div className="hidden sm:flex flex-col items-end leading-tight">
+              <span className="text-xs font-semibold text-white">{profile?.fullName || profile?.username}</span>
+              <span className="text-[10px] text-slate-400 capitalize">{profile?.roleCode.replace('_', ' ')}</span>
+            </div>
             <div className="relative">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuApBl0LJ3KCCkD49pBYKaJdFnxeORVPgoryporuU_pxRJKQm4acWeXJbsYfo8dNAmtTMdFV-yhNC508cGz8jsmyH1_edm_qUp-WanKkRl0bf2jNrLX3At_gnnq5mAJxNreoPggeXheEmIscyS5jdKm4alPN2iwf8E_WhboWRwx0FdxA4JVFCidVOA_usxwsW4bGleAIC5StP8f1g8DX-ygG4ToXGWsGNiiQzZRtaTfeHYpRgeY58XKR8Q"
-                alt="Super Admin"
-                className="h-8 w-8 rounded-full object-cover ring-2 ring-blue-500/50"
-              />
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white text-xs font-bold ring-2 ring-blue-500/50">
+                {(profile?.fullName || profile?.username || '?').charAt(0).toUpperCase()}
+              </div>
               <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
             </div>
+            <button
+              onClick={() => signOut()}
+              title={isRTL ? 'تسجيل الخروج' : 'Sign out'}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-red-500/10 hover:text-red-400 transition"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
       </div>
