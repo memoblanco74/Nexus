@@ -8,3 +8,11 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 );
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/Nexus/sw.js').catch((err) => {
+      console.error('Service worker registration failed:', err);
+    });
+  });
+}

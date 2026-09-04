@@ -86,7 +86,7 @@ const DashboardContent: React.FC = () => {
 };
 
 const AuthGate: React.FC = () => {
-  const { session, loading } = useAuth();
+  const { session, profile, loading, signOut } = useAuth();
 
   if (loading) {
     return (
@@ -97,6 +97,27 @@ const AuthGate: React.FC = () => {
   }
 
   if (!session) return <AuthScreen />;
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0b0f17] text-slate-100 px-4">
+        <div className="max-w-sm text-center space-y-3">
+          <p className="text-sm font-semibold text-red-400">Account setup issue</p>
+          <p className="text-xs text-slate-400">
+            Your account is missing a valid role assignment. Please contact the administrator, or check the
+            <code className="mx-1 rounded bg-slate-800 px-1">users.role_id</code>
+            column in the database.
+          </p>
+          <button
+            onClick={() => signOut()}
+            className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500"
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AppProvider>

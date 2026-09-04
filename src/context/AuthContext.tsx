@@ -61,16 +61,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
+    const roleRow = (userRow as any).roles;
+    if (!roleRow || !roleRow.code) {
+      console.error('User row has no matching role (orphaned role_id):', userRow.id);
+      setProfile(null);
+      setTenantMemberships([]);
+      setActiveTenantId(null);
+      return;
+    }
+
     setProfile({
       id: userRow.id,
       username: userRow.username,
       fullName: userRow.full_name,
       email: userRow.email,
       phone: userRow.phone,
-      roleCode: (userRow as any).roles.code,
+      roleCode: roleRow.code,
     });
 
-    if ((userRow as any).roles.code !== 'super_admin') {
+    if (roleRow.code !== 'super_admin') {
       const { data: memberships } = await supabase
         .from('tenant_users')
         .select('tenant_id, is_founder')

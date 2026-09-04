@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import { InstallAppButton } from './InstallAppButton';
 import {
   Search,
   Bell,
@@ -112,6 +113,9 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span>{language === 'ar' ? 'الخوادم نشطة (١٢ عقدة)' : 'Operational (12 Nodes)'}</span>
           </div>
+
+          {/* Install App */}
+          <InstallAppButton isRTL={isRTL} />
 
           {/* Language Switcher */}
           <button
