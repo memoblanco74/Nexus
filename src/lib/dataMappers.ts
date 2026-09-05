@@ -17,6 +17,7 @@ export function mapTenantRow(row: any): Tenant {
     location: row.location || '',
     systemId: row.system_id || undefined,
     subscriptionPaused: row.subscription_paused === true,
+    startDate: row.subscription_started_at || '',
   };
 }
 
@@ -30,6 +31,8 @@ export function tenantToSubscription(t: Tenant): Subscription {
     discount: t.discountCode || '-',
     expiryDate: t.expiryDate,
     status: t.status,
+    startDate: t.startDate,
+    mrr: t.mrr,
   };
 }
 

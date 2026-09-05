@@ -31,6 +31,7 @@ export interface Tenant {
   location: string;
   systemId?: string;
   subscriptionPaused: boolean;
+  startDate: string;
 }
 
 export interface Subscription {
@@ -42,6 +43,8 @@ export interface Subscription {
   discount: string;
   expiryDate: string;
   status: 'Active' | 'Expiring Soon' | 'Suspended';
+  startDate: string;
+  mrr: number;
 }
 
 export interface ChatMessage {

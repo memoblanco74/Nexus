@@ -50,6 +50,7 @@ interface AppContextType {
   tenantsLoaded: boolean;
   addTenant: (tenant: Omit<Tenant, 'id'>) => void;
   updateTenant: (id: string, updates: Partial<Tenant>) => void;
+  deleteTenant: (id: string) => Promise<void>;
 
   subscriptions: Subscription[];
   updateSubscriptionStatus: (id: string, status: 'Active' | 'Expiring Soon' | 'Suspended') => void;
@@ -616,6 +617,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await refreshTenants();
   };
 
+  const deleteTenant = async (id: string) => {
+    const { error } = await supabase.from('tenants').delete().eq('id', id);
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    if (activeTenantId === id) setActiveTenantId('');
+    await refreshTenants();
+    showToast(isRTL ? 'تم حذف المشروع وكل بياناته نهائيًا' : 'Project and all its data permanently deleted');
+  };
+
   const setActiveTenant = (tenant: Tenant) => setActiveTenantId(tenant.id);
 
   const updateSubscriptionStatus = (id: string, status: 'Active' | 'Expiring Soon' | 'Suspended') => {
@@ -1087,6 +1099,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         tenantsLoaded,
         addTenant,
         updateTenant,
+        deleteTenant,
         subscriptions,
         updateSubscriptionStatus,
         applyDiscountCode,

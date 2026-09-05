@@ -21,6 +21,8 @@ import {
   ExternalLink,
   ChevronRight,
   Sparkles,
+  DollarSign,
+  Trash2,
 } from 'lucide-react';
 
 export const SuperAdminView: React.FC = () => {
@@ -30,6 +32,8 @@ export const SuperAdminView: React.FC = () => {
     subscriptions,
     updateSubscriptionStatus,
     applyDiscountCode,
+    updateTenant,
+    deleteTenant,
     chats,
     selectedChatId,
     setSelectedChatId,
@@ -507,7 +511,9 @@ export const SuperAdminView: React.FC = () => {
                 <tr>
                   <th className="py-2.5 px-4">{t('common.tenant')}</th>
                   <th className="py-2.5 px-3">{t('common.plan_type')}</th>
+                  <th className="py-2.5 px-3">{isRTL ? 'المبلغ' : 'Amount'}</th>
                   <th className="py-2.5 px-3">{t('common.discount')}</th>
+                  <th className="py-2.5 px-3">{isRTL ? 'بداية الاشتراك' : 'Started'}</th>
                   <th className="py-2.5 px-3">{t('common.expiry_date')}</th>
                   <th className="py-2.5 px-3">{t('common.status')}</th>
                   <th className="py-2.5 px-4 text-center">{t('common.actions')}</th>
@@ -527,10 +533,14 @@ export const SuperAdminView: React.FC = () => {
                         <span className="font-semibold text-slate-200">{sub.planType}</span>
                       </td>
                       <td className="py-3 px-3">
+                        <span className="font-semibold text-emerald-400">{sub.mrr.toLocaleString()} EGP</span>
+                      </td>
+                      <td className="py-3 px-3">
                         <span className="font-mono text-[11px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
                           {sub.discount}
                         </span>
                       </td>
+                      <td className="py-3 px-3 text-slate-400">{sub.startDate}</td>
                       <td className="py-3 px-3 text-slate-400">{sub.expiryDate}</td>
                       <td className="py-3 px-3">
                         {sub.status === 'Active' && (
@@ -582,6 +592,36 @@ export const SuperAdminView: React.FC = () => {
                             title="Edit Discount Code"
                           >
                             <Percent className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              const newAmount = prompt(
+                                isRTL ? 'أدخل المبلغ الجديد (جنيه):' : 'Enter new amount (EGP):',
+                                String(sub.mrr)
+                              );
+                              if (newAmount && !isNaN(Number(newAmount))) {
+                                updateTenant(sub.id, { mrr: Number(newAmount) });
+                              }
+                            }}
+                            className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-emerald-400"
+                            title={isRTL ? 'تعديل المبلغ' : 'Edit Amount'}
+                          >
+                            <DollarSign className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              const name = language === 'ar' ? sub.tenantNameAr : sub.tenantName;
+                              const confirmed = window.confirm(
+                                isRTL
+                                  ? `متأكد إنك عايز تحذف "${name}" نهائيًا؟ هيتمسح كل بياناته (مرضى، حجوزات، فواتير، مخزون) ومش هترجع تاني.`
+                                  : `Permanently delete "${name}"? All their data (patients, bookings, invoices, inventory) will be erased and cannot be recovered.`
+                              );
+                              if (confirmed) deleteTenant(sub.id);
+                            }}
+                            className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-red-400"
+                            title={isRTL ? 'حذف نهائي' : 'Delete Permanently'}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </td>
