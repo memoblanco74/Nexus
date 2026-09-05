@@ -124,16 +124,15 @@ export const TenantSwitcherModal: React.FC = () => {
     tenants,
     activeTenant,
     setActiveTenant,
-    addTenant,
+    systemTemplates,
+    subscribeToSystem,
     language,
     isRTL,
     showToast,
   } = useApp();
 
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [name, setName] = useState('');
-  const [nameAr, setNameAr] = useState('');
-  const [plan, setPlan] = useState<'Basic' | 'Professional' | 'Enterprise' | 'Enterprise Plus'>('Enterprise');
+  const [subscribingId, setSubscribingId] = useState<string | null>(null);
 
   if (!isTenantModalOpen) return null;
 
@@ -143,27 +142,15 @@ export const TenantSwitcherModal: React.FC = () => {
     showToast(isRTL ? `تم التبديل إلى ${t.nameAr}` : `Switched to ${t.name}`);
   };
 
-  const handleCreateTenant = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-
-    addTenant({
-      name,
-      nameAr: nameAr || name,
-      code: `PRJ-${Math.floor(100 + Math.random() * 900)}`,
-      logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC9gE1JDWRLTujYuI4GLunAIgM2fACHm8E1ABKA-gyMCXQPPA9K4sO6vaTin4sZsA2Zf2QyqfP67tDlHsF_CCj1QkitgmKy1-RkccstCl825OACKHc8W7kvmN19ULpgqVhXUX799Hy4mWOEz3X_XPwW7vPgh-5wujpsEhBvGyMGW_-8DOggN9FOetKqBk-H-xBwqrz1klbx_ziRuyaDpWRjkB0JCnI_e4UHFaWef49XoNGq_KGhScj2uw',
-      plan,
-      status: 'Active',
-      expiryDate: 'Dec 31, 2025',
-      mrr: 95000,
-      patientsCount: 350,
-      todayBookings: 18,
-      location: 'Riyadh Medical District',
-    });
-
+  const handleSubscribe = async (templateId: string) => {
+    setSubscribingId(templateId);
+    await subscribeToSystem(templateId);
+    setSubscribingId(null);
     setIsAddingNew(false);
     setIsTenantModalOpen(false);
   };
+
+  const activeTemplates = systemTemplates.filter((s) => s.isActive);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
@@ -196,7 +183,13 @@ export const TenantSwitcherModal: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <img src={t.logo} alt={t.name} className="h-9 w-9 rounded-xl object-cover ring-1 ring-slate-700" />
+                      {t.logo ? (
+                        <img src={t.logo} alt={t.name} className="h-9 w-9 rounded-xl object-cover ring-1 ring-slate-700" />
+                      ) : (
+                        <div className="h-9 w-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 text-xs font-bold">
+                          {t.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="text-xs font-bold text-white">
@@ -216,7 +209,7 @@ export const TenantSwitcherModal: React.FC = () => {
                       <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
                         {t.plan}
                       </span>
-                      <span className="block text-[10px] text-slate-500 mt-1">${(t.mrr / 1000).toFixed(0)}k MRR</span>
+                      <span className="block text-[10px] text-slate-500 mt-1">{t.mrr.toLocaleString()} EGP</span>
                     </div>
                   </button>
                 );
@@ -228,63 +221,44 @@ export const TenantSwitcherModal: React.FC = () => {
                 onClick={() => setIsAddingNew(true)}
                 className="w-full rounded-xl bg-blue-600 py-2 text-xs font-semibold text-white hover:bg-blue-500"
               >
-                + {isRTL ? 'إضافة مستأجر / عيادة جديدة' : 'Provision New Clinic Tenant'}
+                + {isRTL ? 'اشترك في نظام جديد' : 'Subscribe to a new system'}
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleCreateTenant} className="mt-4 space-y-3">
-            <div>
-              <label className="block text-[11px] text-slate-400 mb-1">Clinic Name (English)</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Al-Amal Specialized Hospital"
-                className="w-full rounded-xl border border-slate-800 bg-slate-900 p-2 text-xs text-white focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] text-slate-400 mb-1">اسم العيادة (عربي)</label>
-              <input
-                type="text"
-                value={nameAr}
-                onChange={(e) => setNameAr(e.target.value)}
-                placeholder="مستشفى الأمل التخصصي"
-                className="w-full rounded-xl border border-slate-800 bg-slate-900 p-2 text-xs text-white focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] text-slate-400 mb-1">Subscription Plan</label>
-              <select
-                value={plan}
-                onChange={(e) => setPlan(e.target.value as any)}
-                className="w-full rounded-xl border border-slate-800 bg-slate-900 p-2 text-xs text-white focus:border-blue-500 focus:outline-none"
-              >
-                <option value="Basic">Basic ($15k/mo)</option>
-                <option value="Professional">Professional ($68k/mo)</option>
-                <option value="Enterprise">Enterprise ($124k/mo)</option>
-                <option value="Enterprise Plus">Enterprise Plus ($284k/mo)</option>
-              </select>
-            </div>
+          <div className="mt-4 space-y-3">
+            <button
+              onClick={() => setIsAddingNew(false)}
+              className="text-[11px] text-slate-400 hover:text-white"
+            >
+              ← {isRTL ? 'رجوع' : 'Back'}
+            </button>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-              <button
-                type="button"
-                onClick={() => setIsAddingNew(false)}
-                className="rounded-xl border border-slate-800 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-900"
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500"
-              >
-                Save & Provision
-              </button>
-            </div>
-          </form>
+            {activeTemplates.length === 0 ? (
+              <p className="text-xs text-slate-500 text-center py-6">
+                {isRTL ? 'لا توجد أنظمة متاحة حاليًا' : 'No systems available yet'}
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+                {activeTemplates.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => handleSubscribe(t.id)}
+                    disabled={subscribingId === t.id}
+                    className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center hover:border-blue-500/50 disabled:opacity-50"
+                  >
+                    <span className="text-xl">{t.icon}</span>
+                    <span className="text-[11px] font-bold text-white">
+                      {language === 'ar' ? t.nameAr : t.name}
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                      {t.subscriptionPrice} EGP/{t.subscriptionPeriod === 'monthly' ? 'mo' : 'yr'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

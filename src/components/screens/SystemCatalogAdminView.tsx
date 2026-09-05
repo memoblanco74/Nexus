@@ -111,7 +111,7 @@ export const SystemCatalogAdminView: React.FC = () => {
                 <div>
                   <p className="text-sm font-bold text-white">{t.name} / {t.nameAr}</p>
                   <p className="text-[11px] text-slate-500">
-                    {t.subscriptionPrice} EGP / {t.subscriptionPeriod} • {t.features.length} {isRTL ? 'ميزة' : 'features'}
+                    {t.subscriptionPrice} EGP / {t.subscriptionPeriod} • {t.features.length} {isRTL ? 'ميزة' : 'features'} • {t.subscriberCount} {isRTL ? 'مشترك' : 'subscribers'}
                   </p>
                 </div>
               </div>

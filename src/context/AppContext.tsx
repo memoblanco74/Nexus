@@ -343,6 +343,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const subscriptions: Subscription[] = tenants.map(tenantToSubscription);
 
+  const systemTemplatesWithCounts = useMemo(() => {
+    return systemTemplates.map((t) => ({
+      ...t,
+      subscriberCount: tenants.filter((tn) => tn.systemId === t.id).length,
+    }));
+  }, [systemTemplates, tenants]);
+
   const refreshPatients = useCallback(async () => {
     if (!activeTenantId) return;
     const { data } = await supabase.from('patients').select('*').eq('tenant_id', activeTenantId).order('created_at', { ascending: false });
@@ -1129,7 +1136,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addBooking,
         updateBookingStatus,
         projects,
-        systemTemplates,
+        systemTemplates: systemTemplatesWithCounts,
         subscribeToSystem,
         addSystemTemplate,
         updateSystemTemplate,

@@ -185,6 +185,7 @@ export interface SystemTemplate {
   subscriptionPeriod: string;
   isActive: boolean;
   features: SystemTemplateFeature[];
+  subscriberCount: number;
 }
 
 export interface AssistantAccount {

@@ -168,6 +168,7 @@ export function mapSystemTemplateRow(row: any): SystemTemplate {
     subscriptionPrice: Number(row.subscription_price || 0),
     subscriptionPeriod: row.subscription_period || 'monthly',
     isActive: row.is_active !== false,
+    subscriberCount: 0,
     features: (row.system_template_features || [])
       .slice()
       .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
