@@ -1,5 +1,5 @@
-const CACHE_NAME = "nexus-app-v1";
-const STATIC_ASSETS = ["/Nexus/", "/Nexus/manifest.json"];
+const CACHE_NAME = "nexus-app-v2";
+const STATIC_ASSETS = ["/Nexus/manifest.json"];
 
 self.addEventListener("install", function (event) {
   event.waitUntil(
@@ -29,6 +29,29 @@ self.addEventListener("fetch", function (event) {
 
   if (isApiCall) {
     event.respondWith(fetch(event.request));
+    return;
+  }
+
+  const isNavigation =
+    event.request.mode === "navigate" ||
+    (event.request.headers.get("accept") || "").indexOf("text/html") !== -1;
+
+  if (isNavigation) {
+    event.respondWith(
+      fetch(event.request, { cache: "no-store" })
+        .then(function (response) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(function (cache) {
+            cache.put(event.request, responseClone);
+          });
+          return response;
+        })
+        .catch(function () {
+          return caches.match(event.request).then(function (cached) {
+            return cached || caches.match("/Nexus/");
+          });
+        })
+    );
     return;
   }
 
