@@ -1,4 +1,4 @@
-import { Tenant, Patient, Booking, InventoryItem, Invoice, InvoiceItem, Subscription, Project } from '../types';
+import { Tenant, Patient, Booking, InventoryItem, Invoice, InvoiceItem, Subscription, Project, SystemTemplate } from '../types';
 
 export function mapTenantRow(row: any): Tenant {
   return {
@@ -10,11 +10,13 @@ export function mapTenantRow(row: any): Tenant {
     plan: (row.plan || 'Basic') as Tenant['plan'],
     status: (row.status || 'Active') as Tenant['status'],
     discountCode: row.discount_code || undefined,
-    expiryDate: row.subscription_renews_at || '',
+    expiryDate: row.subscription_ends_at || row.subscription_renews_at || '',
     mrr: Number(row.mrr || 0),
     patientsCount: Number(row.patients_count || 0),
     todayBookings: Number(row.today_bookings || 0),
     location: row.location || '',
+    systemId: row.system_id || undefined,
+    subscriptionPaused: row.subscription_paused === true,
   };
 }
 
@@ -148,5 +150,31 @@ export function mapProjectRow(row: any): Project {
     spent: Number(row.spent || 0),
     targetDate: row.target_date || '',
     manager: row.manager || '',
+  };
+}
+
+export function mapSystemTemplateRow(row: any): SystemTemplate {
+  return {
+    id: row.id,
+    key: row.key,
+    name: row.name_en,
+    nameAr: row.name_ar,
+    icon: row.icon || '📦',
+    brief: row.brief_en || '',
+    briefAr: row.brief_ar || '',
+    subscriptionPrice: Number(row.subscription_price || 0),
+    subscriptionPeriod: row.subscription_period || 'monthly',
+    isActive: row.is_active !== false,
+    features: (row.system_template_features || [])
+      .slice()
+      .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+      .map((f: any) => ({
+        id: f.id,
+        title: f.title_en,
+        titleAr: f.title_ar,
+        description: f.description_en,
+        descriptionAr: f.description_ar,
+        icon: f.icon || '✨',
+      })),
   };
 }

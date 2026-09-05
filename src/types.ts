@@ -11,7 +11,9 @@ export type ScreenId =
   | 'accounting'
   | 'reports'
   | 'settings'
-  | 'support';
+  | 'support'
+  | 'catalog'
+  | 'assistants';
 
 export interface Tenant {
   id: string;
@@ -27,6 +29,8 @@ export interface Tenant {
   patientsCount: number;
   todayBookings: number;
   location: string;
+  systemId?: string;
+  subscriptionPaused: boolean;
 }
 
 export interface Subscription {
@@ -155,4 +159,34 @@ export interface Project {
   spent: number;
   targetDate: string;
   manager: string;
+}
+
+export interface SystemTemplateFeature {
+  id: string;
+  title: string;
+  titleAr: string;
+  description: string;
+  descriptionAr: string;
+  icon: string;
+}
+
+export interface SystemTemplate {
+  id: string;
+  key: string;
+  name: string;
+  nameAr: string;
+  icon: string;
+  brief: string;
+  briefAr: string;
+  subscriptionPrice: number;
+  subscriptionPeriod: string;
+  isActive: boolean;
+  features: SystemTemplateFeature[];
+}
+
+export interface AssistantAccount {
+  id: string;
+  username: string;
+  fullName: string;
+  createdAt: string;
 }

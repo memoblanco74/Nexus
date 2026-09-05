@@ -25,6 +25,7 @@ export const INITIAL_TENANTS: Tenant[] = [
     patientsCount: 1248,
     todayBookings: 42,
     location: 'Riyadh HQ - King Fahd Rd',
+    subscriptionPaused: false,
   },
   {
     id: 't-2',
@@ -40,6 +41,7 @@ export const INITIAL_TENANTS: Tenant[] = [
     patientsCount: 890,
     todayBookings: 36,
     location: 'Jeddah Medical City',
+    subscriptionPaused: false,
   },
   {
     id: 't-3',
@@ -54,6 +56,7 @@ export const INITIAL_TENANTS: Tenant[] = [
     patientsCount: 520,
     todayBookings: 24,
     location: 'Dammam Health Hub',
+    subscriptionPaused: false,
   },
   {
     id: 't-4',
@@ -69,6 +72,7 @@ export const INITIAL_TENANTS: Tenant[] = [
     patientsCount: 2300,
     todayBookings: 78,
     location: 'Dubai Healthcare City',
+    subscriptionPaused: false,
   },
   {
     id: 't-5',
@@ -83,6 +87,7 @@ export const INITIAL_TENANTS: Tenant[] = [
     patientsCount: 180,
     todayBookings: 6,
     location: 'Al Khobar Central',
+    subscriptionPaused: false,
   },
 ];
 

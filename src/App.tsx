@@ -22,6 +22,9 @@ import { AssistantView } from './components/screens/AssistantView';
 import { ProjectsView } from './components/screens/ProjectsView';
 import { ReportsView } from './components/screens/ReportsView';
 import { SettingsView, SupportView } from './components/screens/SettingsView';
+import { SystemCatalogView } from './components/screens/SystemCatalogView';
+import { AssistantsView } from './components/screens/AssistantsView';
+import { SystemCatalogAdminView } from './components/screens/SystemCatalogAdminView';
 
 // Modals
 import { CreateInvoiceModal, AddPatientModal } from './components/modals/CreateInvoiceModal';
@@ -33,8 +36,21 @@ import {
 } from './components/modals/QrScannerModal';
 
 const DashboardContent: React.FC = () => {
-  const { screen, toastMessage } = useApp();
+  const { screen, toastMessage, tenants, tenantsLoaded } = useApp();
+  const { profile } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  if (profile?.roleCode === 'founder' && tenantsLoaded && tenants.length === 0) {
+    return <SystemCatalogView />;
+  }
+
+  if (profile?.roleCode === 'founder' && !tenantsLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0b0f17] text-slate-400 text-xs">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-[#0b0f17] text-slate-100 dark:bg-[#0b0f17] dark:text-slate-100 light:bg-slate-50 light:text-slate-900 font-sans transition-colors duration-200">
@@ -60,6 +76,8 @@ const DashboardContent: React.FC = () => {
           {screen === 'reports' && <ReportsView />}
           {screen === 'settings' && <SettingsView />}
           {screen === 'support' && <SupportView />}
+          {screen === 'catalog' && <SystemCatalogAdminView />}
+          {screen === 'assistants' && <AssistantsView />}
         </main>
 
         <MobileBottomNav />

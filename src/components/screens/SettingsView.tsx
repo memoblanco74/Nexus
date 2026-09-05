@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { Settings, Shield, Globe, Bell, Database, Lock, Save } from 'lucide-react';
+import { Settings, Shield, Globe, Bell, Database, Lock, Save, Send } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
   const { language, toggleLanguage, theme, toggleTheme, isRTL, showToast, t } = useApp();
@@ -79,55 +79,68 @@ export const SettingsView: React.FC = () => {
 };
 
 export const SupportView: React.FC = () => {
-  const { isRTL, showToast, t } = useApp();
+  const { isRTL, founderChatMessages, sendFounderMessage, t } = useApp();
+  const [input, setInput] = React.useState('');
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    sendFounderMessage(input);
+    setInput('');
+  };
 
   return (
-    <div className="space-y-6 pb-12 max-w-4xl">
+    <div className="space-y-6 pb-12 max-w-2xl">
       <div>
         <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
           {t('nav.support')}
         </h1>
         <p className="mt-1 text-xs text-slate-400">
-          {isRTL ? 'مركز المساعدة وفتح تذاكر الدعم الفني العاجل' : 'Nexus Dedicated 24/7 Medical Tier-3 Engineering Support.'}
+          {isRTL ? 'تواصل مباشر مع فريق الإدارة' : 'Direct chat with the platform administrator'}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div className="glass-panel rounded-2xl border border-slate-800 p-5 space-y-3">
-          <h3 className="text-sm font-bold text-white">
-            {isRTL ? 'تذكرة دعم فني جديدة' : 'Open Critical Ticket'}
-          </h3>
-          <input
-            type="text"
-            placeholder={isRTL ? 'عنوان المشكلة أو الاستفسار' : 'Incident Subject'}
-            className="w-full rounded-xl border border-slate-800 bg-slate-900/90 p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none"
-          />
-          <textarea
-            rows={3}
-            placeholder={isRTL ? 'وصف المشكلة بالتفصيل...' : 'Describe technical details or affected wards...'}
-            className="w-full rounded-xl border border-slate-800 bg-slate-900/90 p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none"
-          />
-          <button
-            onClick={() => showToast(isRTL ? 'تم إرسال تذكرة الدعم بنجاح' : 'Support ticket submitted successfully')}
-            className="w-full rounded-xl bg-blue-600 py-2 text-xs font-semibold text-white hover:bg-blue-500 transition shadow-md"
-          >
-            {isRTL ? 'إرسال التذكرة' : 'Submit Ticket'}
-          </button>
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/60 flex flex-col h-[60vh]">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {founderChatMessages.length === 0 && (
+            <p className="text-center text-xs text-slate-500 mt-10">
+              {isRTL ? 'ابدأ محادثة مع فريق الدعم' : 'Start a conversation with the support team'}
+            </p>
+          )}
+          {founderChatMessages.map((msg) => {
+            const isMe = msg.sender === 'user';
+            return (
+              <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                <div
+                  className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
+                    isMe
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-none'
+                      : 'bg-slate-800/90 text-slate-200 rounded-tl-none border border-slate-700/60'
+                  }`}
+                >
+                  {msg.text}
+                </div>
+                <span className="mt-1 text-[10px] text-slate-500 px-1">{msg.timestamp}</span>
+              </div>
+            );
+          })}
         </div>
-
-        <div className="glass-panel rounded-2xl border border-slate-800 p-5 space-y-3">
-          <h3 className="text-sm font-bold text-white">
-            {isRTL ? 'أرقام الطوارئ السحابية المباشرة' : 'Emergency Cloud Hotline'}
-          </h3>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            {isRTL
-              ? 'لفريق الطوارئ الطبية والربط السريري الحرج، تواصل مباشرة مع مهندسي النظام على مدار الساعة.'
-              : 'Direct priority SLA response for critical clinical triage outages.'}
-          </p>
-          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 font-mono text-xs text-emerald-400">
-            +966 11 800-NEXUS (Toll Free)
+        <form onSubmit={handleSend} className="border-t border-slate-800/80 p-3">
+          <div className="flex items-center gap-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={isRTL ? 'اكتب رسالتك...' : 'Type your message...'}
+              className="flex-1 rounded-xl border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition active:scale-95 shrink-0"
+            >
+              <Send className="h-4 w-4" />
+            </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

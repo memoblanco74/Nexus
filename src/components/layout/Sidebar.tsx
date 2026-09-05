@@ -18,6 +18,8 @@ import {
   Building,
   Sparkles,
   Zap,
+  LayoutGrid,
+  UserPlus,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -38,9 +40,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
   const { profile } = useAuth();
 
   const ROLE_SCREENS: Record<string, ScreenId[]> = {
-    super_admin: ['super_admin', 'settings', 'support'],
-    founder: ['founder', 'projects', 'patients', 'bookings', 'inventory', 'accounting', 'reports', 'settings', 'support'],
-    assistant: ['assistant', 'patients', 'bookings', 'inventory', 'settings', 'support'],
+    super_admin: ['super_admin', 'catalog', 'settings', 'support'],
+    founder: ['founder', 'projects', 'patients', 'bookings', 'inventory', 'accounting', 'reports', 'assistants', 'settings', 'support'],
+    assistant: ['assistant', 'patients', 'bookings', 'inventory', 'settings'],
   };
   const allowedScreens = profile ? ROLE_SCREENS[profile.roleCode] || [] : [];
 
@@ -103,6 +105,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       id: 'reports',
       label: t('nav.reports'),
       icon: <BarChart3 className="h-4 w-4" />,
+    },
+    {
+      id: 'catalog',
+      label: t('nav.catalog'),
+      icon: <LayoutGrid className="h-4 w-4" />,
+    },
+    {
+      id: 'assistants',
+      label: t('nav.assistants'),
+      icon: <UserPlus className="h-4 w-4" />,
     },
     {
       id: 'settings',

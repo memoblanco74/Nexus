@@ -12,6 +12,9 @@ import {
   Patient,
   Booking,
   Project,
+  SystemTemplate,
+  SystemTemplateFeature,
+  AssistantAccount,
 } from '../types';
 import {
   INITIAL_AUTO_DEDUCTIONS,
@@ -27,6 +30,7 @@ import {
   mapInventoryRow,
   mapInvoiceRow,
   mapProjectRow,
+  mapSystemTemplateRow,
 } from '../lib/dataMappers';
 
 interface AppContextType {
@@ -43,6 +47,7 @@ interface AppContextType {
   activeTenant: Tenant | null;
   setActiveTenant: (tenant: Tenant) => void;
   tenants: Tenant[];
+  tenantsLoaded: boolean;
   addTenant: (tenant: Omit<Tenant, 'id'>) => void;
   updateTenant: (id: string, updates: Partial<Tenant>) => void;
 
@@ -54,6 +59,9 @@ interface AppContextType {
   selectedChatId: string;
   setSelectedChatId: (id: string) => void;
   sendChatMessage: (chatId: string, text: string) => void;
+
+  founderChatMessages: { id: string; text: string; sender: 'user' | 'admin'; timestamp: string }[];
+  sendFounderMessage: (text: string) => void;
 
   announcement: { title: string; titleAr: string; message: string; messageAr: string };
   updateAnnouncement: (a: { title: string; titleAr: string; message: string; messageAr: string }) => void;
@@ -79,6 +87,18 @@ interface AppContextType {
   updateBookingStatus: (id: string, status: 'confirmed' | 'pending' | 'cancelled') => void;
 
   projects: Project[];
+
+  systemTemplates: SystemTemplate[];
+  subscribeToSystem: (templateId: string) => Promise<void>;
+  addSystemTemplate: (t: Omit<SystemTemplate, 'id' | 'features'>) => Promise<void>;
+  updateSystemTemplate: (id: string, updates: Partial<SystemTemplate>) => Promise<void>;
+  deleteSystemTemplate: (id: string) => Promise<void>;
+  addSystemFeature: (templateId: string, feature: Omit<SystemTemplateFeature, 'id'>) => Promise<void>;
+  deleteSystemFeature: (id: string) => Promise<void>;
+
+  assistants: AssistantAccount[];
+  createAssistant: (params: { username: string; password: string; fullName: string }) => Promise<{ error: string | null }>;
+  removeAssistant: (userId: string) => Promise<void>;
 
   isCreateInvoiceOpen: boolean;
   setIsCreateInvoiceOpen: (open: boolean) => void;
@@ -118,6 +138,8 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
   'nav.reports': { en: 'Reports', ar: 'التقارير والإحصاءات' },
   'nav.settings': { en: 'Settings', ar: 'الإعدادات' },
   'nav.support': { en: 'Support', ar: 'الدعم الفني' },
+  'nav.catalog': { en: 'System Catalog', ar: 'كتالوج الأنظمة' },
+  'nav.assistants': { en: 'Assistants', ar: 'المساعدين' },
   'nav.collapse': { en: 'Collapse', ar: 'طي القائمة' },
   'super_admin.title': { en: 'Super Admin Control Center', ar: 'مركز تحكم المشرف العام' },
   'super_admin.badge': { en: 'Nexus Cloud v2.4 (Enterprise)', ar: 'سحابة نيكسوس الإصدار ٢.٤ (المؤسسات)' },
@@ -206,10 +228,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [theme, setTheme] = useState<ThemeMode>('dark');
 
   const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [tenantsLoaded, setTenantsLoaded] = useState(false);
   const [activeTenant, setActiveTenantState] = useState<Tenant | null>(null);
 
   const [chats, setChats] = useState<ChatMessage[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string>('');
+  const [founderChatMessages, setFounderChatMessages] = useState<
+    { id: string; text: string; sender: 'user' | 'admin'; timestamp: string }[]
+  >([]);
+  const [founderConversationId, setFounderConversationId] = useState<string | null>(null);
 
   const [announcement, setAnnouncement] = useState({
     title: 'Scheduled Maintenance',
@@ -225,6 +252,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [patients, setPatients] = useState<Patient[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [systemTemplates, setSystemTemplates] = useState<SystemTemplate[]>([]);
+  const [assistants, setAssistants] = useState<AssistantAccount[]>([]);
   const [expenses, setExpenses] = useState<
     { id: string; category: string; description: string; amount: number; date: string }[]
   >([]);
@@ -284,14 +313,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const ids = tenantMemberships.map((m) => m.tenantId);
       if (ids.length === 0) {
         setTenants([]);
+        setTenantsLoaded(true);
         return;
       }
       query = query.in('id', ids);
     }
     const { data, error } = await query.order('created_at', { ascending: false });
-    if (error || !data) return;
+    if (error || !data) {
+      setTenantsLoaded(true);
+      return;
+    }
     const mapped = data.map(mapTenantRow);
     setTenants(mapped);
+    setTenantsLoaded(true);
     if (!activeTenantId && mapped.length > 0) {
       setActiveTenantId(mapped[0].id);
     }
@@ -362,6 +396,106 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
     }
   }, [activeTenantId]);
+
+  const refreshSystemTemplates = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('system_templates')
+      .select('*, system_template_features(*)')
+      .order('display_order', { ascending: true });
+    if (!error && data) setSystemTemplates(data.map(mapSystemTemplateRow));
+  }, []);
+
+  useEffect(() => {
+    refreshSystemTemplates();
+  }, [refreshSystemTemplates]);
+
+  const refreshAssistants = useCallback(async () => {
+    if (!activeTenantId || !profile || profile.roleCode !== 'founder') {
+      setAssistants([]);
+      return;
+    }
+    const { data } = await supabase
+      .from('tenant_users')
+      .select('is_founder, users(id, username, full_name, created_at)')
+      .eq('tenant_id', activeTenantId)
+      .eq('is_founder', false);
+
+    if (data) {
+      setAssistants(
+        data
+          .filter((r: any) => r.users)
+          .map((r: any) => ({
+            id: r.users.id,
+            username: r.users.username || '',
+            fullName: r.users.full_name,
+            createdAt: r.users.created_at ? new Date(r.users.created_at).toLocaleDateString() : '',
+          }))
+      );
+    }
+  }, [activeTenantId, profile]);
+
+  useEffect(() => {
+    refreshAssistants();
+  }, [refreshAssistants]);
+
+  const refreshFounderChat = useCallback(async () => {
+    if (!profile || profile.roleCode !== 'founder' || !activeTenantId) {
+      setFounderChatMessages([]);
+      setFounderConversationId(null);
+      return;
+    }
+
+    let { data: conv } = await supabase
+      .from('support_conversations')
+      .select('id')
+      .eq('tenant_id', activeTenantId)
+      .maybeSingle();
+
+    if (!conv) {
+      const { data: created } = await supabase
+        .from('support_conversations')
+        .insert({ tenant_id: activeTenantId })
+        .select()
+        .single();
+      conv = created;
+    }
+
+    if (!conv) return;
+    setFounderConversationId(conv.id);
+
+    const { data: msgs } = await supabase
+      .from('support_messages')
+      .select('id, body, sender_user_id, created_at')
+      .eq('conversation_id', conv.id)
+      .order('created_at', { ascending: true });
+
+    setFounderChatMessages(
+      (msgs || []).map((m: any) => ({
+        id: m.id,
+        text: m.body,
+        sender: m.sender_user_id === profile.id ? ('user' as const) : ('admin' as const),
+        timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }))
+    );
+  }, [profile, activeTenantId]);
+
+  useEffect(() => {
+    refreshFounderChat();
+  }, [refreshFounderChat]);
+
+  const sendFounderMessage = async (text: string) => {
+    if (!text.trim() || !profile || !founderConversationId) return;
+    const { error } = await supabase.from('support_messages').insert({
+      conversation_id: founderConversationId,
+      sender_user_id: profile.id,
+      body: text,
+    });
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshFounderChat();
+  };
 
   const refreshProjects = useCallback(async () => {
     if (!profile) return;
@@ -789,6 +923,147 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await refreshBookings();
   };
 
+  const subscribeToSystem = async (templateId: string) => {
+    if (!profile) return;
+    const template = systemTemplates.find((t) => t.id === templateId);
+    if (!template) return;
+
+    const { data: tenantRow, error } = await supabase
+      .from('tenants')
+      .insert({
+        name: `${template.name} - ${profile.username || profile.fullName}`,
+        name_ar: `${template.nameAr} - ${profile.username || profile.fullName}`,
+        system_id: templateId,
+        plan: 'Basic',
+        status: 'Active',
+        mrr: template.subscriptionPrice,
+        subscription_started_at: new Date().toISOString().slice(0, 10),
+      })
+      .select()
+      .single();
+
+    if (error || !tenantRow) {
+      showToast(error?.message || 'Error creating project');
+      return;
+    }
+
+    await supabase.from('tenant_users').insert({
+      tenant_id: tenantRow.id,
+      user_id: profile.id,
+      is_founder: true,
+    });
+
+    await refreshTenants();
+    setActiveTenantId(tenantRow.id);
+    showToast(isRTL ? 'تم الاشتراك بنجاح' : 'Subscribed successfully');
+  };
+
+  const addSystemTemplate = async (t: Omit<SystemTemplate, 'id' | 'features'>) => {
+    const { error } = await supabase.from('system_templates').insert({
+      key: t.key,
+      name_en: t.name,
+      name_ar: t.nameAr,
+      icon: t.icon,
+      brief_en: t.brief,
+      brief_ar: t.briefAr,
+      subscription_price: t.subscriptionPrice,
+      subscription_period: t.subscriptionPeriod,
+      is_active: t.isActive,
+    });
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshSystemTemplates();
+    showToast(isRTL ? 'تم إضافة النظام' : 'System added');
+  };
+
+  const updateSystemTemplate = async (id: string, updates: Partial<SystemTemplate>) => {
+    const payload: Record<string, any> = {};
+    if (updates.name !== undefined) payload.name_en = updates.name;
+    if (updates.nameAr !== undefined) payload.name_ar = updates.nameAr;
+    if (updates.icon !== undefined) payload.icon = updates.icon;
+    if (updates.brief !== undefined) payload.brief_en = updates.brief;
+    if (updates.briefAr !== undefined) payload.brief_ar = updates.briefAr;
+    if (updates.subscriptionPrice !== undefined) payload.subscription_price = updates.subscriptionPrice;
+    if (updates.subscriptionPeriod !== undefined) payload.subscription_period = updates.subscriptionPeriod;
+    if (updates.isActive !== undefined) payload.is_active = updates.isActive;
+
+    const { error } = await supabase.from('system_templates').update(payload).eq('id', id);
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshSystemTemplates();
+  };
+
+  const deleteSystemTemplate = async (id: string) => {
+    const { error } = await supabase.from('system_templates').delete().eq('id', id);
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshSystemTemplates();
+    showToast(isRTL ? 'تم حذف النظام' : 'System deleted');
+  };
+
+  const addSystemFeature = async (templateId: string, feature: Omit<SystemTemplateFeature, 'id'>) => {
+    const { error } = await supabase.from('system_template_features').insert({
+      template_id: templateId,
+      title_en: feature.title,
+      title_ar: feature.titleAr,
+      description_en: feature.description,
+      description_ar: feature.descriptionAr,
+      icon: feature.icon,
+    });
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshSystemTemplates();
+  };
+
+  const deleteSystemFeature = async (id: string) => {
+    const { error } = await supabase.from('system_template_features').delete().eq('id', id);
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshSystemTemplates();
+  };
+
+  const createAssistant = async (params: { username: string; password: string; fullName: string }) => {
+    if (!activeTenantId) return { error: 'No active project' };
+    const { data, error } = await supabase.functions.invoke('create-assistant', {
+      body: {
+        username: params.username,
+        password: params.password,
+        fullName: params.fullName,
+        tenantId: activeTenantId,
+      },
+    });
+    if (error) return { error: error.message };
+    if (data?.error) return { error: data.error };
+    await refreshAssistants();
+    showToast(isRTL ? 'تم إنشاء حساب المساعد' : 'Assistant account created');
+    return { error: null };
+  };
+
+  const removeAssistant = async (userId: string) => {
+    if (!activeTenantId) return;
+    const { error } = await supabase
+      .from('tenant_users')
+      .delete()
+      .eq('tenant_id', activeTenantId)
+      .eq('user_id', userId);
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    await refreshAssistants();
+    showToast(isRTL ? 'تم إلغاء وصول المساعد' : 'Assistant access removed');
+  };
+
   const openPdfExport = (title: string) => {
     setPdfExportTitle(title);
     setIsPdfExportOpen(true);
@@ -809,6 +1084,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activeTenant: activeTenant as Tenant,
         setActiveTenant,
         tenants,
+        tenantsLoaded,
         addTenant,
         updateTenant,
         subscriptions,
@@ -818,6 +1094,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectedChatId,
         setSelectedChatId,
         sendChatMessage,
+        founderChatMessages,
+        sendFounderMessage,
         announcement,
         updateAnnouncement,
         defaultDiscount,
@@ -838,6 +1116,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addBooking,
         updateBookingStatus,
         projects,
+        systemTemplates,
+        subscribeToSystem,
+        addSystemTemplate,
+        updateSystemTemplate,
+        deleteSystemTemplate,
+        addSystemFeature,
+        deleteSystemFeature,
+        assistants,
+        createAssistant,
+        removeAssistant,
         isCreateInvoiceOpen,
         setIsCreateInvoiceOpen,
         isAddPatientOpen,
