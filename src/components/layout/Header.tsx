@@ -76,7 +76,11 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={isRTL ? 'بحث في المرضى، الفواتير، الأصناف والمستأجرين...' : 'Search patients, invoices, stock & tenants...'}
+              placeholder={
+                profile?.roleCode === 'super_admin'
+                  ? isRTL ? 'بحث في المستأجرين والاشتراكات...' : 'Search tenants & subscriptions...'
+                  : isRTL ? 'بحث في المرضى، الفواتير، الأصناف...' : 'Search patients, invoices, stock...'
+              }
               className={`w-full rounded-full border border-slate-800/80 bg-slate-900/60 py-1.5 ${
                 isRTL ? 'pr-9 pl-4' : 'pl-9 pr-4'
               } text-xs text-slate-200 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500/50 dark:border-slate-800 dark:bg-slate-900/70 light:border-slate-300 light:bg-slate-100 light:text-slate-900 light:placeholder-slate-500`}
