@@ -17,8 +17,20 @@
   }
 
   html.light body {
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #eef9fa;
+    color: #10202b;
+  }
+
+  html.light {
+    --color-blue-950: #083344;
+    --color-blue-700: #155e75;
+    --color-blue-600: #0e7490;
+    --color-blue-500: #0891b2;
+    --color-blue-400: #06b6d4;
+    --color-blue-300: #22d3ee;
+    --color-indigo-600: #0e7490;
+    --color-indigo-500: #0891b2;
+    --color-indigo-400: #22d3ee;
   }
 
   [dir="rtl"] {
@@ -48,8 +60,8 @@ html.light .glass-panel {
 
 html.light .glass-card {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #d7ecee;
+  box-shadow: 0 2px 8px rgba(14, 116, 144, 0.06);
 }
 
 .glass-input {
@@ -59,9 +71,9 @@ html.light .glass-card {
 }
 
 html.light .glass-input {
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  color: #0f172a;
+  background: #eaf6f7;
+  border: 1px solid #b8e2e6;
+  color: #10202b;
 }
 
 .glow-blue {
