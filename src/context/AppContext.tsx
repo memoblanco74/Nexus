@@ -222,7 +222,7 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { profile, activeTenantId, setActiveTenantId, tenantMemberships } = useAuth();
+  const { profile, activeTenantId, setActiveTenantId, tenantMemberships, updatePreferredTheme } = useAuth();
 
   const [screen, setScreen] = useState<ScreenId>('founder');
   const [language, setLanguage] = useState<Language>('en');
@@ -291,6 +291,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (profile.roleCode === 'super_admin') setScreen('super_admin');
     else if (profile.roleCode === 'assistant') setScreen('assistant');
     else setScreen('founder');
+    setTheme(profile.preferredTheme);
   }, [profile]);
 
   const showToast = (msg: string) => {
@@ -299,7 +300,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const toggleLanguage = () => setLanguage((prev) => (prev === 'en' ? 'ar' : 'en'));
-  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  const toggleTheme = () => {
+    setTheme((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      updatePreferredTheme(next);
+      return next;
+    });
+  };
 
   const t = (key: string): string => {
     const entry = DICTIONARY[key];

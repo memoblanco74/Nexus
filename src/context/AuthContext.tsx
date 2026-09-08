@@ -11,6 +11,7 @@ interface UserProfile {
   email: string;
   phone: string | null;
   roleCode: RoleCode;
+  preferredTheme: 'dark' | 'light';
 }
 
 interface TenantMembership {
@@ -36,6 +37,7 @@ interface AuthContextType {
   requestPasswordReset: (email: string) => Promise<{ error: string | null }>;
   requestUsernameRecovery: (email: string) => Promise<{ error: string | null }>;
   changePassword: (newPassword: string) => Promise<{ error: string | null }>;
+  updatePreferredTheme: (theme: 'dark' | 'light') => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadProfile = async (currentSession: Session) => {
     const { data: userRow, error } = await supabase
       .from('users')
-      .select('id, username, full_name, email, phone, roles(code)')
+      .select('id, username, full_name, email, phone, preferred_theme, roles(code)')
       .eq('auth_uid', currentSession.user.id)
       .single();
 
@@ -77,6 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: userRow.email,
       phone: userRow.phone,
       roleCode: roleRow.code,
+      preferredTheme: (userRow.preferred_theme === 'light' ? 'light' : 'dark') as 'dark' | 'light',
     });
 
     if (roleRow.code !== 'super_admin') {
@@ -186,6 +189,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error: error ? error.message : null };
   };
 
+  const updatePreferredTheme = async (theme: 'dark' | 'light') => {
+    if (!profile) return;
+    setProfile({ ...profile, preferredTheme: theme });
+    await supabase.from('users').update({ preferred_theme: theme }).eq('id', profile.id);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -201,6 +210,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         requestPasswordReset,
         requestUsernameRecovery,
         changePassword,
+        updatePreferredTheme,
       }}
     >
       {children}
