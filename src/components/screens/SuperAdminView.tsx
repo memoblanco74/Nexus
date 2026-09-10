@@ -52,6 +52,62 @@ export const SuperAdminView: React.FC = () => {
   const [subSearch, setSubSearch] = useState('');
   const [subFilter, setSubFilter] = useState<'all' | 'Active' | 'Expiring Soon' | 'Suspended'>('all');
   const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
+  const [kpiDetail, setKpiDetail] = useState<{ title: string; rows: { name: string; sub?: string; value: string }[] } | null>(null);
+
+  const totalMrr = subscriptions
+    .filter((s) => s.status === 'Active')
+    .reduce((sum, s) => sum + s.mrr, 0);
+  const activeCount = subscriptions.filter((s) => s.status === 'Active').length;
+  const pendingReplyChats = chats.filter((c) => {
+    const last = c.messages[c.messages.length - 1];
+    return last && last.sender === 'user';
+  });
+
+  const openKpiDetail = (kind: 'mrr' | 'tenants' | 'active_subs' | 'pending_replies') => {
+    if (kind === 'mrr') {
+      setKpiDetail({
+        title: isRTL ? 'تفاصيل الإيرادات الشهرية' : 'Monthly Revenue Breakdown',
+        rows: subscriptions
+          .filter((s) => s.status === 'Active')
+          .sort((a, b) => b.mrr - a.mrr)
+          .map((s) => ({
+            name: language === 'ar' ? s.tenantNameAr : s.tenantName,
+            sub: s.planType,
+            value: `${s.mrr.toLocaleString()} EGP`,
+          })),
+      });
+    } else if (kind === 'tenants') {
+      setKpiDetail({
+        title: isRTL ? 'كل المشاريع المسجلة' : 'All Provisioned Projects',
+        rows: subscriptions.map((s) => ({
+          name: language === 'ar' ? s.tenantNameAr : s.tenantName,
+          sub: s.planType,
+          value: s.status,
+        })),
+      });
+    } else if (kind === 'active_subs') {
+      setKpiDetail({
+        title: isRTL ? 'الاشتراكات النشطة' : 'Active Subscriptions',
+        rows: subscriptions
+          .filter((s) => s.status === 'Active')
+          .map((s) => ({
+            name: language === 'ar' ? s.tenantNameAr : s.tenantName,
+            sub: s.expiryDate ? `${isRTL ? 'ينتهي' : 'Expires'} ${s.expiryDate}` : undefined,
+            value: `${s.mrr.toLocaleString()} EGP`,
+          })),
+      });
+    } else {
+      setKpiDetail({
+        title: isRTL ? 'محادثات تنتظر ردك' : 'Conversations Awaiting Reply',
+        rows: pendingReplyChats.map((c) => ({
+          name: c.senderName,
+          sub: c.tenant,
+          value: c.lastMessage.slice(0, 30),
+        })),
+      });
+    }
+  };
+
   const [announcementText, setAnnouncementText] = useState(
     language === 'ar' ? announcement.messageAr : announcement.message
   );
@@ -153,7 +209,10 @@ export const SuperAdminView: React.FC = () => {
       {/* KPI Cards Grid (4 Top Cards) */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total MRR */}
-        <div className="glass-card rounded-2xl p-4 transition-all hover:border-blue-500/40">
+        <button
+          onClick={() => openKpiDetail('mrr')}
+          className="glass-card rounded-2xl p-4 text-left transition-all hover:border-blue-500/40 active:scale-[0.98]"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">
               {t('super_admin.total_mrr')}
@@ -164,19 +223,19 @@ export const SuperAdminView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl font-bold tracking-tight text-white dark:text-white light:text-slate-900">
-              $284,500
+              {totalMrr.toLocaleString()} EGP
             </h3>
-            <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-400">
-              +22%
-            </span>
           </div>
           <p className="mt-1 text-[11px] text-slate-500">
-            {isRTL ? 'إجمالي الإيرادات السنوية: ٤.٢ مليون دولار' : '$4.2M Total Platform ARR'}
+            {isRTL ? 'من الاشتراكات النشطة فقط' : 'From active subscriptions only'}
           </p>
-        </div>
+        </button>
 
         {/* Active Tenants */}
-        <div className="glass-card rounded-2xl p-4 transition-all hover:border-blue-500/40">
+        <button
+          onClick={() => openKpiDetail('tenants')}
+          className="glass-card rounded-2xl p-4 text-left transition-all hover:border-blue-500/40 active:scale-[0.98]"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">
               {t('super_admin.active_tenants')}
@@ -187,19 +246,19 @@ export const SuperAdminView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl font-bold tracking-tight text-white dark:text-white light:text-slate-900">
-              1,248
+              {subscriptions.length}
             </h3>
-            <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-400">
-              +14
-            </span>
           </div>
           <p className="mt-1 text-[11px] text-slate-500">
-            {isRTL ? 'عبر ٦ دول ومناطق صحية' : 'Across 6 GCC healthcare zones'}
+            {isRTL ? 'إجمالي المشاريع المسجلة' : 'Total provisioned projects'}
           </p>
-        </div>
+        </button>
 
         {/* Active Subscriptions */}
-        <div className="glass-card rounded-2xl p-4 transition-all hover:border-blue-500/40">
+        <button
+          onClick={() => openKpiDetail('active_subs')}
+          className="glass-card rounded-2xl p-4 text-left transition-all hover:border-blue-500/40 active:scale-[0.98]"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">
               {t('super_admin.active_subscriptions')}
@@ -210,22 +269,25 @@ export const SuperAdminView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl font-bold tracking-tight text-white dark:text-white light:text-slate-900">
-              1,105
+              {activeCount}
             </h3>
             <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-400">
-              98.2%
+              {subscriptions.length > 0 ? Math.round((activeCount / subscriptions.length) * 100) : 0}%
             </span>
           </div>
           <p className="mt-1 text-[11px] text-slate-500">
-            {isRTL ? 'معدل التجديد والاحتفاظ' : 'Renewal & retention health'}
+            {isRTL ? 'نشطة من إجمالي المشاريع' : 'Active out of total projects'}
           </p>
-        </div>
+        </button>
 
-        {/* Critical Support */}
-        <div className="glass-card rounded-2xl p-4 transition-all hover:border-amber-500/40">
+        {/* Pending Replies */}
+        <button
+          onClick={() => openKpiDetail('pending_replies')}
+          className="glass-card rounded-2xl p-4 text-left transition-all hover:border-amber-500/40 active:scale-[0.98]"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">
-              {t('super_admin.critical_support')}
+              {isRTL ? 'ردود في الانتظار' : 'Pending Replies'}
             </span>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400">
               <AlertCircle className="h-4 w-4" />
@@ -233,17 +295,43 @@ export const SuperAdminView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl font-bold tracking-tight text-amber-400">
-              24
+              {pendingReplyChats.length}
             </h3>
-            <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[11px] font-semibold text-amber-300">
-              {isRTL ? 'متوسط الرد: ٤ دقائق' : 'Avg 4m SLA'}
-            </span>
           </div>
           <p className="mt-1 text-[11px] text-slate-500">
-            {isRTL ? '٣ حالات عاجلة تتطلب مراجعة' : '3 urgent cases pending review'}
+            {isRTL ? 'محادثات في انتظار ردك' : 'Conversations awaiting your reply'}
           </p>
-        </div>
+        </button>
       </div>
+
+      {kpiDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-950 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-white">{kpiDetail.title}</h3>
+              <button onClick={() => setKpiDetail(null)} className="text-slate-400 hover:text-white">
+                ✕
+              </button>
+            </div>
+            <div className="space-y-2">
+              {kpiDetail.rows.map((row, i) => (
+                <div key={i} className="flex items-center justify-between rounded-xl bg-slate-900/60 px-3 py-2.5">
+                  <div>
+                    <p className="text-xs font-semibold text-white">{row.name}</p>
+                    {row.sub && <p className="text-[10px] text-slate-500">{row.sub}</p>}
+                  </div>
+                  <span className="text-xs font-bold text-emerald-400">{row.value}</span>
+                </div>
+              ))}
+              {kpiDetail.rows.length === 0 && (
+                <p className="text-center text-xs text-slate-500 py-6">
+                  {isRTL ? 'لا توجد بيانات' : 'No data'}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Middle Section: System Announcement & Default Discount */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
