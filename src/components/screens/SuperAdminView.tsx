@@ -362,7 +362,7 @@ export const SuperAdminView: React.FC = () => {
                 </h3>
                 <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  3 {isRTL ? 'مؤسسون متصلون الآن' : 'Founders Online'}
+                  {chats.length} {isRTL ? 'محادثة نشطة' : 'active conversations'}
                 </span>
               </div>
             </div>

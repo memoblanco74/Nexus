@@ -245,7 +245,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     message: 'System upgrade on Oct 15, 02:00 UTC. Zero downtime expected.',
     messageAr: 'ترقية البنية السحابية في ١٥ أكتوبر، الساعة ٠٢:٠٠ ص بتوقيت UTC. دون أي انقطاع للخدمة.',
   });
-  const [defaultDiscount, setDefaultDiscount] = useState<string>('15%');
+  const [defaultDiscount, setDefaultDiscountState] = useState<string>('15%');
 
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [autoDeductLogs, setAutoDeductLogs] = useState<AutoDeductLog[]>(INITIAL_AUTO_DEDUCTIONS);
@@ -668,9 +668,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await refreshChats();
   };
 
-  const updateAnnouncement = (ann: { title: string; titleAr: string; message: string; messageAr: string }) => {
+  const refreshPlatformSettings = useCallback(async () => {
+    const { data, error } = await supabase.from('platform_settings').select('key, value');
+    if (error || !data) return;
+    const map: Record<string, string> = {};
+    data.forEach((row: any) => { map[row.key] = row.value; });
+
+    if (map.default_discount_percent) setDefaultDiscountState(map.default_discount_percent);
+    setAnnouncement({
+      title: map.announcement_title || 'Scheduled Maintenance',
+      titleAr: map.announcement_title_ar || 'صيانة دورية مجدولة',
+      message: map.announcement_message || '',
+      messageAr: map.announcement_message_ar || '',
+    });
+  }, []);
+
+  useEffect(() => {
+    refreshPlatformSettings();
+  }, [refreshPlatformSettings]);
+
+  const updateAnnouncement = async (ann: { title: string; titleAr: string; message: string; messageAr: string }) => {
     setAnnouncement(ann);
+    await Promise.all([
+      supabase.from('platform_settings').update({ value: ann.title, updated_at: new Date().toISOString() }).eq('key', 'announcement_title'),
+      supabase.from('platform_settings').update({ value: ann.titleAr, updated_at: new Date().toISOString() }).eq('key', 'announcement_title_ar'),
+      supabase.from('platform_settings').update({ value: ann.message, updated_at: new Date().toISOString() }).eq('key', 'announcement_message'),
+      supabase.from('platform_settings').update({ value: ann.messageAr, updated_at: new Date().toISOString() }).eq('key', 'announcement_message_ar'),
+    ]);
     showToast(isRTL ? 'تم تحديث الإعلان العام للنظام' : 'System announcement updated');
+  };
+
+  const setDefaultDiscount = async (discount: string) => {
+    setDefaultDiscountState(discount);
+    await supabase
+      .from('platform_settings')
+      .update({ value: discount, updated_at: new Date().toISOString() })
+      .eq('key', 'default_discount_percent');
   };
 
   const toggleAutoDeduct = async (id: string) => {
