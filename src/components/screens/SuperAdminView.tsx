@@ -46,6 +46,8 @@ export const SuperAdminView: React.FC = () => {
     openPdfExport,
     showToast,
     t,
+    dbHealthy,
+    dbLatencyMs,
   } = useApp();
 
   const [chatInput, setChatInput] = useState('');
@@ -181,9 +183,13 @@ export const SuperAdminView: React.FC = () => {
             </span>
           </div>
           <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-400">
-            <Radio className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
-            <span className="text-emerald-400 font-medium">
-              {t('super_admin.system_status')}
+            <Radio className={`h-3.5 w-3.5 animate-pulse ${dbHealthy === false ? 'text-red-400' : 'text-emerald-400'}`} />
+            <span className={`font-medium ${dbHealthy === false ? 'text-red-400' : 'text-emerald-400'}`}>
+              {dbHealthy === null
+                ? (isRTL ? 'جاري الفحص...' : 'Checking...')
+                : dbHealthy
+                ? (isRTL ? `النظام يعمل بكفاءة — الاتصال بقاعدة البيانات سليم (${dbLatencyMs}ms)` : `System Operational — Database Connected (${dbLatencyMs}ms)`)
+                : (isRTL ? 'تعذر الاتصال بقاعدة البيانات' : 'Database Connection Issue Detected')}
             </span>
           </div>
         </div>

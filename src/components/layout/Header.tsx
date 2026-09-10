@@ -28,6 +28,8 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
     setIsTenantModalOpen,
     isRTL,
     t,
+    dbHealthy,
+    dbLatencyMs,
   } = useApp();
   const { profile, signOut } = useAuth();
 
@@ -113,9 +115,21 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
           )}
 
           {/* System Operational Indicator */}
-          <div className="hidden xl:flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-400 border border-emerald-500/20">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>{language === 'ar' ? 'الخوادم نشطة (١٢ عقدة)' : 'Operational (12 Nodes)'}</span>
+          <div
+            className={`hidden xl:flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium border ${
+              dbHealthy === false
+                ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+            }`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${dbHealthy === false ? 'bg-red-400' : 'bg-emerald-400'}`} />
+            <span>
+              {dbHealthy === null
+                ? (isRTL ? 'جاري الفحص...' : 'Checking...')
+                : dbHealthy
+                ? (isRTL ? `متصل (${dbLatencyMs}ms)` : `Connected (${dbLatencyMs}ms)`)
+                : (isRTL ? 'مشكلة اتصال' : 'Connection Issue')}
+            </span>
           </div>
 
           {/* Install App */}

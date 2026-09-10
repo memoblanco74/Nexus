@@ -124,6 +124,9 @@ interface AppContextType {
   toastMessage: string | null;
   showToast: (msg: string) => void;
 
+  dbHealthy: boolean | null;
+  dbLatencyMs: number | null;
+
   t: (key: string) => string;
 }
 
@@ -270,6 +273,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [pdfExportTitle, setPdfExportTitle] = useState('Nexus Executive Summary');
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [dbHealthy, setDbHealthy] = useState<boolean | null>(null);
+  const [dbLatencyMs, setDbLatencyMs] = useState<number | null>(null);
+
+  useEffect(() => {
+    const checkHealth = async () => {
+      const start = performance.now();
+      const { error } = await supabase.from('roles').select('id').limit(1);
+      setDbLatencyMs(Math.round(performance.now() - start));
+      setDbHealthy(!error);
+    };
+    checkHealth();
+    const interval = setInterval(checkHealth, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const isRTL = language === 'ar';
 
@@ -1207,6 +1224,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         openPdfExport,
         toastMessage,
         showToast,
+        dbHealthy,
+        dbLatencyMs,
         t,
       }}
     >
