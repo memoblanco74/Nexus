@@ -149,6 +149,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { error: 'This username is already taken.', needsEmailConfirmation: false };
     }
 
+    const emailCheck = await supabase.rpc('fn_is_email_taken', { p_email: params.email });
+    if (emailCheck.data) {
+      return { error: 'This email is already registered. Please sign in instead.', needsEmailConfirmation: false };
+    }
+
     if (params.phone) {
       const phoneCheck = await supabase.rpc('fn_is_phone_taken', { p_phone: params.phone });
       if (phoneCheck.data) {
