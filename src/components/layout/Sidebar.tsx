@@ -170,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
             <div>
               <div className="flex items-center gap-1.5">
                 <h1 className="text-sm font-bold tracking-tight text-white dark:text-white light:text-slate-900">
-                  {language === 'ar' ? 'نيكسوس كلاود' : 'Nexus Medical'}
+                  {language === 'ar' ? 'نيكسوس' : 'Nexus'}
                 </h1>
                 <span className="rounded bg-blue-500/20 px-1 py-0.5 text-[9px] font-bold text-blue-400">
                   v2.4

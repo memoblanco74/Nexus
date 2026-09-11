@@ -12,6 +12,7 @@ interface UserProfile {
   phone: string | null;
   roleCode: RoleCode;
   preferredTheme: 'dark' | 'light';
+  avatarUrl: string | null;
 }
 
 interface TenantMembership {
@@ -38,6 +39,8 @@ interface AuthContextType {
   requestUsernameRecovery: (email: string) => Promise<{ error: string | null }>;
   changePassword: (newPassword: string) => Promise<{ error: string | null }>;
   updatePreferredTheme: (theme: 'dark' | 'light') => Promise<void>;
+  updateProfileDetails: (details: { fullName?: string; phone?: string }) => Promise<{ error: string | null }>;
+  uploadAvatar: (file: File) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -52,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadProfile = async (currentSession: Session) => {
     const { data: userRow, error } = await supabase
       .from('users')
-      .select('id, username, full_name, email, phone, preferred_theme, roles(code)')
+      .select('id, username, full_name, email, phone, preferred_theme, avatar_url, roles(code)')
       .eq('auth_uid', currentSession.user.id)
       .single();
 
@@ -80,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       phone: userRow.phone,
       roleCode: roleRow.code,
       preferredTheme: (userRow.preferred_theme === 'light' ? 'light' : 'dark') as 'dark' | 'light',
+      avatarUrl: userRow.avatar_url || null,
     });
 
     if (roleRow.code !== 'super_admin') {
@@ -195,6 +199,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.from('users').update({ preferred_theme: theme }).eq('id', profile.id);
   };
 
+  const updateProfileDetails = async (details: { fullName?: string; phone?: string }) => {
+    if (!profile) return { error: 'Not signed in' };
+    const payload: Record<string, any> = {};
+    if (details.fullName !== undefined) payload.full_name = details.fullName;
+    if (details.phone !== undefined) payload.phone = details.phone;
+
+    const { error } = await supabase.from('users').update(payload).eq('id', profile.id);
+    if (error) return { error: error.message };
+
+    setProfile({
+      ...profile,
+      fullName: details.fullName !== undefined ? details.fullName : profile.fullName,
+      phone: details.phone !== undefined ? details.phone : profile.phone,
+    });
+    return { error: null };
+  };
+
+  const uploadAvatar = async (file: File) => {
+    if (!profile || !session) return { error: 'Not signed in' };
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `${session.user.id}/avatar.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, cacheControl: '3600' });
+
+    if (uploadError) return { error: uploadError.message };
+
+    const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(path);
+    const url = `${publicUrlData.publicUrl}?t=${Date.now()}`;
+
+    const { error: dbError } = await supabase.from('users').update({ avatar_url: url }).eq('id', profile.id);
+    if (dbError) return { error: dbError.message };
+
+    setProfile({ ...profile, avatarUrl: url });
+    return { error: null };
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -211,6 +253,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         requestUsernameRecovery,
         changePassword,
         updatePreferredTheme,
+        updateProfileDetails,
+        uploadAvatar,
       }}
     >
       {children}

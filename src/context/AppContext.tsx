@@ -127,6 +127,10 @@ interface AppContextType {
   dbHealthy: boolean | null;
   dbLatencyMs: number | null;
 
+  notifications: { id: string; title: string; body: string; type: string; isRead: boolean; createdAt: string }[];
+  unreadNotificationCount: number;
+  markNotificationRead: (id: string) => void;
+
   t: (key: string) => string;
 }
 
@@ -428,6 +432,60 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
     }
   }, [activeTenantId]);
+
+  const [notifications, setNotifications] = useState<
+    { id: string; title: string; body: string; type: string; isRead: boolean; createdAt: string }[]
+  >([]);
+
+  const refreshNotifications = useCallback(async () => {
+    if (!activeTenantId) {
+      setNotifications([]);
+      return;
+    }
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('tenant_id', activeTenantId)
+      .order('created_at', { ascending: false })
+      .limit(30);
+    if (data) {
+      setNotifications(
+        data.map((n: any) => ({
+          id: n.id,
+          title: n.title,
+          body: n.body,
+          type: n.type,
+          isRead: n.is_read,
+          createdAt: n.created_at,
+        }))
+      );
+    }
+  }, [activeTenantId]);
+
+  useEffect(() => {
+    refreshNotifications();
+    if (!activeTenantId) return;
+
+    const channel = supabase
+      .channel(`notifications-${activeTenantId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `tenant_id=eq.${activeTenantId}` },
+        () => refreshNotifications()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeTenantId, refreshNotifications]);
+
+  const unreadNotificationCount = notifications.filter((n) => !n.isRead).length;
+
+  const markNotificationRead = async (id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+  };
 
   const refreshSystemTemplates = useCallback(async () => {
     const { data, error } = await supabase
@@ -1226,6 +1284,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         showToast,
         dbHealthy,
         dbLatencyMs,
+        notifications,
+        unreadNotificationCount,
+        markNotificationRead,
         t,
       }}
     >

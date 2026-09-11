@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { InstallAppButton } from './InstallAppButton';
+import { ProfileEditModal } from './ProfileEditModal';
 import {
   Search,
   Bell,
@@ -30,17 +31,15 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
     t,
     dbHealthy,
     dbLatencyMs,
+    notifications,
+    unreadNotificationCount,
+    markNotificationRead,
   } = useApp();
   const { profile, signOut } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
-
-  const notifications = [
-    { id: 1, title: 'Low Stock Alert', desc: 'Lidocaine HCl 2% is below minimum threshold (12/30 units).', time: '10m ago', unread: true },
-    { id: 2, title: 'New Booking', desc: 'Tariq Al-Mansoor booked Surgery Follow-up for 10:00 AM.', time: '25m ago', unread: true },
-    { id: 3, title: 'Invoice Paid', desc: 'TechCorp Inc. paid invoice #INV-2023-089 ($4,500).', time: '1h ago', unread: false },
-  ];
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/85 light:border-slate-200 light:bg-white/90 transition-colors">
@@ -61,7 +60,7 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-bold tracking-tight text-white dark:text-white light:text-slate-900">
-                {language === 'ar' ? 'نيكسوس الطبية' : 'Nexus Medical'}
+                {language === 'ar' ? 'نيكسوس' : 'Nexus'}
               </span>
               <span className="text-[10px] text-blue-400 dark:text-blue-400 light:text-blue-600 font-medium">
                 {t(`nav.${screen}`)}
@@ -165,33 +164,51 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
               className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white dark:border-slate-800 dark:bg-slate-900/60 light:border-slate-300 light:bg-slate-100 light:text-slate-700 transition"
             >
               <Bell className="h-4 w-4" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-slate-950" />
+              {unreadNotificationCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-slate-950" />
+              )}
             </button>
 
             {showNotifications && (
               <div className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-80 rounded-xl border border-slate-800 bg-slate-900/95 p-3 shadow-2xl backdrop-blur-xl z-50 dark:border-slate-800 dark:bg-slate-900/95 light:border-slate-200 light:bg-white text-xs`}>
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800 dark:border-slate-800 light:border-slate-200">
                   <span className="font-bold text-slate-200 dark:text-slate-200 light:text-slate-800">
-                    {language === 'ar' ? 'التنبيهات المباشرة' : 'Live Notifications'}
+                    {language === 'ar' ? 'الإشعارات' : 'Notifications'}
                   </span>
-                  <span className="text-[10px] text-blue-400 font-medium">
-                    {language === 'ar' ? 'تمييز الكل كمقروء' : 'Mark all read'}
-                  </span>
+                  {unreadNotificationCount > 0 && (
+                    <button
+                      onClick={() => notifications.filter((n) => !n.isRead).forEach((n) => markNotificationRead(n.id))}
+                      className="text-[10px] text-blue-400 font-medium hover:text-blue-300"
+                    >
+                      {language === 'ar' ? 'تمييز الكل كمقروء' : 'Mark all read'}
+                    </button>
+                  )}
                 </div>
-                <div className="divide-y divide-slate-800/60 dark:divide-slate-800/60 light:divide-slate-100">
+                <div className="divide-y divide-slate-800/60 dark:divide-slate-800/60 light:divide-slate-100 max-h-72 overflow-y-auto">
+                  {notifications.length === 0 && (
+                    <p className="text-center text-slate-500 py-6">
+                      {language === 'ar' ? 'لا توجد إشعارات' : 'No notifications'}
+                    </p>
+                  )}
                   {notifications.map((n) => (
-                    <div key={n.id} className="py-2.5 flex flex-col gap-0.5 hover:bg-slate-800/40 rounded px-1.5 transition">
+                    <button
+                      key={n.id}
+                      onClick={() => markNotificationRead(n.id)}
+                      className="w-full text-left py-2.5 flex flex-col gap-0.5 hover:bg-slate-800/40 rounded px-1.5 transition"
+                    >
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-slate-200 dark:text-slate-200 light:text-slate-800 flex items-center gap-1.5">
-                          {n.unread && <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />}
+                          {!n.isRead && <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />}
                           {n.title}
                         </span>
-                        <span className="text-[10px] text-slate-500">{n.time}</span>
+                        <span className="text-[10px] text-slate-500">
+                          {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       </div>
                       <p className="text-[11px] text-slate-400 dark:text-slate-400 light:text-slate-600 leading-relaxed">
-                        {n.desc}
+                        {n.body}
                       </p>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -204,12 +221,20 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
               <span className="text-xs font-semibold text-white">{profile?.fullName || profile?.username}</span>
               <span className="text-[10px] text-slate-400 capitalize">{profile?.roleCode.replace('_', ' ')}</span>
             </div>
-            <div className="relative">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white text-xs font-bold ring-2 ring-blue-500/50">
-                {(profile?.fullName || profile?.username || '?').charAt(0).toUpperCase()}
-              </div>
+            <button onClick={() => setShowProfileModal(true)} className="relative" title={isRTL ? 'حسابي' : 'My Account'}>
+              {profile?.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt="avatar"
+                  className="h-8 w-8 rounded-full object-cover ring-2 ring-blue-500/50"
+                />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white text-xs font-bold ring-2 ring-blue-500/50">
+                  {(profile?.fullName || profile?.username || '?').charAt(0).toUpperCase()}
+                </div>
+              )}
               <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
-            </div>
+            </button>
             <button
               onClick={() => signOut()}
               title={isRTL ? 'تسجيل الخروج' : 'Sign out'}
@@ -220,6 +245,7 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
           </div>
         </div>
       </div>
+      {showProfileModal && <ProfileEditModal isRTL={isRTL} onClose={() => setShowProfileModal(false)} />}
     </header>
   );
 };

@@ -91,7 +91,7 @@ export const AuthScreen: React.FC = () => {
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-sm font-bold tracking-tight text-white">Nexus Medical</h1>
+            <h1 className="text-sm font-bold tracking-tight text-white">Nexus</h1>
             <p className="text-[10px] text-slate-400">Multi-Tenant Medical OS</p>
           </div>
         </div>
