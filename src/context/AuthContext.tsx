@@ -170,7 +170,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       },
     });
 
-    if (error) return { error: error.message, needsEmailConfirmation: false };
+    if (error) {
+      const rawMessage = (error.message || '').trim();
+      const isUnhelpful = !rawMessage || rawMessage === '{}' || rawMessage.startsWith('{') || rawMessage.length < 4;
+      const friendlyMessage = isUnhelpful
+        ? 'Something went wrong while creating your account. This usually means the confirmation email could not be sent. Please try again or contact support.'
+        : rawMessage;
+      return { error: friendlyMessage, needsEmailConfirmation: false };
+    }
 
     return { error: null, needsEmailConfirmation: !data.session };
   };
