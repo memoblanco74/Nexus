@@ -1059,36 +1059,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const subscribeToSystem = async (templateId: string) => {
     if (!profile) return;
-    const template = systemTemplates.find((t) => t.id === templateId);
-    if (!template) return;
 
-    const { data: tenantRow, error } = await supabase
-      .from('tenants')
-      .insert({
-        name: `${template.name} - ${profile.username || profile.fullName}`,
-        name_ar: `${template.nameAr} - ${profile.username || profile.fullName}`,
-        system_id: templateId,
-        plan: 'Basic',
-        status: 'Active',
-        mrr: template.subscriptionPrice,
-        subscription_started_at: new Date().toISOString().slice(0, 10),
-      })
-      .select()
-      .single();
+    const { data: newTenantId, error } = await supabase.rpc('fn_subscribe_to_system', {
+      p_template_id: templateId,
+    });
 
-    if (error || !tenantRow) {
+    if (error || !newTenantId) {
       showToast(error?.message || 'Error creating project');
       return;
     }
 
-    await supabase.from('tenant_users').insert({
-      tenant_id: tenantRow.id,
-      user_id: profile.id,
-      is_founder: true,
-    });
-
     await refreshTenants();
-    setActiveTenantId(tenantRow.id);
+    setActiveTenantId(newTenantId as string);
     showToast(isRTL ? 'تم الاشتراك بنجاح' : 'Subscribed successfully');
   };
 
