@@ -2,10 +2,90 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { SystemTemplate, SystemTemplateFeature } from '../../types';
-import { ArrowRight, ArrowLeft, CheckCircle2, Sparkles, LogOut } from 'lucide-react';
+import { ProfileEditModal } from '../layout/ProfileEditModal';
+import { ArrowRight, ArrowLeft, CheckCircle2, Sparkles, LogOut, Globe, Sun, Moon, Bell } from 'lucide-react';
+
+const TopBar: React.FC = () => {
+  const { language, toggleLanguage, theme, toggleTheme, isRTL, notifications, unreadNotificationCount, markNotificationRead } = useApp();
+  const { profile } = useAuth();
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  return (
+    <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/60">
+      <div className="flex items-center gap-2">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 text-white text-xs font-bold">
+          N
+        </span>
+        <span className="text-sm font-bold text-white">Nexus</span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-2.5 py-1.5 text-xs text-slate-200 hover:bg-slate-800 transition"
+        >
+          <Globe className="h-3.5 w-3.5" />
+          <span>{language === 'ar' ? 'EN' : 'AR'}</span>
+        </button>
+
+        <button
+          onClick={toggleTheme}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800 transition"
+        >
+          {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-indigo-400" />}
+        </button>
+
+        <div className="relative">
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800 transition"
+          >
+            <Bell className="h-4 w-4" />
+            {unreadNotificationCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-slate-950" />
+            )}
+          </button>
+          {showNotifications && (
+            <div className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-72 rounded-xl border border-slate-800 bg-slate-900/95 p-3 shadow-2xl backdrop-blur-xl z-50 text-xs`}>
+              {notifications.length === 0 ? (
+                <p className="text-center text-slate-500 py-4">{isRTL ? 'لا توجد إشعارات' : 'No notifications'}</p>
+              ) : (
+                <div className="divide-y divide-slate-800/60 max-h-64 overflow-y-auto">
+                  {notifications.map((n) => (
+                    <button
+                      key={n.id}
+                      onClick={() => markNotificationRead(n.id)}
+                      className="w-full text-left py-2 hover:bg-slate-800/40 rounded px-1.5"
+                    >
+                      <p className="font-semibold text-slate-200">{n.title}</p>
+                      <p className="text-[11px] text-slate-400">{n.body}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <button onClick={() => setShowProfileModal(true)} className="relative">
+          {profile?.avatarUrl ? (
+            <img src={profile.avatarUrl} alt="avatar" className="h-8 w-8 rounded-full object-cover ring-2 ring-blue-500/50" />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white text-xs font-bold ring-2 ring-blue-500/50">
+              {(profile?.fullName || profile?.username || '?').charAt(0).toUpperCase()}
+            </div>
+          )}
+        </button>
+      </div>
+
+      {showProfileModal && <ProfileEditModal isRTL={isRTL} onClose={() => setShowProfileModal(false)} />}
+    </div>
+  );
+};
 
 export const SystemCatalogView: React.FC = () => {
-  const { language, isRTL, systemTemplates, subscribeToSystem, showToast } = useApp();
+  const { language, isRTL, systemTemplates, subscribeToSystem } = useApp();
   const { signOut } = useAuth();
   const [selected, setSelected] = useState<SystemTemplate | null>(null);
   const [activeFeature, setActiveFeature] = useState<SystemTemplateFeature | null>(null);
@@ -21,158 +101,160 @@ export const SystemCatalogView: React.FC = () => {
     setSubscribing(false);
   };
 
-  if (activeTemplates.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0b0f17] text-slate-100 px-4">
-        <div className="max-w-sm text-center space-y-3">
-          <Sparkles className="h-8 w-8 text-blue-400 mx-auto" />
-          <p className="text-sm font-semibold">
-            {isRTL ? 'لا توجد أنظمة متاحة حاليًا' : 'No systems available yet'}
-          </p>
-          <p className="text-xs text-slate-400">
-            {isRTL
-              ? 'المشرف العام لسه ما ضافش أي نظام للاشتراك فيه. راجعنا قريب.'
-              : 'The administrator has not published any systems to subscribe to yet. Please check back soon.'}
-          </p>
-          <button
-            onClick={() => signOut()}
-            className="text-xs text-slate-500 hover:text-red-400 underline underline-offset-4"
-          >
-            {isRTL ? 'تسجيل الخروج' : 'Sign out'}
-          </button>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <div className="min-h-screen bg-[#0b0f17] text-slate-100">
+      <TopBar />
 
-  if (selected) {
-    return (
-      <div className="min-h-screen bg-[#0b0f17] text-slate-100 px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <button
-            onClick={() => {
-              setSelected(null);
-              setActiveFeature(null);
-            }}
-            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white mb-6"
-          >
-            <BackIcon className="h-3.5 w-3.5" />
-            {isRTL ? 'رجوع لكل الأنظمة' : 'Back to all systems'}
-          </button>
-
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 space-y-5">
-            <div className="flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600/15 text-2xl">
-                {selected.icon}
-              </span>
-              <div>
-                <h1 className="text-lg font-extrabold text-white">
-                  {language === 'ar' ? selected.nameAr : selected.name}
-                </h1>
-                <p className="text-xs text-slate-400">
-                  {selected.subscriptionPrice} {isRTL ? 'جنيه' : 'EGP'} /{' '}
-                  {selected.subscriptionPeriod === 'monthly'
-                    ? isRTL ? 'شهريًا' : 'month'
-                    : isRTL ? 'سنويًا' : 'year'}
-                </p>
-              </div>
-            </div>
-
-            <p className="text-sm text-slate-300 leading-relaxed">
-              {language === 'ar' ? selected.briefAr : selected.brief}
+      {activeTemplates.length === 0 && (
+        <div className="flex items-center justify-center px-4 py-20">
+          <div className="max-w-sm text-center space-y-3">
+            <Sparkles className="h-8 w-8 text-blue-400 mx-auto" />
+            <p className="text-sm font-semibold">
+              {isRTL ? 'لا توجد أنظمة متاحة حاليًا' : 'No systems available yet'}
             </p>
-
-            {selected.features.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-slate-400 mb-2">
-                  {isRTL ? 'دوس على أي خدمة عشان تعرف عنها أكتر' : 'Tap any feature to learn more'}
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {selected.features.map((f) => (
-                    <button
-                      key={f.id}
-                      onClick={() => setActiveFeature(f)}
-                      className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center hover:border-blue-500/50 hover:bg-slate-900 transition"
-                    >
-                      <span className="text-lg">{f.icon}</span>
-                      <span className="text-[11px] font-semibold text-slate-200">
-                        {language === 'ar' ? f.titleAr : f.title}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeFeature && (
-              <div className="rounded-xl border border-blue-500/30 bg-blue-600/10 p-4">
-                <p className="text-xs font-bold text-blue-300 mb-1">
-                  {language === 'ar' ? activeFeature.titleAr : activeFeature.title}
-                </p>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  {language === 'ar' ? activeFeature.descriptionAr : activeFeature.description}
-                </p>
-              </div>
-            )}
-
+            <p className="text-xs text-slate-400">
+              {isRTL
+                ? 'المشرف العام لسه ما ضافش أي نظام للاشتراك فيه. راجعنا قريب.'
+                : 'The administrator has not published any systems to subscribe to yet. Please check back soon.'}
+            </p>
             <button
-              onClick={handleSubscribe}
-              disabled={subscribing}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition active:scale-95 disabled:opacity-60"
+              onClick={() => signOut()}
+              className="text-xs text-slate-500 hover:text-red-400 underline underline-offset-4"
             >
-              <CheckCircle2 className="h-4 w-4" />
-              {subscribing
-                ? isRTL ? 'جاري الاشتراك...' : 'Subscribing...'
-                : isRTL ? 'اشترك في هذا النظام' : 'Subscribe to this system'}
+              {isRTL ? 'تسجيل الخروج' : 'Sign out'}
             </button>
           </div>
         </div>
-      </div>
-    );
-  }
+      )}
 
-  return (
-    <div className="min-h-screen bg-[#0b0f17] text-slate-100 px-4 py-10">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-xl font-extrabold text-white">
-            {isRTL ? 'اختار نظامك' : 'Choose your system'}
-          </h1>
-          <p className="mt-1 text-xs text-slate-400">
-            {isRTL
-              ? 'اختار نوع المشروع اللي عايز تديره، وهنعرض لك خدماته وسعر الاشتراك'
-              : 'Pick the type of business you want to manage — we will show you its features and pricing'}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {activeTemplates.map((t) => (
+      {activeTemplates.length > 0 && selected && (
+        <div className="px-4 py-8">
+          <div className="max-w-2xl mx-auto">
             <button
-              key={t.id}
-              onClick={() => setSelected(t)}
-              className="flex flex-col items-center gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-5 hover:border-blue-500/50 hover:-translate-y-0.5 transition"
+              onClick={() => {
+                setSelected(null);
+                setActiveFeature(null);
+              }}
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white mb-6"
             >
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600/15 text-2xl">
-                {t.icon}
-              </span>
-              <span className="text-sm font-bold text-white">{language === 'ar' ? t.nameAr : t.name}</span>
-              <span className="text-[10px] text-slate-500">
-                {t.subscriptionPrice} {isRTL ? 'جنيه' : 'EGP'}/{t.subscriptionPeriod === 'monthly' ? (isRTL ? 'شهر' : 'mo') : (isRTL ? 'سنة' : 'yr')}
-              </span>
+              <BackIcon className="h-3.5 w-3.5" />
+              {isRTL ? 'رجوع لكل الأنظمة' : 'Back to all systems'}
             </button>
-          ))}
-        </div>
 
-        <div className="text-center mt-8">
-          <button
-            onClick={() => signOut()}
-            className="flex items-center gap-1.5 mx-auto text-xs text-slate-500 hover:text-red-400"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            {isRTL ? 'تسجيل الخروج' : 'Sign out'}
-          </button>
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 space-y-5">
+              <div className="flex items-center gap-3">
+                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600/15 text-2xl">
+                  {selected.icon}
+                </span>
+                <div>
+                  <h1 className="text-lg font-extrabold text-white">
+                    {language === 'ar' ? selected.nameAr : selected.name}
+                  </h1>
+                  <p className="text-xs text-slate-400">
+                    {selected.subscriptionPrice} {isRTL ? 'جنيه' : 'EGP'} /{' '}
+                    {selected.subscriptionPeriod === 'monthly'
+                      ? isRTL ? 'شهريًا' : 'month'
+                      : isRTL ? 'سنويًا' : 'year'}
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-sm text-slate-300 leading-relaxed">
+                {language === 'ar' ? selected.briefAr : selected.brief}
+              </p>
+
+              {selected.features.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-slate-400 mb-2">
+                    {isRTL ? 'دوس على أي خدمة عشان تعرف عنها أكتر' : 'Tap any feature to learn more'}
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {selected.features.map((f) => (
+                      <button
+                        key={f.id}
+                        onClick={() => setActiveFeature(f)}
+                        className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center hover:border-blue-500/50 hover:bg-slate-900 transition"
+                      >
+                        <span className="text-lg">{f.icon}</span>
+                        <span className="text-[11px] font-semibold text-slate-200">
+                          {language === 'ar' ? f.titleAr : f.title}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeFeature && (
+                <div className="rounded-xl border border-blue-500/30 bg-blue-600/10 p-4">
+                  <p className="text-xs font-bold text-blue-300 mb-1">
+                    {language === 'ar' ? activeFeature.titleAr : activeFeature.title}
+                  </p>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {language === 'ar' ? activeFeature.descriptionAr : activeFeature.description}
+                  </p>
+                </div>
+              )}
+
+              <button
+                onClick={handleSubscribe}
+                disabled={subscribing}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition active:scale-95 disabled:opacity-60"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                {subscribing
+                  ? isRTL ? 'جاري الاشتراك...' : 'Subscribing...'
+                  : isRTL ? 'اشترك في هذا النظام' : 'Subscribe to this system'}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {activeTemplates.length > 0 && !selected && (
+        <div className="px-4 py-10">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h1 className="text-xl font-extrabold text-white">
+                {isRTL ? 'اختار نظامك' : 'Choose your system'}
+              </h1>
+              <p className="mt-1 text-xs text-slate-400">
+                {isRTL
+                  ? 'اختار نوع المشروع اللي عايز تديره، وهنعرض لك خدماته وسعر الاشتراك'
+                  : 'Pick the type of business you want to manage — we will show you its features and pricing'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {activeTemplates.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setSelected(t)}
+                  className="flex flex-col items-center gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-5 hover:border-blue-500/50 hover:-translate-y-0.5 transition"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600/15 text-2xl">
+                    {t.icon}
+                  </span>
+                  <span className="text-sm font-bold text-white">{language === 'ar' ? t.nameAr : t.name}</span>
+                  <span className="text-[10px] text-slate-500">
+                    {t.subscriptionPrice} {isRTL ? 'جنيه' : 'EGP'}/{t.subscriptionPeriod === 'monthly' ? (isRTL ? 'شهر' : 'mo') : (isRTL ? 'سنة' : 'yr')}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="text-center mt-8">
+              <button
+                onClick={() => signOut()}
+                className="flex items-center gap-1.5 mx-auto text-xs text-slate-500 hover:text-red-400"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                {isRTL ? 'تسجيل الخروج' : 'Sign out'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
