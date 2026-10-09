@@ -184,7 +184,7 @@ export const AccountingView: React.FC = () => {
             </span>
           </div>
           <p className="mt-1.5 text-[11px] text-slate-500">
-            {isRTL ? 'المشتريات، الرواتب والتشغيل' : 'Procurement, payroll & clinic overhead'}
+            {t('vocab.accounting_subtitle')}
           </p>
         </div>
 
@@ -243,9 +243,7 @@ export const AccountingView: React.FC = () => {
               {t('accounting.pnl')}
             </h3>
             <p className="text-[11px] text-slate-400">
-              {isRTL
-                ? 'مقارنة شهرية للإيرادات والمصروفات وصافي الأرباح'
-                : 'Monthly breakdown of gross revenues, clinical expenses, and net profit'}
+              {t('vocab.accounting_chart')}
             </p>
           </div>
 

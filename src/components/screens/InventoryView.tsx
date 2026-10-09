@@ -124,7 +124,7 @@ export const InventoryView: React.FC = () => {
             </span>
           </div>
           <p className="mt-1.5 text-[11px] text-slate-500">
-            {isRTL ? 'عبر ٦ مستودعات رئيسية' : 'Across 6 clinic departments'}
+            {t('vocab.inventory_scope')}
           </p>
         </div>
 
@@ -170,7 +170,7 @@ export const InventoryView: React.FC = () => {
             </span>
           </div>
           <p className="mt-1.5 text-[11px] text-slate-500">
-            {isRTL ? 'تم استقطاعها آلياً مع مواعيد المرضى' : 'Directly synced with clinical bookings'}
+            {t('vocab.inventory_synced')}
           </p>
         </div>
 

@@ -43,7 +43,7 @@ export const BookingsView: React.FC = () => {
             </span>
           </div>
           <p className="mt-1 text-xs text-slate-400">
-            {isRTL ? 'إدارة جدول المواعيد السريرية والاستقطاع الآلي للمستلزمات' : 'Live clinic appointments & auto-inventory trigger board.'}
+            {t('vocab.bookings_subtitle')}
           </p>
         </div>
 

@@ -50,7 +50,7 @@ export const PatientsView: React.FC = () => {
             </span>
           </div>
           <p className="mt-1 text-xs text-slate-400">
-            {isRTL ? 'إدارة السجلات الطبية للمرضى وتاريخ الفحوصات والتشخيصات' : 'Patient electronic medical records (EMR) & consultation logs.'}
+            {t('vocab.patients_subtitle')}
           </p>
         </div>
 

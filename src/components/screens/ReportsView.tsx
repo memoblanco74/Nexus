@@ -14,16 +14,16 @@ export const ReportsView: React.FC = () => {
               {t('nav.reports')}
             </h1>
             <span className="rounded-full bg-blue-500/20 px-3 py-0.5 text-xs font-semibold text-blue-400 border border-blue-500/30">
-              {isRTL ? 'تحليلات الذكاء الاصطناعي' : 'Clinical Analytics Engine'}
+              {t('vocab.reports_title')}
             </span>
           </div>
           <p className="mt-1 text-xs text-slate-400">
-            {isRTL ? 'تقارير الأداء السريري، كفاءة الأطباء، ومعدلات الإشغال' : 'Clinical operational efficiency, bed occupancy, and diagnostic accuracy ratios.'}
+            {t('vocab.reports_subtitle')}
           </p>
         </div>
 
         <button
-          onClick={() => openPdfExport('Comprehensive Clinical & Operational Report')}
+          onClick={() => openPdfExport('Comprehensive Operational Report')}
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition"
         >
           <Download className="h-4 w-4" />

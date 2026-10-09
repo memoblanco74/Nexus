@@ -10,6 +10,7 @@ export const QrScannerModal: React.FC = () => {
     adjustStock,
     isRTL,
     showToast,
+    t,
   } = useApp();
 
   const [scannedItem, setScannedItem] = useState<any>(null);
@@ -35,7 +36,7 @@ export const QrScannerModal: React.FC = () => {
           <div className="flex items-center gap-2">
             <QrCode className="h-4 w-4 text-blue-400" />
             <h3 className="text-sm font-bold text-white">
-              {isRTL ? 'ماسح الباركود ورمز الاستجابة السريعة QR' : 'Clinical Barcode & QR Scanner'}
+              {t('vocab.scanner_title')}
             </h3>
           </div>
           <button
@@ -129,6 +130,7 @@ export const TenantSwitcherModal: React.FC = () => {
     language,
     isRTL,
     showToast,
+    t,
   } = useApp();
 
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -157,7 +159,7 @@ export const TenantSwitcherModal: React.FC = () => {
       <div className="relative w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl">
         <div className="flex items-center justify-between pb-4 border-b border-slate-800">
           <h3 className="text-sm font-bold text-white">
-            {isRTL ? 'إدارة المستأجرين والمراكز الطبية' : 'Switch Clinic Tenant & Organization'}
+            {t('vocab.switcher_title')}
           </h3>
           <button
             onClick={() => setIsTenantModalOpen(false)}

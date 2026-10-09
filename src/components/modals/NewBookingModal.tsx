@@ -53,7 +53,7 @@ export const NewBookingModal: React.FC = () => {
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-indigo-400" />
             <h3 className="text-sm font-bold text-white">
-              {isRTL ? 'حجز موعد سريري جديد' : 'New Clinical Appointment'}
+              {t('vocab.new_booking_title')}
             </h3>
           </div>
           <button

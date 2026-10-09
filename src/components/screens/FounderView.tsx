@@ -46,7 +46,7 @@ export const FounderView: React.FC = () => {
             </h1>
             <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-semibold text-blue-400 border border-blue-500/30">
               <Sparkles className="h-3 w-3" />
-              {isRTL ? 'المؤسس الطبي' : 'Clinic Founder'}
+              {t('vocab.founder_badge')}
             </span>
           </div>
           <p className="mt-1 text-xs text-slate-400">

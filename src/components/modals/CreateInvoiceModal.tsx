@@ -72,7 +72,7 @@ export const CreateInvoiceModal: React.FC = () => {
               <FileText className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-bold text-white">
-              {isRTL ? 'إنشاء فاتورة طبية جديدة' : 'Create New Medical Invoice'}
+              {t('vocab.invoice_title')}
             </h3>
           </div>
           <button

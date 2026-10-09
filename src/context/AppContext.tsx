@@ -1,3 +1,4 @@
+import { SYSTEM_VOCAB, DEFAULT_SYSTEM_KEY } from '../lib/systemVocab';
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ScreenId,
@@ -329,8 +330,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  const systemKey =
+    systemTemplates.find((tpl) => tpl.id === activeTenant?.systemId)?.key || DEFAULT_SYSTEM_KEY;
+
   const t = (key: string): string => {
-    const entry = DICTIONARY[key];
+    const entry = SYSTEM_VOCAB[systemKey]?.[key] || SYSTEM_VOCAB[DEFAULT_SYSTEM_KEY]?.[key] || DICTIONARY[key];
     if (!entry) return key;
     return entry[language] || entry.en;
   };
