@@ -74,8 +74,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       id: 'projects',
       label: t('nav.projects'),
       icon: <FolderKanban className="h-4 w-4" />,
-      badge: '3',
-      badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
     },
     {
       id: 'patients',
@@ -86,15 +84,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       id: 'bookings',
       label: t('nav.bookings'),
       icon: <CalendarCheck className="h-4 w-4" />,
-      badge: 'Today',
-      badgeColor: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
     },
     {
       id: 'inventory',
       label: t('nav.inventory'),
       icon: <Package className="h-4 w-4" />,
-      badge: 'Auto',
-      badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
     },
     {
       id: 'accounting',

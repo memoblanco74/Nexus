@@ -50,7 +50,7 @@ export const CreateInvoiceModal: React.FC = () => {
     if (!clientName.trim()) return;
 
     addInvoice({
-      invoiceNumber: `INV-2024-${Math.floor(100 + Math.random() * 900)}`,
+      invoiceNumber: `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
       clientName,
       clientNameAr: clientNameAr || clientName,
       amount: totalAmount,
@@ -228,7 +228,7 @@ export const AddPatientModal: React.FC = () => {
       age: Number(age),
       gender,
       phone,
-      email: `${nameEn.toLowerCase().replace(/\s+/g, '.')}@patient.med`,
+      email: '',
       bloodType,
       nationalId,
       lastVisit: new Date().toISOString().split('T')[0],

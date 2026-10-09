@@ -35,6 +35,12 @@ export const InventoryView: React.FC = () => {
     t,
   } = useApp();
 
+  const avgUnitCost = inventory.length > 0 ? inventory.reduce((sum, i) => sum + i.unitCost, 0) / inventory.length : 0;
+  const lowCriticalNames = inventory
+    .filter((i) => i.status === 'low' || i.status === 'critical')
+    .slice(0, 3)
+    .map((i) => (isRTL ? i.nameAr || i.nameEn : i.nameEn));
+
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [selectedChartItem, setSelectedChartItem] = useState<InventoryItem>(
@@ -117,11 +123,8 @@ export const InventoryView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
-              1,248
+              {inventory.length}
             </h3>
-            <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-bold text-emerald-400">
-              +14
-            </span>
           </div>
           <p className="mt-1.5 text-[11px] text-slate-500">
             {t('vocab.inventory_scope')}
@@ -147,7 +150,9 @@ export const InventoryView: React.FC = () => {
             </span>
           </div>
           <p className="mt-1.5 text-[11px] text-slate-500">
-            {isRTL ? 'سرنجات وليدوكائين تحت الحد الأدنى' : 'Lidocaine & Saline below min threshold'}
+            {lowCriticalNames.length > 0
+              ? lowCriticalNames.join('، ')
+              : isRTL ? 'لا توجد أصناف تحت الحد الأدنى' : 'No items below minimum'}
           </p>
         </div>
 
@@ -163,11 +168,8 @@ export const InventoryView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
-              182 {isRTL ? 'وحدة' : 'Units'}
+              {autoDeductLogs.reduce((sum, l) => sum + (l.units || 0), 0)} {isRTL ? 'وحدة' : 'Units'}
             </h3>
-            <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-bold text-emerald-400">
-              99.4%
-            </span>
           </div>
           <p className="mt-1.5 text-[11px] text-slate-500">
             {t('vocab.inventory_synced')}
@@ -186,15 +188,9 @@ export const InventoryView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
-              $4.85
+              ${avgUnitCost.toFixed(2)}
             </h3>
-            <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-bold text-emerald-400">
-              -2.1%
-            </span>
           </div>
-          <p className="mt-1.5 text-[11px] text-slate-500">
-            {isRTL ? 'وفر في تكاليف الشراء الجماعي' : 'Bulk procurement savings'}
-          </p>
         </div>
       </div>
 

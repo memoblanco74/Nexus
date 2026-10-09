@@ -275,6 +275,7 @@ export const ExportPdfModal: React.FC = () => {
     activeTenant,
     financials,
     invoices,
+    patients,
     isRTL,
   } = useApp();
 
@@ -324,7 +325,7 @@ export const ExportPdfModal: React.FC = () => {
             </div>
             <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
               <span className="text-[10px] text-slate-400">Active EMR Files</span>
-              <p className="text-sm font-bold text-white mt-0.5">1,248 Records</p>
+              <p className="text-sm font-bold text-white mt-0.5">{patients.length} Records</p>
             </div>
           </div>
 

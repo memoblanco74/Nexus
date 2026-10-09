@@ -33,7 +33,19 @@ export const FounderView: React.FC = () => {
     t,
   } = useApp();
 
-  const criticalInventoryCount = inventory.filter((i) => i.status === 'critical').length;
+  const criticalItems = inventory.filter((i) => i.status === 'critical');
+  const criticalInventoryCount = criticalItems.length;
+  const trends = financials.monthlyTrends;
+  const thisMonth = trends[trends.length - 1];
+  const lastMonth = trends[trends.length - 2];
+  const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
+  const pct = (curr: number, prev: number) =>
+    prev > 0 ? `${curr >= prev ? '+' : ''}${(((curr - prev) / prev) * 100).toFixed(1)}%` : null;
+  const revenueBadge = lastMonth ? pct(thisMonth.income, lastMonth.income) : null;
+  const confirmedBookings = bookings.filter((b) => b.status === 'confirmed').length;
+  const pendingBookings = bookings.filter((b) => b.status === 'pending').length;
+  const margin = financials.totalIncome > 0 ? Math.round((financials.netProfit / financials.totalIncome) * 100) : 0;
+  const hasTrendData = trends.some((m) => m.income > 0 || m.expenses > 0);
 
   return (
     <div className="space-y-6 pb-12">
@@ -96,14 +108,16 @@ export const FounderView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
-              $124,500
+              {money(thisMonth?.income || 0)}
             </h3>
-            <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-bold text-emerald-400">
-              +12.5%
-            </span>
+            {revenueBadge && (
+              <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-bold text-emerald-400">
+                {revenueBadge}
+              </span>
+            )}
           </div>
           <p className="mt-1.5 text-[11px] text-slate-400">
-            {isRTL ? 'مقارنة بالشهر الماضي (١١٠,٦٠٠ $)' : 'vs last month ($110,600)'}
+            {isRTL ? `الشهر الماضي: ${money(lastMonth?.income || 0)}` : `Last month: ${money(lastMonth?.income || 0)}`}
           </p>
         </div>
 
@@ -119,14 +133,11 @@ export const FounderView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
-              42
+              {bookings.length}
             </h3>
-            <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-bold text-emerald-400">
-              +8%
-            </span>
           </div>
           <p className="mt-1.5 text-[11px] text-slate-500">
-            {isRTL ? '٣٦ تم تأكيدها، ٦ في الانتظار' : '36 confirmed, 6 checked in'}
+            {isRTL ? `${confirmedBookings} مؤكدة، ${pendingBookings} قيد الانتظار` : `${confirmedBookings} confirmed, ${pendingBookings} pending`}
           </p>
         </div>
 
@@ -142,14 +153,11 @@ export const FounderView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
-              1,248
+              {patients.length}
             </h3>
-            <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-bold text-emerald-400">
-              +14%
-            </span>
           </div>
           <p className="mt-1.5 text-[11px] text-slate-500">
-            {isRTL ? '١٨٢ مريضاً جديداً هذا الشهر' : '182 first-time consultations'}
+            {isRTL ? 'إجمالي السجلات المسجلة' : 'Total registered records'}
           </p>
         </div>
 
@@ -172,7 +180,9 @@ export const FounderView: React.FC = () => {
             </span>
           </div>
           <p className="mt-1.5 text-[11px] text-slate-500">
-            {isRTL ? 'سرنجات، ليدوكائين، محلول ملحي' : 'Syringes, Lidocaine, Saline'}
+            {criticalItems.length > 0
+              ? criticalItems.slice(0, 3).map((i) => (isRTL ? i.nameAr || i.nameEn : i.nameEn)).join('، ')
+              : isRTL ? 'لا توجد أصناف حرجة' : 'No critical items'}
           </p>
         </div>
       </div>
@@ -202,18 +212,15 @@ export const FounderView: React.FC = () => {
           <div className="mt-4 grid grid-cols-3 gap-3">
             <div className="rounded-xl bg-slate-900/60 p-3 border border-slate-800/60">
               <span className="text-[11px] text-slate-400">{t('accounting.total_income')}</span>
-              <p className="text-lg font-bold text-white mt-1">$124,500</p>
-              <span className="text-[10px] text-emerald-400">+12.5%</span>
+              <p className="text-lg font-bold text-white mt-1">{money(financials.totalIncome)}</p>
             </div>
             <div className="rounded-xl bg-slate-900/60 p-3 border border-slate-800/60">
               <span className="text-[11px] text-slate-400">{t('accounting.total_expenses')}</span>
-              <p className="text-lg font-bold text-white mt-1">$42,300</p>
-              <span className="text-[10px] text-slate-400">+4.2%</span>
+              <p className="text-lg font-bold text-white mt-1">{money(financials.totalExpenses)}</p>
             </div>
             <div className="rounded-xl bg-emerald-950/30 p-3 border border-emerald-500/30">
               <span className="text-[11px] text-emerald-300 font-semibold">{t('accounting.net_profit')}</span>
-              <p className="text-lg font-bold text-emerald-400 mt-1">$82,200</p>
-              <span className="text-[10px] text-emerald-400 font-bold">+18% YTD</span>
+              <p className="text-lg font-bold text-emerald-400 mt-1">{money(financials.netProfit)}</p>
             </div>
           </div>
 
@@ -221,8 +228,13 @@ export const FounderView: React.FC = () => {
           <div className="mt-6 space-y-3">
             <div className="flex items-center justify-between text-xs text-slate-400">
               <span>{isRTL ? 'اتجاه الإيرادات مقابل المصروفات (آخر ٦ أشهر)' : 'Monthly Income vs Expense Ratio'}</span>
-              <span className="text-[11px] text-blue-400 font-medium">66% Net Margin</span>
+              {financials.totalIncome > 0 && (
+                <span className="text-[11px] text-blue-400 font-medium">{margin}% {isRTL ? 'هامش الربح' : 'Net Margin'}</span>
+              )}
             </div>
+            {!hasTrendData && (
+              <p className="text-[11px] text-slate-500">{isRTL ? 'لا توجد حركة مالية بعد' : 'No financial activity yet'}</p>
+            )}
             <div className="grid grid-cols-6 gap-2 items-end h-28 pt-4">
               {financials.monthlyTrends.map((m) => (
                 <div key={m.month} className="flex flex-col items-center gap-1.5 h-full justify-end">
@@ -235,7 +247,7 @@ export const FounderView: React.FC = () => {
                     <div
                       style={{ height: `${m.lossPct * 0.4}%` }}
                       className="w-3 rounded-t-sm bg-slate-700"
-                      title={`Expense: $${m.expense?.toLocaleString() || '30k'}`}
+                      title={`Expense: $${m.expenses.toLocaleString()}`}
                     />
                   </div>
                   <span className="text-[10px] text-slate-400">{m.month}</span>

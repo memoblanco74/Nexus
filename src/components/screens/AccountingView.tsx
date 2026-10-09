@@ -207,7 +207,11 @@ export const AccountingView: React.FC = () => {
             </span>
           </div>
           <p className="mt-1.5 text-[11px] text-slate-400">
-            {isRTL ? 'هامش ربح صافٍ بنسبة ٦٦٪' : '66.0% Net Operating Margin'}
+            {financials.totalIncome > 0
+              ? isRTL
+                ? `هامش ربح صافٍ بنسبة ${((financials.netProfit / financials.totalIncome) * 100).toFixed(1)}٪`
+                : `${((financials.netProfit / financials.totalIncome) * 100).toFixed(1)}% Net Operating Margin`
+              : isRTL ? 'لا توجد إيرادات بعد' : 'No revenue yet'}
           </p>
         </div>
 
