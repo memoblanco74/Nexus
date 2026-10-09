@@ -33,6 +33,7 @@ export const InventoryView: React.FC = () => {
     setIsQrScannerOpen,
     showToast,
     t,
+    money,
   } = useApp();
 
   const avgUnitCost = inventory.length > 0 ? inventory.reduce((sum, i) => sum + i.unitCost, 0) / inventory.length : 0;
@@ -188,7 +189,7 @@ export const InventoryView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
-              ${avgUnitCost.toFixed(2)}
+              {money(avgUnitCost, 2)}
             </h3>
           </div>
         </div>
@@ -234,7 +235,7 @@ export const InventoryView: React.FC = () => {
                 </span>
                 <div className="flex items-baseline gap-2 mt-0.5">
                   <span className="text-xl font-bold text-white">
-                    ${selectedChartItem.unitCost?.toFixed(2)}
+                    {money(selectedChartItem.unitCost || 0, 2)}
                   </span>
                   <span className="text-xs text-slate-400">/{selectedChartItem.unit}</span>
                 </div>
@@ -462,7 +463,7 @@ export const InventoryView: React.FC = () => {
                       {item.minReq} {item.unit}
                     </td>
                     <td className="py-3 px-3 font-semibold text-white">
-                      ${item.unitCost.toFixed(2)}
+                      {money(item.unitCost, 2)}
                     </td>
                     <td className="py-3 px-3 text-center">
                       <button

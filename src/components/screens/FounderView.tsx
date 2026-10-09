@@ -31,6 +31,7 @@ export const FounderView: React.FC = () => {
     setIsCreateInvoiceOpen,
     openPdfExport,
     t,
+    money,
   } = useApp();
 
   const criticalItems = inventory.filter((i) => i.status === 'critical');
@@ -38,7 +39,6 @@ export const FounderView: React.FC = () => {
   const trends = financials.monthlyTrends;
   const thisMonth = trends[trends.length - 1];
   const lastMonth = trends[trends.length - 2];
-  const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
   const pct = (curr: number, prev: number) =>
     prev > 0 ? `${curr >= prev ? '+' : ''}${(((curr - prev) / prev) * 100).toFixed(1)}%` : null;
   const revenueBadge = lastMonth ? pct(thisMonth.income, lastMonth.income) : null;
@@ -242,12 +242,12 @@ export const FounderView: React.FC = () => {
                     <div
                       style={{ height: `${m.barPct}%` }}
                       className="w-3 rounded-t-sm bg-gradient-to-t from-blue-600 to-indigo-500"
-                      title={`Income: $${m.income.toLocaleString()}`}
+                      title={`Income: ${money(m.income)}`}
                     />
                     <div
                       style={{ height: `${m.lossPct * 0.4}%` }}
                       className="w-3 rounded-t-sm bg-slate-700"
-                      title={`Expense: $${m.expenses.toLocaleString()}`}
+                      title={`Expense: ${money(m.expenses)}`}
                     />
                   </div>
                   <span className="text-[10px] text-slate-400">{m.month}</span>
@@ -297,7 +297,7 @@ export const FounderView: React.FC = () => {
                     </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-bold text-white">${inv.amount.toLocaleString()}</p>
+                    <p className="text-xs font-bold text-white">{money(inv.amount)}</p>
                     <span className="text-[10px] text-slate-500">{inv.dueDate}</span>
                   </div>
                 </div>

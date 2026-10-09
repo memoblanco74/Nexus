@@ -131,6 +131,7 @@ export const TenantSwitcherModal: React.FC = () => {
     isRTL,
     showToast,
     t,
+    describeTenant,
   } = useApp();
 
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -209,9 +210,9 @@ export const TenantSwitcherModal: React.FC = () => {
 
                     <div className="text-right">
                       <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                        {t.plan}
+                        {describeTenant(t).system}
                       </span>
-                      <span className="block text-[10px] text-slate-500 mt-1">{t.mrr.toLocaleString()} EGP</span>
+                      <span className="block text-[10px] text-slate-500 mt-1">{describeTenant(t).status}</span>
                     </div>
                   </button>
                 );
@@ -277,6 +278,7 @@ export const ExportPdfModal: React.FC = () => {
     invoices,
     patients,
     isRTL,
+    money,
   } = useApp();
 
   if (!isPdfExportOpen) return null;
@@ -317,11 +319,11 @@ export const ExportPdfModal: React.FC = () => {
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
               <span className="text-[10px] text-slate-400">Total Revenue MTD</span>
-              <p className="text-sm font-bold text-white mt-0.5">${financials.totalIncome.toLocaleString()}</p>
+              <p className="text-sm font-bold text-white mt-0.5">{money(financials.totalIncome)}</p>
             </div>
             <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
               <span className="text-[10px] text-slate-400">Net Operating Profit</span>
-              <p className="text-sm font-bold text-emerald-400 mt-0.5">${financials.netProfit.toLocaleString()}</p>
+              <p className="text-sm font-bold text-emerald-400 mt-0.5">{money(financials.netProfit)}</p>
             </div>
             <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
               <span className="text-[10px] text-slate-400">Active EMR Files</span>
@@ -335,7 +337,7 @@ export const ExportPdfModal: React.FC = () => {
               {invoices.slice(0, 3).map((inv) => (
                 <div key={inv.id} className="p-2 flex justify-between bg-slate-950/60">
                   <span className="font-mono text-white">{inv.invoiceNumber} - {inv.clientName}</span>
-                  <span className="font-bold text-emerald-400">${inv.amount.toLocaleString()}</span>
+                  <span className="font-bold text-emerald-400">{money(inv.amount)}</span>
                 </div>
               ))}
             </div>

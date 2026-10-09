@@ -30,6 +30,7 @@ export const AccountingView: React.FC = () => {
     showToast,
     addExpense,
     t,
+    money,
   } = useApp();
 
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
@@ -64,7 +65,7 @@ export const AccountingView: React.FC = () => {
   });
 
   const exportExcel = () => {
-    const headers = ['Invoice Number', 'Client Name', 'Amount (USD)', 'Status', 'Date', 'Due Date'];
+    const headers = ['Invoice Number', 'Client Name', 'Amount (EGP)', 'Status', 'Date', 'Due Date'];
     const rows = filteredInvoices.map((inv) => [
       inv.invoiceNumber,
       inv.clientName,
@@ -154,7 +155,7 @@ export const AccountingView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
-              ${financials.totalIncome.toLocaleString()}
+              {money(financials.totalIncome)}
             </h3>
             <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-bold text-emerald-400">
               {financials.incomeChange}
@@ -177,7 +178,7 @@ export const AccountingView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
-              ${financials.totalExpenses.toLocaleString()}
+              {money(financials.totalExpenses)}
             </h3>
             <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-medium text-slate-400">
               {financials.expensesChange}
@@ -200,7 +201,7 @@ export const AccountingView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-400">
-              ${financials.netProfit.toLocaleString()}
+              {money(financials.netProfit)}
             </h3>
             <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-bold text-emerald-400">
               {financials.profitChange}
@@ -227,7 +228,7 @@ export const AccountingView: React.FC = () => {
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
-              ${financials.estimatedTaxes.toLocaleString()}
+              {money(financials.estimatedTaxes)}
             </h3>
             <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-medium text-slate-400">
               {financials.taxesChange}
@@ -282,24 +283,24 @@ export const AccountingView: React.FC = () => {
                   <div
                     style={{ height: `${m.barPct}%` }}
                     className="w-4 rounded-t-md bg-gradient-to-t from-blue-600 to-indigo-500 group-hover:brightness-125 transition-all"
-                    title={`Income: $${m.income.toLocaleString()}`}
+                    title={`Income: ${money(m.income)}`}
                   />
                   {/* Expense bar */}
                   <div
                     style={{ height: `${(m.expenses / chartMax) * 100}%` }}
                     className="w-4 rounded-t-md bg-slate-700 group-hover:bg-slate-600 transition-all"
-                    title={`Expenses: $${m.expenses.toLocaleString()}`}
+                    title={`Expenses: ${money(m.expenses)}`}
                   />
                   {/* Profit bar */}
                   <div
                     style={{ height: `${(m.profit / chartMax) * 100}%` }}
                     className="w-4 rounded-t-md bg-emerald-500 group-hover:bg-emerald-400 transition-all shadow-sm shadow-emerald-500/20"
-                    title={`Profit: $${m.profit.toLocaleString()}`}
+                    title={`Profit: ${money(m.profit)}`}
                   />
                 </div>
                 <div className="text-center">
                   <span className="text-xs font-semibold text-slate-300 block">{m.month}</span>
-                  <span className="text-[10px] text-emerald-400 font-mono">${(m.profit / 1000).toFixed(0)}k</span>
+                  <span className="text-[10px] text-emerald-400 font-mono">{(m.profit / 1000).toFixed(0)}k</span>
                 </div>
               </div>
             );
@@ -380,7 +381,7 @@ export const AccountingView: React.FC = () => {
                     </p>
                   </td>
                   <td className="py-3 px-3 font-bold text-white text-sm">
-                    ${inv.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {money(inv.amount, 2)}
                   </td>
                   <td className="py-3 px-3 text-slate-400">{inv.date}</td>
                   <td className="py-3 px-3 text-slate-400">{inv.dueDate}</td>

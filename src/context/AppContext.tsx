@@ -133,6 +133,8 @@ interface AppContextType {
   markNotificationRead: (id: string) => void;
 
   t: (key: string) => string;
+  money: (amount: number, decimals?: number) => string;
+  describeTenant: (tenant: Tenant) => { system: string; status: string; tone: 'ok' | 'warn' | 'bad' };
 }
 
 const DICTIONARY: Record<string, { en: string; ar: string }> = {
@@ -337,6 +339,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const entry = SYSTEM_VOCAB[systemKey]?.[key] || SYSTEM_VOCAB[DEFAULT_SYSTEM_KEY]?.[key] || DICTIONARY[key];
     if (!entry) return key;
     return entry[language] || entry.en;
+  };
+
+  const money = (amount: number, decimals = 0): string => {
+    const value = Number(amount || 0).toLocaleString('en-US', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+    return language === 'ar' ? `${value} ج.م` : `${value} EGP`;
+  };
+
+  const describeTenant = (tenant: Tenant) => {
+    const tpl = systemTemplates.find((s) => s.id === tenant.systemId);
+    const system = tpl ? (language === 'ar' ? tpl.nameAr : tpl.name) : language === 'ar' ? 'غير محدد' : 'Unassigned';
+    if (tenant.subscriptionPaused) {
+      return { system, status: language === 'ar' ? 'متوقف مؤقتاً' : 'Paused', tone: 'warn' as const };
+    }
+    if (tenant.status === 'Suspended') {
+      return { system, status: language === 'ar' ? 'معلّق' : 'Suspended', tone: 'bad' as const };
+    }
+    if (tenant.status === 'Expiring Soon') {
+      return { system, status: language === 'ar' ? 'ينتهي قريباً' : 'Expiring soon', tone: 'warn' as const };
+    }
+    return { system, status: language === 'ar' ? 'نشط' : 'Active', tone: 'ok' as const };
   };
 
   const refreshTenants = useCallback(async () => {
@@ -1274,6 +1299,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         unreadNotificationCount,
         markNotificationRead,
         t,
+        money,
+        describeTenant,
       }}
     >
       {children}

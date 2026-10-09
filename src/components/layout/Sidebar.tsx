@@ -36,8 +36,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
     setIsTenantModalOpen,
     isRTL,
     t,
+    describeTenant,
   } = useApp();
   const { profile } = useAuth();
+  const tenantInfo = activeTenant
+    ? describeTenant(activeTenant)
+    : { system: '', status: '', tone: 'ok' as const };
 
   const ROLE_SCREENS: Record<string, ScreenId[]> = {
     super_admin: ['super_admin', 'catalog', 'settings', 'support'],
@@ -198,9 +202,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
                     {language === 'ar' ? activeTenant.nameAr : activeTenant.name}
                   </p>
                   <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                    <span>{activeTenant.code}</span>
+                    <span className="truncate">{tenantInfo.system}</span>
                     <span>•</span>
-                    <span className="text-emerald-400 font-medium">{activeTenant.plan}</span>
+                    <span className={`font-medium ${tenantInfo.tone === 'ok' ? 'text-emerald-400' : tenantInfo.tone === 'warn' ? 'text-amber-400' : 'text-red-400'}`}>
+                      {tenantInfo.status}
+                    </span>
                   </div>
                 </div>
               </div>

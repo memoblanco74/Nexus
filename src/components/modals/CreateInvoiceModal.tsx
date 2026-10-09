@@ -4,7 +4,8 @@ import { X, Plus, Trash2, FileText, Check } from 'lucide-react';
 import { InvoiceItem } from '../../types';
 
 export const CreateInvoiceModal: React.FC = () => {
-  const { isCreateInvoiceOpen, setIsCreateInvoiceOpen, addInvoice, isRTL, t } = useApp();
+  const { isCreateInvoiceOpen, setIsCreateInvoiceOpen, addInvoice, isRTL, t, money
+  } = useApp();
 
   const [clientName, setClientName] = useState('');
   const [clientNameAr, setClientNameAr] = useState('');
@@ -178,7 +179,7 @@ export const CreateInvoiceModal: React.FC = () => {
           <div className="flex items-center justify-between pt-3 border-t border-slate-800">
             <div>
               <span className="text-xs text-slate-400">{isRTL ? 'الإجمالي الكلي:' : 'Total Amount:'}</span>
-              <p className="text-lg font-bold text-emerald-400">${totalAmount.toLocaleString()}</p>
+              <p className="text-lg font-bold text-emerald-400">{money(totalAmount)}</p>
             </div>
 
             <div className="flex items-center gap-2">

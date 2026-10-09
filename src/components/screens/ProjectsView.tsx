@@ -3,7 +3,8 @@ import { useApp } from '../../context/AppContext';
 import { FolderKanban, TrendingUp, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 
 export const ProjectsView: React.FC = () => {
-  const { language, isRTL, projects, t } = useApp();
+  const { language, isRTL, projects, t, money
+  } = useApp();
 
   return (
     <div className="space-y-6 pb-12">
@@ -56,11 +57,11 @@ export const ProjectsView: React.FC = () => {
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/60 text-xs">
               <div>
                 <span className="text-[10px] text-slate-500">{isRTL ? 'الميزانية' : 'Budget'}</span>
-                <p className="font-bold text-white">${prj.budget.toLocaleString()}</p>
+                <p className="font-bold text-white">{money(prj.budget)}</p>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500">{isRTL ? 'المصروف حتى الآن' : 'Disbursed'}</span>
-                <p className="font-bold text-emerald-400">${prj.spent.toLocaleString()}</p>
+                <p className="font-bold text-emerald-400">{money(prj.spent)}</p>
               </div>
             </div>
           </div>

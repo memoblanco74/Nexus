@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { BarChart3, TrendingUp, PieChart, Activity, Download, ShieldCheck } from 'lucide-react';
 
 export const ReportsView: React.FC = () => {
-  const { isRTL, openPdfExport, t, bookings, invoices, inventory, patients } = useApp();
+  const { isRTL, openPdfExport, t, bookings, invoices, inventory, patients, money } = useApp();
 
   const deptMap = new Map<string, number>();
   bookings.forEach((b) => {
@@ -21,8 +21,8 @@ export const ReportsView: React.FC = () => {
   const confirmed = bookings.filter((b) => b.status === 'confirmed').length;
 
   const kpis = [
-    { label: isRTL ? 'إجمالي المدفوع' : 'Paid Total', value: paidTotal.toLocaleString(), color: 'text-emerald-400' },
-    { label: isRTL ? 'مستحق / متأخر' : 'Pending / Overdue', value: pendingTotal.toLocaleString(), color: 'text-amber-400' },
+    { label: isRTL ? 'إجمالي المدفوع' : 'Paid Total', value: money(paidTotal), color: 'text-emerald-400' },
+    { label: isRTL ? 'مستحق / متأخر' : 'Pending / Overdue', value: money(pendingTotal), color: 'text-amber-400' },
     { label: isRTL ? 'مواد منخفضة المخزون' : 'Low Stock Items', value: String(lowStock), color: 'text-red-400' },
     { label: isRTL ? 'حجوزات مؤكدة' : 'Confirmed Bookings', value: `${confirmed}/${bookings.length}`, color: 'text-blue-400' },
   ];
