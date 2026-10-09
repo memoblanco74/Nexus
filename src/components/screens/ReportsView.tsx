@@ -3,7 +3,29 @@ import { useApp } from '../../context/AppContext';
 import { BarChart3, TrendingUp, PieChart, Activity, Download, ShieldCheck } from 'lucide-react';
 
 export const ReportsView: React.FC = () => {
-  const { language, isRTL, openPdfExport, t } = useApp();
+  const { isRTL, openPdfExport, t, bookings, invoices, inventory, patients } = useApp();
+
+  const deptMap = new Map<string, number>();
+  bookings.forEach((b) => {
+    const name = (isRTL ? b.departmentAr : b.department) || '—';
+    deptMap.set(name, (deptMap.get(name) || 0) + 1);
+  });
+  const byDepartment: { name: string; count: number }[] = Array.from(deptMap.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((x, y) => y.count - x.count);
+  const maxCount = byDepartment[0]?.count || 1;
+
+  const paidTotal = invoices.filter((i) => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0);
+  const pendingTotal = invoices.filter((i) => i.status !== 'paid').reduce((sum, i) => sum + i.amount, 0);
+  const lowStock = inventory.filter((i) => i.status === 'low' || i.status === 'critical').length;
+  const confirmed = bookings.filter((b) => b.status === 'confirmed').length;
+
+  const kpis = [
+    { label: isRTL ? 'إجمالي المدفوع' : 'Paid Total', value: paidTotal.toLocaleString(), color: 'text-emerald-400' },
+    { label: isRTL ? 'مستحق / متأخر' : 'Pending / Overdue', value: pendingTotal.toLocaleString(), color: 'text-amber-400' },
+    { label: isRTL ? 'مواد منخفضة المخزون' : 'Low Stock Items', value: String(lowStock), color: 'text-red-400' },
+    { label: isRTL ? 'حجوزات مؤكدة' : 'Confirmed Bookings', value: `${confirmed}/${bookings.length}`, color: 'text-blue-400' },
+  ];
 
   return (
     <div className="space-y-6 pb-12">
@@ -34,52 +56,42 @@ export const ReportsView: React.FC = () => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="glass-panel rounded-2xl border border-slate-800 p-5 space-y-4">
           <h3 className="text-sm font-bold text-white">
-            {isRTL ? 'كفاءة الأقسام والعيادات' : 'Departmental Volume & Throughput'}
+            {isRTL ? 'الحجوزات حسب القسم' : 'Bookings by Section'}
           </h3>
-          <div className="space-y-3">
-            {[
-              { dept: 'Surgery & Orthopedics', pct: 92, cases: 412, rev: '$48,000' },
-              { dept: 'Dental Clinic', pct: 84, cases: 380, rev: '$32,500' },
-              { dept: 'Radiology & Imaging', pct: 76, cases: 290, rev: '$26,000' },
-              { dept: 'Cardiology', pct: 68, cases: 166, rev: '$18,000' },
-            ].map((d) => (
-              <div key={d.dept} className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="font-semibold text-slate-200">{d.dept}</span>
-                  <span className="font-bold text-emerald-400">{d.rev}</span>
+          {byDepartment.length === 0 ? (
+            <p className="text-xs text-slate-400">{isRTL ? 'لا توجد بيانات بعد' : 'No data yet'}</p>
+          ) : (
+            <div className="space-y-3">
+              {byDepartment.map((d) => (
+                <div key={d.name} className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="font-semibold text-slate-200">{d.name}</span>
+                    <span className="font-bold text-emerald-400">{d.count}</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+                    <div style={{ width: `${(d.count / maxCount) * 100}%` }} className="h-full bg-blue-500 rounded-full" />
+                  </div>
                 </div>
-                <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
-                  <div style={{ width: `${d.pct}%` }} className="h-full bg-blue-500 rounded-full" />
-                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="glass-panel rounded-2xl border border-slate-800 p-5 space-y-4">
+          <h3 className="text-sm font-bold text-white">
+            {isRTL ? 'مؤشرات التشغيل' : 'Operational Metrics'}
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {kpis.map((k) => (
+              <div key={k.label} className="rounded-xl bg-slate-900/60 p-3 border border-slate-800/60 text-center">
+                <span className="text-[10px] text-slate-400 uppercase">{k.label}</span>
+                <p className={`text-xl font-bold mt-1 ${k.color}`}>{k.value}</p>
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="glass-panel rounded-2xl border border-slate-800 p-5 space-y-4 flex flex-col justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-white">
-              {isRTL ? 'مؤشرات الجودة والامتثال الصحي' : 'Healthcare Quality & SLA Metrics'}
-            </h3>
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="rounded-xl bg-slate-900/60 p-3 border border-slate-800/60 text-center">
-                <span className="text-[10px] text-slate-400 uppercase">Avg Wait Time</span>
-                <p className="text-xl font-bold text-emerald-400 mt-1">8.4 mins</p>
-              </div>
-              <div className="rounded-xl bg-slate-900/60 p-3 border border-slate-800/60 text-center">
-                <span className="text-[10px] text-slate-400 uppercase">Patient Satisfaction</span>
-                <p className="text-xl font-bold text-blue-400 mt-1">98.6%</p>
-              </div>
-              <div className="rounded-xl bg-slate-900/60 p-3 border border-slate-800/60 text-center">
-                <span className="text-[10px] text-slate-400 uppercase">Auto-Deduct Accuracy</span>
-                <p className="text-xl font-bold text-amber-400 mt-1">99.4%</p>
-              </div>
-              <div className="rounded-xl bg-slate-900/60 p-3 border border-slate-800/60 text-center">
-                <span className="text-[10px] text-slate-400 uppercase">Audit Ready</span>
-                <p className="text-xl font-bold text-teal-400 mt-1">100%</p>
-              </div>
-            </div>
-          </div>
+          <p className="text-[11px] text-slate-400">
+            {isRTL ? `عدد السجلات: ${patients.length}` : `Records: ${patients.length}`}
+          </p>
         </div>
       </div>
     </div>

@@ -8,9 +8,9 @@ export const CreateInvoiceModal: React.FC = () => {
 
   const [clientName, setClientName] = useState('');
   const [clientNameAr, setClientNameAr] = useState('');
-  const [dueDate, setDueDate] = useState('2024-10-15');
+  const [dueDate, setDueDate] = useState('');
   const [items, setItems] = useState<InvoiceItem[]>([
-    { description: 'Clinical Consultation & Diagnostics', quantity: 1, unitPrice: 250, total: 250 },
+    { description: '', quantity: 1, unitPrice: 0, total: 0 },
   ]);
 
   if (!isCreateInvoiceOpen) return null;
@@ -18,7 +18,7 @@ export const CreateInvoiceModal: React.FC = () => {
   const handleAddItem = () => {
     setItems((prev) => [
       ...prev,
-      { description: 'Medical Service / Lab Test', quantity: 1, unitPrice: 150, total: 150 },
+      { description: '', quantity: 1, unitPrice: 0, total: 0 },
     ]);
   };
 
@@ -210,11 +210,11 @@ export const AddPatientModal: React.FC = () => {
   const [nameAr, setNameAr] = useState('');
   const [age, setAge] = useState(35);
   const [gender, setGender] = useState<'Male' | 'Female'>('Male');
-  const [phone, setPhone] = useState('+966 5');
-  const [nationalId, setNationalId] = useState('10');
+  const [phone, setPhone] = useState('');
+  const [nationalId, setNationalId] = useState('');
   const [bloodType, setBloodType] = useState('O+');
-  const [doctor, setDoctor] = useState('Dr. Ahmed Ali');
-  const [condition, setCondition] = useState('Routine Checkup & Diagnostics');
+  const [doctor, setDoctor] = useState('');
+  const [condition, setCondition] = useState('');
 
   if (!isAddPatientOpen) return null;
 
@@ -337,17 +337,13 @@ export const AddPatientModal: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-[11px] text-slate-400 mb-1">Primary Doctor</label>
-            <select
+            <label className="block text-[11px] text-slate-400 mb-1">Assigned Staff / Specialist</label>
+            <input
+              type="text"
               value={doctor}
               onChange={(e) => setDoctor(e.target.value)}
               className="w-full rounded-xl border border-slate-800 bg-slate-900 p-2 text-xs text-white focus:border-blue-500 focus:outline-none"
-            >
-              <option value="Dr. Ahmed Ali">Dr. Ahmed Ali (Surgery & Orthopedics)</option>
-              <option value="Dr. Mona Salem">Dr. Mona Salem (Dental Clinic)</option>
-              <option value="Dr. Fahad Al-Otaibi">Dr. Fahad Al-Otaibi (Cardiology)</option>
-              <option value="Dr. Sarah Smith">Dr. Sarah Smith (Pediatrics)</option>
-            </select>
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">

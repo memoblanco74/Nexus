@@ -15,10 +15,10 @@ export const NewBookingModal: React.FC = () => {
   const [selectedPatientId, setSelectedPatientId] = useState(
     patients[0]?.id || ''
   );
-  const [doctorName, setDoctorName] = useState('Dr. Ahmed Ali');
-  const [department, setDepartment] = useState('Surgery & Orthopedics');
+  const [doctorName, setDoctorName] = useState('');
+  const [department, setDepartment] = useState('');
   const [time, setTime] = useState('11:00 AM');
-  const [type, setType] = useState<any>('General Checkup');
+  const [type, setType] = useState<any>('');
 
   if (!isNewBookingOpen) return null;
 
@@ -34,7 +34,7 @@ export const NewBookingModal: React.FC = () => {
       patientName: currentPatient.nameEn,
       patientNameAr: currentPatient.nameAr,
       doctorName,
-      doctorNameAr: doctorName === 'Dr. Ahmed Ali' ? 'د. أحمد علي' : doctorName,
+      doctorNameAr: doctorName,
       department,
       departmentAr: department,
       time,
@@ -82,18 +82,13 @@ export const NewBookingModal: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">Department</label>
-              <select
+              <label className="block text-[11px] text-slate-400 mb-1">Department / Section</label>
+              <input
+                type="text"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
                 className="w-full rounded-xl border border-slate-800 bg-slate-900 p-2 text-xs text-white focus:border-blue-500 focus:outline-none"
-              >
-                <option value="Surgery & Orthopedics">Surgery & Orthopedics</option>
-                <option value="Dental Clinic">Dental Clinic</option>
-                <option value="Cardiology">Cardiology</option>
-                <option value="Radiology & Imaging">Radiology</option>
-                <option value="General OPD">General OPD</option>
-              </select>
+              />
             </div>
             <div>
               <label className="block text-[11px] text-slate-400 mb-1">Time Slot</label>
@@ -113,17 +108,13 @@ export const NewBookingModal: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-[11px] text-slate-400 mb-1">Attending Physician</label>
-            <select
+            <label className="block text-[11px] text-slate-400 mb-1">Staff / Specialist</label>
+            <input
+              type="text"
               value={doctorName}
               onChange={(e) => setDoctorName(e.target.value)}
               className="w-full rounded-xl border border-slate-800 bg-slate-900 p-2 text-xs text-white focus:border-blue-500 focus:outline-none"
-            >
-              <option value="Dr. Ahmed Ali">Dr. Ahmed Ali (Senior Consultant)</option>
-              <option value="Dr. Mona Salem">Dr. Mona Salem (Dental Specialist)</option>
-              <option value="Dr. Fahad Al-Otaibi">Dr. Fahad Al-Otaibi (Cardiologist)</option>
-              <option value="Dr. Sarah Smith">Dr. Sarah Smith (Pediatrics)</option>
-            </select>
+            />
           </div>
 
           <div className="p-2.5 rounded-xl bg-blue-950/30 border border-blue-500/20 text-[11px] text-blue-300">
