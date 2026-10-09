@@ -80,6 +80,8 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
               placeholder={
                 profile?.roleCode === 'super_admin'
                   ? isRTL ? 'بحث في المستأجرين والاشتراكات...' : 'Search tenants & subscriptions...'
+                  : profile?.roleCode === 'assistant'
+                  ? isRTL ? 'بحث في المرضى، الحجوزات، الأصناف...' : 'Search patients, bookings, stock...'
                   : isRTL ? 'بحث في المرضى، الفواتير، الأصناف...' : 'Search patients, invoices, stock...'
               }
               className={`w-full rounded-full border border-slate-800/80 bg-slate-900/60 py-1.5 ${
@@ -92,7 +94,7 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
         {/* Right section: System Badge, Tenant Selector, Language & Theme Controls, Profile */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Tenant Switcher Button */}
-          {activeTenant && (
+          {activeTenant && profile?.roleCode === 'founder' && (
             <button
               onClick={() => setIsTenantModalOpen(true)}
               className="hidden md:flex items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-900/80 px-2.5 py-1.5 text-xs text-slate-200 hover:border-slate-600 dark:border-slate-800 dark:bg-slate-900/80 light:border-slate-300 light:bg-slate-100 light:text-slate-800 transition"

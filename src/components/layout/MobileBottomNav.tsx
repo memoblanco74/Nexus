@@ -46,7 +46,7 @@ export const MobileBottomNav: React.FC = () => {
       { id: 'bookings', label: isRTL ? 'الحجوزات' : 'Bookings', icon: <CalendarCheck className="h-5 w-5" /> },
       { id: 'inventory', label: isRTL ? 'المخزون' : 'Stock', icon: <Package className="h-5 w-5" /> },
     ];
-    showScanFab = true;
+    showScanFab = false;
   }
 
   const firstHalf = showScanFab ? tabs.slice(0, 2) : tabs;

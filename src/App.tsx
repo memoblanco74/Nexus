@@ -35,9 +35,19 @@ import {
   ExportPdfModal,
 } from './components/modals/QrScannerModal';
 
+import type { ScreenId } from './types';
+
+const ROLE_SCREEN_MAP: Record<string, ScreenId[]> = {
+  super_admin: ['super_admin', 'catalog', 'settings', 'support'],
+  founder: ['founder', 'projects', 'patients', 'bookings', 'inventory', 'accounting', 'reports', 'assistants', 'settings', 'support'],
+  assistant: ['assistant', 'patients', 'bookings', 'inventory', 'settings'],
+};
+
 const DashboardContent: React.FC = () => {
   const { screen, toastMessage, tenants, tenantsLoaded } = useApp();
   const { profile } = useAuth();
+  const allowed = (profile ? ROLE_SCREEN_MAP[profile.roleCode] : undefined) || [];
+  const canSee = (id: string) => allowed.includes(id as ScreenId);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   if (profile?.roleCode === 'founder' && tenantsLoaded && tenants.length === 0) {
@@ -65,19 +75,19 @@ const DashboardContent: React.FC = () => {
         <Header onToggleSidebar={() => setIsMobileSidebarOpen(true)} />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-12">
-          {screen === 'super_admin' && <SuperAdminView />}
-          {screen === 'founder' && <FounderView />}
-          {screen === 'inventory' && <InventoryView />}
-          {screen === 'accounting' && <AccountingView />}
-          {screen === 'patients' && <PatientsView />}
-          {screen === 'bookings' && <BookingsView />}
-          {screen === 'assistant' && <AssistantView />}
-          {screen === 'projects' && <ProjectsView />}
-          {screen === 'reports' && <ReportsView />}
-          {screen === 'settings' && <SettingsView />}
-          {screen === 'support' && <SupportView />}
-          {screen === 'catalog' && <SystemCatalogAdminView />}
-          {screen === 'assistants' && <AssistantsView />}
+          {screen === 'super_admin' && canSee('super_admin') && <SuperAdminView />}
+          {screen === 'founder' && canSee('founder') && <FounderView />}
+          {screen === 'inventory' && canSee('inventory') && <InventoryView />}
+          {screen === 'accounting' && canSee('accounting') && <AccountingView />}
+          {screen === 'patients' && canSee('patients') && <PatientsView />}
+          {screen === 'bookings' && canSee('bookings') && <BookingsView />}
+          {screen === 'assistant' && canSee('assistant') && <AssistantView />}
+          {screen === 'projects' && canSee('projects') && <ProjectsView />}
+          {screen === 'reports' && canSee('reports') && <ReportsView />}
+          {screen === 'settings' && canSee('settings') && <SettingsView />}
+          {screen === 'support' && canSee('support') && <SupportView />}
+          {screen === 'catalog' && canSee('catalog') && <SystemCatalogAdminView />}
+          {screen === 'assistants' && canSee('assistants') && <AssistantsView />}
         </main>
 
         <MobileBottomNav />
