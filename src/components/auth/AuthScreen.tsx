@@ -92,7 +92,6 @@ export const AuthScreen: React.FC = () => {
           </div>
           <div>
             <h1 className="text-sm font-bold tracking-tight text-white">Nexus</h1>
-            <p className="text-[10px] text-slate-400">Multi-Tenant Medical OS</p>
           </div>
         </div>
 

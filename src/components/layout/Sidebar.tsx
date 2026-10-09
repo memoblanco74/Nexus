@@ -176,9 +176,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
                   v2.4
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 dark:text-slate-400 light:text-slate-500">
-                {language === 'ar' ? 'بوابة الرعاية والمستأجرين' : 'Multi-Tenant Medical OS'}
-              </p>
             </div>
           </div>
         </div>
