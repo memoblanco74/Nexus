@@ -232,10 +232,23 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { profile, activeTenantId, setActiveTenantId, tenantMemberships, updatePreferredTheme } = useAuth();
+  const { profile, activeTenantId, setActiveTenantId, tenantMemberships, updatePreferredTheme, updatePreferredLanguage } = useAuth();
 
   const [screen, setScreen] = useState<ScreenId>('founder');
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguageState] = useState<Language>(() => {
+    try {
+      return localStorage.getItem('nexus_lang') === 'en' ? 'en' : 'ar';
+    } catch {
+      return 'ar';
+    }
+  });
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    try {
+      localStorage.setItem('nexus_lang', lang);
+    } catch {}
+    updatePreferredLanguage(lang);
+  };
   const [theme, setTheme] = useState<ThemeMode>('dark');
 
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -315,15 +328,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (profile.roleCode === 'super_admin') setScreen('super_admin');
     else if (profile.roleCode === 'assistant') setScreen('assistant');
     else setScreen('founder');
+  }, [profile?.id, profile?.roleCode]);
+
+  useEffect(() => {
+    if (!profile) return;
     setTheme(profile.preferredTheme);
-  }, [profile]);
+    setLanguageState(profile.preferredLanguage);
+    try {
+      localStorage.setItem('nexus_lang', profile.preferredLanguage);
+    } catch {}
+  }, [profile?.id]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage((prev) => (prev === msg ? null : prev)), 3500);
   };
 
-  const toggleLanguage = () => setLanguage((prev) => (prev === 'en' ? 'ar' : 'en'));
+  const toggleLanguage = () => setLanguage(language === 'en' ? 'ar' : 'en');
   const toggleTheme = () => {
     setTheme((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark';

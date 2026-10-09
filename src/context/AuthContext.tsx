@@ -12,6 +12,7 @@ interface UserProfile {
   phone: string | null;
   roleCode: RoleCode;
   preferredTheme: 'dark' | 'light';
+  preferredLanguage: 'ar' | 'en';
   avatarUrl: string | null;
 }
 
@@ -39,6 +40,7 @@ interface AuthContextType {
   requestUsernameRecovery: (email: string) => Promise<{ error: string | null }>;
   changePassword: (newPassword: string) => Promise<{ error: string | null }>;
   updatePreferredTheme: (theme: 'dark' | 'light') => Promise<void>;
+  updatePreferredLanguage: (lang: 'ar' | 'en') => Promise<void>;
   updateProfileDetails: (details: { fullName?: string; phone?: string }) => Promise<{ error: string | null }>;
   uploadAvatar: (file: File) => Promise<{ error: string | null }>;
 }
@@ -55,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadProfile = async (currentSession: Session) => {
     const { data: userRow, error } = await supabase
       .from('users')
-      .select('id, username, full_name, email, phone, preferred_theme, avatar_url, roles(code)')
+      .select('*, roles(code)')
       .eq('auth_uid', currentSession.user.id)
       .single();
 
@@ -83,6 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       phone: userRow.phone,
       roleCode: roleRow.code,
       preferredTheme: (userRow.preferred_theme === 'light' ? 'light' : 'dark') as 'dark' | 'light',
+      preferredLanguage: ((userRow as any).preferred_language === 'en' ? 'en' : 'ar') as 'ar' | 'en',
       avatarUrl: userRow.avatar_url || null,
     });
 
@@ -235,6 +238,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.from('users').update({ preferred_theme: theme }).eq('id', profile.id);
   };
 
+  const updatePreferredLanguage = async (lang: 'ar' | 'en') => {
+    if (!profile) return;
+    setProfile({ ...profile, preferredLanguage: lang });
+    await supabase.from('users').update({ preferred_language: lang }).eq('id', profile.id);
+  };
+
   const updateProfileDetails = async (details: { fullName?: string; phone?: string }) => {
     if (!profile) return { error: 'Not signed in' };
     const payload: Record<string, any> = {};
@@ -289,6 +298,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         requestUsernameRecovery,
         changePassword,
         updatePreferredTheme,
+        updatePreferredLanguage,
         updateProfileDetails,
         uploadAvatar,
       }}
