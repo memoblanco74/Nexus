@@ -42,6 +42,9 @@ export const SuperAdminView: React.FC = () => {
     updateAnnouncement,
     defaultDiscount,
     setDefaultDiscount,
+    freeUntil,
+    isFreePeriodActive,
+    setFreeUntil,
     openPdfExport,
     showToast,
     t,
@@ -55,9 +58,14 @@ export const SuperAdminView: React.FC = () => {
   const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
   const [kpiDetail, setKpiDetail] = useState<{ title: string; rows: { name: string; sub?: string; value: string }[] } | null>(null);
 
-  const totalMrr = subscriptions
-    .filter((s) => s.status === 'Active')
-    .reduce((sum, s) => sum + s.mrr, 0);
+  const totalMrr = isFreePeriodActive
+    ? 0
+    : subscriptions.filter((s) => s.status === 'Active').reduce((sum, s) => sum + s.mrr, 0);
+  const addMonthsFromNow = (months: number) => {
+    const base = freeUntil && freeUntil > new Date().toISOString().slice(0, 10) ? new Date(freeUntil) : new Date();
+    base.setMonth(base.getMonth() + months);
+    return base.toISOString().slice(0, 10);
+  };
   const activeCount = subscriptions.filter((s) => s.status === 'Active').length;
   const pendingReplyChats = chats.filter((c) => {
     const last = c.messages[c.messages.length - 1];
@@ -222,7 +230,9 @@ export const SuperAdminView: React.FC = () => {
             </h3>
           </div>
           <p className="mt-1 text-[11px] text-slate-500">
-            {isRTL ? 'من الاشتراكات النشطة فقط' : 'From active subscriptions only'}
+            {isFreePeriodActive
+              ? isRTL ? `فترة مجانية حتى ${freeUntil}` : `Free period until ${freeUntil}`
+              : isRTL ? 'من الاشتراكات النشطة فقط' : 'From active subscriptions only'}
           </p>
         </button>
 
@@ -425,6 +435,46 @@ export const SuperAdminView: React.FC = () => {
                 {disc}
               </button>
             ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-panel rounded-2xl p-5 border border-slate-800">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-white dark:text-white light:text-slate-900">
+              {isRTL ? 'الفترة المجانية لكل المشتركين' : 'Free Period for All Subscribers'}
+            </h3>
+            <p className="mt-1 text-xs text-slate-400">
+              {isFreePeriodActive
+                ? isRTL ? `النظام مجاني لكل المشتركين حتى ${freeUntil}` : `The system is free for all subscribers until ${freeUntil}`
+                : isRTL ? 'غير مفعّلة. حدد تاريخ لتجعل النظام مجانياً لكل المشتركين.' : 'Not active. Pick a date to make the system free for all subscribers.'}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {[1, 3, 6, 12].map((m) => (
+              <button
+                key={m}
+                onClick={() => setFreeUntil(addMonthsFromNow(m))}
+                className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs font-bold text-slate-300 hover:bg-slate-800"
+              >
+                +{m} {isRTL ? (m === 12 ? 'شهر' : m <= 1 ? 'شهر' : 'أشهر') : m === 1 ? 'month' : 'months'}
+              </button>
+            ))}
+            <input
+              type="date"
+              value={freeUntil}
+              onChange={(e) => setFreeUntil(e.target.value)}
+              className="rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+            />
+            {freeUntil && (
+              <button
+                onClick={() => setFreeUntil('')}
+                className="rounded-xl bg-red-500/10 border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-500/20"
+              >
+                {isRTL ? 'إلغاء' : 'Clear'}
+              </button>
+            )}
           </div>
         </div>
       </div>

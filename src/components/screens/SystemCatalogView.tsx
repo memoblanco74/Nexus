@@ -85,7 +85,7 @@ const TopBar: React.FC = () => {
 };
 
 export const SystemCatalogView: React.FC = () => {
-  const { language, isRTL, systemTemplates, subscribeToSystem } = useApp();
+  const { language, isRTL, systemTemplates, subscribeToSystem, isFreePeriodActive, freeUntil } = useApp();
   const { signOut } = useAuth();
   const [selected, setSelected] = useState<SystemTemplate | null>(null);
   const [activeFeature, setActiveFeature] = useState<SystemTemplateFeature | null>(null);
@@ -151,10 +151,13 @@ export const SystemCatalogView: React.FC = () => {
                     {language === 'ar' ? selected.nameAr : selected.name}
                   </h1>
                   <p className="text-xs text-slate-400">
-                    {selected.subscriptionPrice} {isRTL ? 'جنيه' : 'EGP'} /{' '}
-                    {selected.subscriptionPeriod === 'monthly'
-                      ? isRTL ? 'شهريًا' : 'month'
-                      : isRTL ? 'سنويًا' : 'year'}
+                    {isFreePeriodActive
+                      ? isRTL ? `مجاني حتى ${freeUntil}` : `Free until ${freeUntil}`
+                      : `${selected.subscriptionPrice} ${isRTL ? 'جنيه' : 'EGP'} / ${
+                          selected.subscriptionPeriod === 'monthly'
+                            ? isRTL ? 'شهريًا' : 'month'
+                            : isRTL ? 'سنويًا' : 'year'
+                        }`}
                   </p>
                 </div>
               </div>
@@ -237,7 +240,7 @@ export const SystemCatalogView: React.FC = () => {
                   </span>
                   <span className="text-sm font-bold text-white">{language === 'ar' ? t.nameAr : t.name}</span>
                   <span className="text-[10px] text-slate-500">
-                    {t.subscriptionPrice} {isRTL ? 'جنيه' : 'EGP'}/{t.subscriptionPeriod === 'monthly' ? (isRTL ? 'شهر' : 'mo') : (isRTL ? 'سنة' : 'yr')}
+                    {isFreePeriodActive ? (isRTL ? `مجاني حتى ${freeUntil}` : `Free until ${freeUntil}`) : `${t.subscriptionPrice} ${isRTL ? 'جنيه' : 'EGP'}/${t.subscriptionPeriod === 'monthly' ? (isRTL ? 'شهر' : 'mo') : (isRTL ? 'سنة' : 'yr')}`}
                   </span>
                 </button>
               ))}
