@@ -102,24 +102,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      setSession(data.session);
-      if (data.session) await loadProfile(data.session);
-      setLoading(false);
-    });
+    let active = true;
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    const guard = setTimeout(() => {
+      if (active) setLoading(false);
+    }, 8000);
+
+    supabase.auth
+      .getSession()
+      .then(async ({ data }) => {
+        if (!active) return;
+        setSession(data.session);
+        if (data.session) await loadProfile(data.session);
+      })
+      .catch((err) => console.error('Session init failed:', err))
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (event === 'INITIAL_SESSION') return;
       setSession(newSession);
-      if (newSession) {
-        await loadProfile(newSession);
-      } else {
-        setProfile(null);
-        setTenantMemberships([]);
-        setActiveTenantId(null);
-      }
+      setTimeout(async () => {
+        if (!active) return;
+        try {
+          if (newSession) {
+            await loadProfile(newSession);
+          } else {
+            setProfile(null);
+            setTenantMemberships([]);
+            setActiveTenantId(null);
+          }
+        } catch (err) {
+          console.error('Auth change handling failed:', err);
+        }
+      }, 0);
     });
 
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      active = false;
+      clearTimeout(guard);
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   const signInWithIdentifier = async (identifier: string, password: string) => {
