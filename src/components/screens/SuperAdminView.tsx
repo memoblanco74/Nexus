@@ -53,6 +53,7 @@ export const SuperAdminView: React.FC = () => {
   } = useApp();
 
   const [chatInput, setChatInput] = useState('');
+  const [chatSearch, setChatSearch] = useState('');
   const [subSearch, setSubSearch] = useState('');
   const [subFilter, setSubFilter] = useState<'all' | 'Active' | 'Expiring Soon' | 'Suspended'>('all');
   const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
@@ -120,6 +121,16 @@ export const SuperAdminView: React.FC = () => {
     language === 'ar' ? announcement.titleAr : announcement.title
   );
 
+  const chatNeedle = chatSearch.trim().toLowerCase();
+  const filteredChats = chatNeedle
+    ? chats.filter(
+        (c) =>
+          c.tenant.toLowerCase().includes(chatNeedle) ||
+          c.senderName.toLowerCase().includes(chatNeedle) ||
+          (c.projectId || '').toLowerCase().includes(chatNeedle) ||
+          c.messages.some((m) => m.text.toLowerCase().includes(chatNeedle))
+      )
+    : chats;
   const selectedChat = chats.find((c) => c.id === selectedChatId);
 
   useEffect(() => {
@@ -530,9 +541,22 @@ export const SuperAdminView: React.FC = () => {
             </div>
           </div>
 
+          <div className="relative border-b border-slate-800/60 bg-slate-950/40 p-2">
+            <Search className={`absolute top-4 h-3.5 w-3.5 text-slate-500 ${isRTL ? 'right-4' : 'left-4'}`} />
+            <input
+              value={chatSearch}
+              onChange={(e) => setChatSearch(e.target.value)}
+              placeholder={isRTL ? 'ابحث في المحادثات: اسم المشروع أو الفاوندر أو نص الرسالة...' : 'Search chats: project, founder or message text...'}
+              className={`w-full rounded-lg border border-slate-800 bg-slate-900/60 py-1.5 text-xs text-white outline-none focus:border-blue-500 ${isRTL ? 'pr-8 pl-3' : 'pl-8 pr-3'}`}
+            />
+          </div>
+
           {/* Chat Thread Selector Bar */}
           <div className="flex gap-2 overflow-x-auto border-b border-slate-800/60 bg-slate-950/40 p-2 text-xs">
-            {chats.map((c) => {
+            {chatNeedle && filteredChats.length === 0 && (
+              <span className="px-2 py-1.5 text-slate-500">{isRTL ? 'لا توجد نتائج' : 'No results'}</span>
+            )}
+            {filteredChats.map((c) => {
               const isSelected = selectedChat ? c.id === selectedChat.id : false;
               return (
                 <button
