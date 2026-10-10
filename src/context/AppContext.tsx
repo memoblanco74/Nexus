@@ -576,24 +576,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAssistants([]);
       return;
     }
-    const { data } = await supabase
+    const { data: links } = await supabase
       .from('tenant_users')
-      .select('is_founder, users(id, username, full_name, created_at)')
+      .select('user_id')
       .eq('tenant_id', activeTenantId)
       .eq('is_founder', false);
-
-    if (data) {
-      setAssistants(
-        data
-          .filter((r: any) => r.users)
-          .map((r: any) => ({
-            id: r.users.id,
-            username: r.users.username || '',
-            fullName: r.users.full_name,
-            createdAt: r.users.created_at ? new Date(r.users.created_at).toLocaleDateString() : '',
-          }))
-      );
+    const ids = new Set((links || []).map((l: any) => l.user_id));
+    if (ids.size === 0) {
+      setAssistants([]);
+      return;
     }
+
+    const { data } = await supabase.rpc('fn_search_manageable_users', { p_query: '' });
+    setAssistants(
+      ((data as any[]) || [])
+        .filter((r) => ids.has(r.user_id))
+        .map((r) => ({
+          id: r.user_id,
+          username: r.user_name || '',
+          fullName: r.display_name || '',
+          createdAt: '',
+        }))
+    );
   }, [activeTenantId, profile]);
 
   useEffect(() => {

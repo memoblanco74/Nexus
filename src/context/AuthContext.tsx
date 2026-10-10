@@ -54,6 +54,7 @@ interface AuthContextType {
   requestPasswordReset: (email: string) => Promise<{ error: string | null }>;
   requestUsernameRecovery: (email: string) => Promise<{ error: string | null }>;
   changePassword: (newPassword: string) => Promise<{ error: string | null }>;
+  changeOwnPassword: (currentPassword: string, newPassword: string) => Promise<{ error: string | null }>;
   updatePreferredTheme: (theme: 'dark' | 'light') => Promise<void>;
   updatePreferredLanguage: (lang: 'ar' | 'en') => Promise<void>;
   updateNotificationPrefs: (prefs: NotificationPrefs) => Promise<void>;
@@ -259,6 +260,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error: error ? error.message : null };
   };
 
+  const changeOwnPassword = async (currentPassword: string, newPassword: string) => {
+    if (!profile) return { error: 'Not signed in' };
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: profile.email,
+      password: currentPassword,
+    });
+    if (verifyError) return { error: 'WRONG_CURRENT_PASSWORD' };
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    return { error: error ? error.message : null };
+  };
+
   const updatePreferredTheme = async (theme: 'dark' | 'light') => {
     if (!profile) return;
     setProfile({ ...profile, preferredTheme: theme });
@@ -333,6 +345,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         requestPasswordReset,
         requestUsernameRecovery,
         changePassword,
+        changeOwnPassword,
         updatePreferredTheme,
         updatePreferredLanguage,
         updateNotificationPrefs,

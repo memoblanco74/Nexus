@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
+import { ChangePasswordCard, UserManagementCard } from './AccountSecurityCards';
 import { useAuth, DEFAULT_NOTIFICATION_PREFS, NotificationPrefs } from '../../context/AuthContext';
 import { Settings, Shield, Globe, Bell, Database, Lock, Save, Send } from 'lucide-react';
 
@@ -107,6 +108,10 @@ export const SettingsView: React.FC = () => {
             </button>
           </div>
         </div>
+
+        <ChangePasswordCard />
+
+        {(profile?.roleCode === 'super_admin' || profile?.roleCode === 'founder') && <UserManagementCard />}
 
         <div className="glass-panel rounded-2xl border border-slate-800 p-5 space-y-4">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
