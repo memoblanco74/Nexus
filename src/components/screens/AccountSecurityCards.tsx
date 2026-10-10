@@ -97,31 +97,63 @@ export const UserManagementCard: React.FC = () => {
   const { profile } = useAuth();
   const isAdmin = profile?.roleCode === 'super_admin';
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<ManagedUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [busy, setBusy] = useState(false);
 
+  const [all, setAll] = useState<ManagedUser[]>([]);
+  const [truncated, setTruncated] = useState(false);
+  const [remote, setRemote] = useState<ManagedUser[] | null>(null);
+
+  const fetchUsers = async (q: string) => {
+    const { data, error } = await supabase.rpc('fn_search_manageable_users', { p_query: q });
+    if (error) {
+      showToast(error.message);
+      return null;
+    }
+    return (data as ManagedUser[]) || [];
+  };
+
   useEffect(() => {
     let cancelled = false;
-    const timer = setTimeout(async () => {
-      setLoading(true);
-      const { data, error } = await supabase.rpc('fn_search_manageable_users', { p_query: query });
+    setLoading(true);
+    fetchUsers('').then((rows) => {
       if (cancelled) return;
       setLoading(false);
-      if (error) {
-        showToast(error.message);
-        setResults([]);
-        return;
+      if (rows) {
+        setAll(rows);
+        setTruncated(rows.length >= 100);
       }
-      setResults(((data as ManagedUser[]) || []).slice(0, 25));
-    }, 300);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!truncated || !query.trim()) {
+      setRemote(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const rows = await fetchUsers(query);
+      if (!cancelled && rows) setRemote(rows);
+    }, 120);
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, truncated]);
+
+  const needle = query.trim().toLowerCase();
+  const localMatches = needle
+    ? all.filter((u) =>
+        [u.user_name, u.display_name, u.user_email, u.user_phone, u.project_names].some((v) => (v || '').toLowerCase().includes(needle))
+      )
+    : all;
+  const results = (truncated && needle && remote ? remote : localMatches).slice(0, 25);
 
   const reset = async (userId: string) => {
     if (newPassword.length < 6) {
