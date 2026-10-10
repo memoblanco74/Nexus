@@ -1,3 +1,4 @@
+import { SaveButton } from '../ui/SaveButton';
 import { PaymentInfoEditor } from './PaymentInfoParts';
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
@@ -148,13 +149,12 @@ export const SuperAdminView: React.FC = () => {
   };
 
   const handleSaveAnnouncement = () => {
-    updateAnnouncement({
+    return updateAnnouncement({
       title: language === 'ar' ? announcement.title : announcementTitle,
       titleAr: language === 'ar' ? announcementTitle : announcement.titleAr,
       message: language === 'ar' ? announcement.message : announcementText,
       messageAr: language === 'ar' ? announcementText : announcement.messageAr,
     });
-    setIsEditingAnnouncement(false);
   };
 
   const filteredSubscriptions = subscriptions.filter((sub) => {
@@ -404,12 +404,12 @@ export const SuperAdminView: React.FC = () => {
                 className="w-full rounded-lg border border-slate-700 bg-slate-900/90 p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none"
               />
               <div className="flex justify-end">
-                <button
-                  onClick={handleSaveAnnouncement}
-                  className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-500"
-                >
-                  {isRTL ? 'حفظ ونشر الإعلان' : 'Broadcast Announcement'}
-                </button>
+                <SaveButton
+                  signature={`${announcementTitle}|${announcementText}`}
+                  onSave={handleSaveAnnouncement}
+                  label={isRTL ? 'حفظ ونشر الإعلان' : 'Broadcast Announcement'}
+                  className="px-3 py-1.5"
+                />
               </div>
             </div>
           ) : (
@@ -508,23 +508,24 @@ export const SuperAdminView: React.FC = () => {
               placeholder={isRTL ? 'عدد الأيام' : 'Days'}
               className="w-24 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
             />
-            <button
-              onClick={() => {
+            <SaveButton
+              signature={freeDaysInput}
+              label={isRTL ? 'حفظ' : 'Save'}
+              className="px-3 py-2"
+              onSave={async () => {
                 const digits = freeDaysInput
                   .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
                   .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
                   .replace(/[^0-9]/g, '');
                 if (!digits) {
                   showToast(isRTL ? 'اكتب عدد الأيام أولاً' : 'Enter the number of days first');
-                  return;
+                  return false;
                 }
-                setFreePeriodDays(Number(digits));
-                setFreeDaysInput('');
+                const ok = await setFreePeriodDays(Number(digits));
+                if (ok) setFreeDaysInput('');
+                return ok;
               }}
-              className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-500"
-            >
-              {isRTL ? 'حفظ' : 'Save'}
-            </button>
+            />
             {freePeriodDays > 0 && (
               <button
                 onClick={() => setFreePeriodDays(0)}

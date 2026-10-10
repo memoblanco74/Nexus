@@ -94,13 +94,13 @@ interface AppContextType {
   sendFounderMessage: (text: string) => void;
 
   announcement: { title: string; titleAr: string; message: string; messageAr: string };
-  updateAnnouncement: (a: { title: string; titleAr: string; message: string; messageAr: string }) => void;
+  updateAnnouncement: (a: { title: string; titleAr: string; message: string; messageAr: string }) => Promise<boolean>;
   announcementActive: boolean;
   setAnnouncementActive: (active: boolean) => Promise<void>;
   defaultDiscount: string;
   setDefaultDiscount: (discount: string) => void;
   freePeriodDays: number;
-  setFreePeriodDays: (days: number) => Promise<void>;
+  setFreePeriodDays: (days: number) => Promise<boolean>;
   freeInfoFromStart: (startDate: string) => { active: boolean; endsOn: string; daysLeft: number };
 
   inventory: InventoryItem[];
@@ -1078,14 +1078,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateAnnouncement = async (ann: { title: string; titleAr: string; message: string; messageAr: string }) => {
+    const now = new Date().toISOString();
+    const { error } = await supabase.from('platform_settings').upsert(
+      [
+        { key: 'announcement_title', value: ann.title, updated_at: now },
+        { key: 'announcement_title_ar', value: ann.titleAr, updated_at: now },
+        { key: 'announcement_message', value: ann.message, updated_at: now },
+        { key: 'announcement_message_ar', value: ann.messageAr, updated_at: now },
+      ],
+      { onConflict: 'key' }
+    );
+    if (error) {
+      showToast(error.message);
+      return false;
+    }
     setAnnouncement(ann);
-    await Promise.all([
-      supabase.from('platform_settings').update({ value: ann.title, updated_at: new Date().toISOString() }).eq('key', 'announcement_title'),
-      supabase.from('platform_settings').update({ value: ann.titleAr, updated_at: new Date().toISOString() }).eq('key', 'announcement_title_ar'),
-      supabase.from('platform_settings').update({ value: ann.message, updated_at: new Date().toISOString() }).eq('key', 'announcement_message'),
-      supabase.from('platform_settings').update({ value: ann.messageAr, updated_at: new Date().toISOString() }).eq('key', 'announcement_message_ar'),
-    ]);
     showToast(isRTL ? 'تم تحديث الإعلان العام للنظام' : 'System announcement updated');
+    return true;
   };
 
   const refreshReferral = useCallback(async () => {
@@ -1179,7 +1188,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .upsert({ key: 'free_period_days', value: String(value), updated_at: new Date().toISOString() }, { onConflict: 'key' });
     if (error) {
       showToast(error.message);
-      return;
+      return false;
     }
     setFreePeriodDaysState(value);
     showToast(
@@ -1187,6 +1196,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ? isRTL ? `فترة مجانية ${value} يوم لكل مشترك من تاريخ اشتراكه` : `${value}-day free period for every subscriber from their subscription date`
         : isRTL ? 'تم إلغاء الفترة المجانية' : 'Free period removed'
     );
+    return true;
   };
 
   const setDefaultDiscount = async (discount: string) => {

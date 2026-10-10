@@ -1,3 +1,4 @@
+import { SaveButton } from '../ui/SaveButton';
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Camera, X, Loader2 } from 'lucide-react';
@@ -29,13 +30,15 @@ export const ProfileEditModal: React.FC<{ isRTL: boolean; onClose: () => void }>
   };
 
   const handleSaveDetails = async () => {
-    setSavingDetails(true);
     setError('');
     setSuccess('');
     const result = await updateProfileDetails({ fullName, phone });
-    setSavingDetails(false);
-    if (result.error) setError(result.error);
-    else setSuccess(isRTL ? 'تم حفظ البيانات' : 'Details saved');
+    if (result.error) {
+      setError(result.error);
+      return false;
+    }
+    setSuccess(isRTL ? 'تم حفظ البيانات' : 'Details saved');
+    return true;
   };
 
   const handleChangePassword = async () => {
@@ -115,13 +118,12 @@ export const ProfileEditModal: React.FC<{ isRTL: boolean; onClose: () => void }>
             onChange={(e) => setPhone(e.target.value)}
             className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white"
           />
-          <button
-            onClick={handleSaveDetails}
-            disabled={savingDetails}
-            className="w-full rounded-xl bg-blue-600 py-2 text-xs font-semibold text-white hover:bg-blue-500 disabled:opacity-60"
-          >
-            {savingDetails ? '...' : isRTL ? 'حفظ البيانات' : 'Save Details'}
-          </button>
+          <SaveButton
+            signature={`${fullName}|${phone}`}
+            onSave={handleSaveDetails}
+            label={isRTL ? 'حفظ البيانات' : 'Save Details'}
+            className="w-full py-2 font-semibold"
+          />
         </div>
 
         {/* Password */}

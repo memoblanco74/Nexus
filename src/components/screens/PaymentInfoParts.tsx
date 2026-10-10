@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Copy, ExternalLink, Landmark, QrCode, Trash2, Upload } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { SaveButton } from '../ui/SaveButton';
 
 const inputClass =
   'w-full rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none';
@@ -87,8 +88,6 @@ export const PaymentInfoCard: React.FC = () => {
 export const PaymentInfoEditor: React.FC = () => {
   const { isRTL, paymentInfo, updatePaymentInfo, showToast } = useApp();
   const [form, setForm] = useState(paymentInfo);
-  const [busy, setBusy] = useState(false);
-
   useEffect(() => {
     setForm(paymentInfo);
   }, [paymentInfo.phone, paymentInfo.link, paymentInfo.qr, paymentInfo.note]);
@@ -110,11 +109,7 @@ export const PaymentInfoEditor: React.FC = () => {
     }
   };
 
-  const save = async () => {
-    setBusy(true);
-    await updatePaymentInfo(form);
-    setBusy(false);
-  };
+  const save = () => updatePaymentInfo(form);
 
   return (
     <div className="glass-panel space-y-3 rounded-2xl border border-slate-800 p-5">
@@ -153,9 +148,7 @@ export const PaymentInfoEditor: React.FC = () => {
         </div>
       </div>
       <div className="flex justify-end">
-        <button onClick={save} disabled={busy} className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 disabled:opacity-50">
-          {isRTL ? 'حفظ' : 'Save'}
-        </button>
+        <SaveButton signature={JSON.stringify(form)} onSave={save} className="px-4 py-2" />
       </div>
     </div>
   );

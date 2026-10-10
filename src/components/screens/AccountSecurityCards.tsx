@@ -3,6 +3,7 @@ import { KeyRound, Search, UserCog } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
+import { SaveButton } from '../ui/SaveButton';
 
 const inputClass =
   'w-full rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none';
@@ -13,37 +14,33 @@ export const ChangePasswordCard: React.FC = () => {
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async (): Promise<boolean> => {
     if (next.length < 6) {
       showToast(isRTL ? 'كلمة المرور الجديدة لازم تكون 6 حروف على الأقل' : 'New password must be at least 6 characters');
-      return;
+      return false;
     }
     if (next !== confirm) {
       showToast(isRTL ? 'كلمة المرور الجديدة وتأكيدها غير متطابقين' : 'New password and confirmation do not match');
-      return;
+      return false;
     }
-    setBusy(true);
     const result = await changeOwnPassword(current, next);
-    setBusy(false);
     if (result.error === 'WRONG_CURRENT_PASSWORD') {
       showToast(isRTL ? 'كلمة المرور الحالية غير صحيحة' : 'Current password is incorrect');
-      return;
+      return false;
     }
     if (result.error) {
       showToast(result.error);
-      return;
+      return false;
     }
     setCurrent('');
     setNext('');
     setConfirm('');
     showToast(isRTL ? 'تم تغيير كلمة المرور' : 'Password changed');
+    return true;
   };
 
   return (
-    <form onSubmit={submit} className="glass-panel rounded-2xl border border-slate-800 p-5 space-y-3">
+    <form onSubmit={(e) => e.preventDefault()} className="glass-panel rounded-2xl border border-slate-800 p-5 space-y-3">
       <h3 className="text-sm font-bold text-white flex items-center gap-2">
         <KeyRound className="h-4 w-4 text-blue-400" />
         <span>{isRTL ? 'تغيير كلمة المرور' : 'Change Password'}</span>
@@ -72,13 +69,13 @@ export const ChangePasswordCard: React.FC = () => {
         autoComplete="new-password"
         className={inputClass}
       />
-      <button
-        type="submit"
-        disabled={busy || !current || !next || !confirm}
-        className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 disabled:opacity-50"
-      >
-        {isRTL ? 'حفظ كلمة المرور' : 'Save password'}
-      </button>
+      <SaveButton
+        signature={`${current}|${next}|${confirm}`}
+        onSave={submit}
+        disabled={!current || !next || !confirm}
+        label={isRTL ? 'حفظ كلمة المرور' : 'Save password'}
+        className="px-4 py-2"
+      />
     </form>
   );
 };
