@@ -37,6 +37,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
     isRTL,
     t,
     describeTenant,
+    founderUnreadCount,
+    unrepliedChatCount,
   } = useApp();
   const { profile } = useAuth();
   const tenantInfo = activeTenant
@@ -126,7 +128,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
     },
   ];
 
-  const visibleNavItems = navItems.filter((item) => allowedScreens.includes(item.id));
+  const visibleNavItems = navItems
+    .filter((item) => allowedScreens.includes(item.id))
+    .map((item) => {
+      if (item.id === 'support' && founderUnreadCount > 0) {
+        return { ...item, badge: String(founderUnreadCount), badgeColor: 'bg-red-500/20 text-red-400 border-red-500/30' };
+      }
+      if (item.id === 'super_admin' && unrepliedChatCount > 0) {
+        return { ...item, badge: String(unrepliedChatCount), badgeColor: 'bg-red-500/20 text-red-400 border-red-500/30' };
+      }
+      return item;
+    });
 
   const handleNavClick = (id: ScreenId) => {
     setScreen(id);

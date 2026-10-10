@@ -1,4 +1,4 @@
-const CACHE_NAME = "nexus-app-v3";
+const CACHE_NAME = "nexus-app-v4";
 const STATIC_ASSETS = ["/Nexus/manifest.json"];
 
 self.addEventListener("install", function (event) {
@@ -69,6 +69,18 @@ self.addEventListener("fetch", function (event) {
           return cached;
         });
       return cached || network;
+    })
+  );
+});
+
+self.addEventListener("notificationclick", function (event) {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (list) {
+      for (const client of list) {
+        if ("focus" in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow("/Nexus/");
     })
   );
 });

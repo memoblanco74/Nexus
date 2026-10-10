@@ -59,6 +59,8 @@ export interface ChatMessage {
   statusColor: 'green' | 'yellow' | 'gray';
   timeAgo: string;
   unreadCount?: number;
+  awaitingReply?: boolean;
+  lastAtMs?: number;
   lastMessage: string;
   messages: Array<{
     id: string;

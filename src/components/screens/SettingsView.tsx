@@ -82,6 +82,10 @@ export const SupportView: React.FC = () => {
   const { isRTL, founderChatMessages, sendFounderMessage, t } = useApp();
   const [input, setInput] = React.useState('');
 
+  React.useEffect(() => {
+    document.getElementById('founder-chat-end')?.scrollIntoView({ block: 'end' });
+  }, [founderChatMessages.length]);
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -124,6 +128,7 @@ export const SupportView: React.FC = () => {
               </div>
             );
           })}
+          <div id="founder-chat-end" />
         </div>
         <form onSubmit={handleSend} className="border-t border-slate-800/80 p-3">
           <div className="flex items-center gap-2">

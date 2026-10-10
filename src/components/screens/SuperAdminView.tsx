@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
   TrendingUp,
@@ -121,6 +121,10 @@ export const SuperAdminView: React.FC = () => {
   );
 
   const selectedChat = chats.find((c) => c.id === selectedChatId) || chats[0];
+
+  useEffect(() => {
+    document.getElementById('admin-chat-end')?.scrollIntoView({ block: 'end' });
+  }, [selectedChat?.id, selectedChat?.messages.length]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -544,6 +548,15 @@ export const SuperAdminView: React.FC = () => {
                     {c.tenant.charAt(0).toUpperCase()}
                   </span>
                   <span className="font-medium text-xs">{c.tenant}</span>
+                  {c.awaitingReply ? (
+                    <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-300">
+                      {(c.unreadCount || 0) > 0 ? (isRTL ? 'جديد' : 'New') : isRTL ? 'بانتظار ردك' : 'Needs reply'}
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400">
+                      {isRTL ? 'تم الرد' : 'Replied'}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -598,6 +611,7 @@ export const SuperAdminView: React.FC = () => {
                     </div>
                   );
                 })}
+                <div id="admin-chat-end" />
               </div>
 
               {/* Chat Input Form */}

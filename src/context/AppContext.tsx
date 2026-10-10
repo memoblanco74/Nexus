@@ -1,5 +1,5 @@
 import { SYSTEM_VOCAB, DEFAULT_SYSTEM_KEY } from '../lib/systemVocab';
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   ScreenId,
   Language,
@@ -63,6 +63,8 @@ interface AppContextType {
   sendChatMessage: (chatId: string, text: string) => void;
 
   founderChatMessages: { id: string; text: string; sender: 'user' | 'admin'; timestamp: string }[];
+  founderUnreadCount: number;
+  unrepliedChatCount: number;
   sendFounderMessage: (text: string) => void;
 
   announcement: { title: string; titleAr: string; message: string; messageAr: string };
@@ -264,6 +266,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     { id: string; text: string; sender: 'user' | 'admin'; timestamp: string }[]
   >([]);
   const [founderConversationId, setFounderConversationId] = useState<string | null>(null);
+  const [founderUnreadCount, setFounderUnreadCount] = useState(0);
+  const chatsRef = useRef<ChatMessage[]>([]);
+  const selectedChatIdRef = useRef('');
+  const screenRef = useRef<ScreenId>('founder');
+  const profileRef = useRef(profile);
 
   const [announcement, setAnnouncement] = useState({
     title: 'Scheduled Maintenance',
@@ -595,7 +602,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     let { data: conv } = await supabase
       .from('support_conversations')
-      .select('id')
+      .select('*')
       .eq('tenant_id', activeTenantId)
       .maybeSingle();
 
@@ -603,7 +610,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const { data: created } = await supabase
         .from('support_conversations')
         .insert({ tenant_id: activeTenantId })
-        .select()
+        .select('*')
         .single();
       conv = created;
     }
@@ -616,6 +623,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .select('id, body, sender_user_id, created_at')
       .eq('conversation_id', conv.id)
       .order('created_at', { ascending: true });
+
+    const seenAt = (conv as any).founder_last_seen_at ? new Date((conv as any).founder_last_seen_at).getTime() : 0;
+    setFounderUnreadCount(
+      (msgs || []).filter((m: any) => m.sender_user_id !== profile.id && new Date(m.created_at).getTime() > seenAt).length
+    );
 
     setFounderChatMessages(
       (msgs || []).map((m: any) => ({
@@ -659,35 +671,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (data) setProjects(data.map(mapProjectRow));
   }, [profile, activeTenantId]);
 
-  const refreshChats = useCallback(async () => {
-    if (!profile || profile.roleCode !== 'super_admin') return;
+  const refreshChats = useCallback(async (): Promise<ChatMessage[]> => {
+    if (!profile || profile.roleCode !== 'super_admin') return [];
 
     const { data: conversations } = await supabase
       .from('support_conversations')
-      .select('id, tenant_id, tenants(name)')
-      .order('created_at', { ascending: false });
+      .select('*, tenants(name)');
 
     if (!conversations || conversations.length === 0) {
       setChats([]);
-      return;
+      return [];
     }
 
     const mapped: ChatMessage[] = [];
-    for (const conv of conversations) {
+    for (const conv of conversations as any[]) {
       const { data: msgs } = await supabase
         .from('support_messages')
-        .select('id, body, sender_user_id, created_at, users(full_name)')
+        .select('id, body, sender_user_id, created_at')
         .eq('conversation_id', conv.id)
         .order('created_at', { ascending: true });
 
-      const tenantName = (conv as any).tenants ? (conv as any).tenants.name : 'Unknown';
-      const messages = (msgs || []).map((m: any) => ({
+      const tenantName = conv.tenants ? conv.tenants.name : 'Unknown';
+      const raw = msgs || [];
+      const seenAt = conv.admin_last_seen_at ? new Date(conv.admin_last_seen_at).getTime() : 0;
+      const messages = raw.map((m: any) => ({
         id: m.id,
         text: m.body,
         sender: m.sender_user_id === profile.id ? ('admin' as const) : ('user' as const),
         timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       }));
       const last = messages[messages.length - 1];
+      const lastRaw = raw[raw.length - 1] as any;
+      const unread = raw.filter((m: any) => m.sender_user_id !== profile.id && new Date(m.created_at).getTime() > seenAt).length;
 
       mapped.push({
         id: conv.id,
@@ -697,17 +712,141 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         senderRoleAr: 'مؤسس المشروع',
         projectId: (conv.tenant_id as string).slice(0, 8).toUpperCase(),
         lastMessage: last ? last.text : '',
-        timeAgo: last ? last.timestamp : '',
+        timeAgo: lastRaw ? new Date(lastRaw.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '',
         avatar: '',
         isOnline: true,
         statusColor: 'green',
         messages,
+        unreadCount: unread,
+        awaitingReply: !!last && last.sender === 'user',
+        lastAtMs: lastRaw ? new Date(lastRaw.created_at).getTime() : 0,
       });
     }
 
+    mapped.sort((x, y) => {
+      if (!!x.awaitingReply !== !!y.awaitingReply) return x.awaitingReply ? -1 : 1;
+      if (x.awaitingReply) return (x.lastAtMs || 0) - (y.lastAtMs || 0);
+      return (y.lastAtMs || 0) - (x.lastAtMs || 0);
+    });
+
     setChats(mapped);
-    if (!selectedChatId && mapped.length > 0) setSelectedChatId(mapped[0].id);
-  }, [profile, selectedChatId]);
+    chatsRef.current = mapped;
+    if (!selectedChatIdRef.current && mapped.length > 0) setSelectedChatId(mapped[0].id);
+    return mapped;
+  }, [profile]);
+
+  const unrepliedChatCount = chats.filter((c) => c.awaitingReply).length;
+
+  const markChatSeen = useCallback(async (convId: string) => {
+    setChats((prev) => prev.map((c) => (c.id === convId ? { ...c, unreadCount: 0 } : c)));
+    await supabase.from('support_conversations').update({ admin_last_seen_at: new Date().toISOString() }).eq('id', convId);
+  }, []);
+
+  const markFounderChatSeen = useCallback(async () => {
+    if (!founderConversationId) return;
+    setFounderUnreadCount(0);
+    await supabase.from('support_conversations').update({ founder_last_seen_at: new Date().toISOString() }).eq('id', founderConversationId);
+  }, [founderConversationId]);
+
+  const showDeviceNotification = useCallback((title: string, body: string, tag: string) => {
+    try {
+      if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+      const options: NotificationOptions = { body, tag, icon: '/Nexus/icon-192.png', badge: '/Nexus/icon-192.png' };
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready
+          .then((reg) => reg.showNotification(title, options))
+          .catch(() => new Notification(title, options));
+      } else {
+        new Notification(title, options);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    selectedChatIdRef.current = selectedChatId;
+  }, [selectedChatId]);
+  useEffect(() => {
+    screenRef.current = screen;
+  }, [screen]);
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
+
+  useEffect(() => {
+    if (!profile || profile.roleCode !== 'super_admin') return;
+    const viewing = chats.find((c) => c.id === selectedChatId) || chats[0];
+    if (viewing && (viewing.unreadCount || 0) > 0 && screen === 'super_admin' && document.visibilityState === 'visible') {
+      markChatSeen(viewing.id);
+    }
+  }, [chats, selectedChatId, screen, profile, markChatSeen]);
+
+  useEffect(() => {
+    if (!profile || profile.roleCode !== 'founder') return;
+    if (founderUnreadCount > 0 && screen === 'support' && document.visibilityState === 'visible') {
+      markFounderChatSeen();
+    }
+  }, [founderUnreadCount, screen, profile, markFounderChatSeen]);
+
+  useEffect(() => {
+    if (!profile || (profile.roleCode !== 'super_admin' && profile.roleCode !== 'founder')) return;
+
+    const handleIncoming = async (row: any) => {
+      const me = profileRef.current;
+      if (!me) return;
+      const fromOther = row.sender_user_id !== me.id;
+
+      if (me.roleCode === 'super_admin') {
+        const list = await refreshChats();
+        if (!fromOther) return;
+        const chat = list.find((c) => c.id === row.conversation_id);
+        const watching =
+          document.visibilityState === 'visible' &&
+          screenRef.current === 'super_admin' &&
+          (selectedChatIdRef.current === row.conversation_id);
+        if (!watching) {
+          const who = chat?.tenant || 'Founder';
+          showToast(`${who}: ${row.body}`);
+          showDeviceNotification(who, row.body, `chat-${row.conversation_id}`);
+        }
+      } else {
+        await refreshFounderChat();
+        if (!fromOther) return;
+        const watching = document.visibilityState === 'visible' && screenRef.current === 'support';
+        if (!watching) {
+          const who = language === 'ar' ? 'الدعم الفني' : 'Support';
+          showToast(`${who}: ${row.body}`);
+          showDeviceNotification(who, row.body, `chat-${row.conversation_id}`);
+        }
+      }
+    };
+
+    const channel = supabase
+      .channel(`support-live-${profile.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' }, (payload) =>
+        handleIncoming(payload.new)
+      )
+      .subscribe();
+
+    const poll = setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      if (profileRef.current?.roleCode === 'super_admin') refreshChats();
+      else refreshFounderChat();
+    }, 10000);
+
+    return () => {
+      clearInterval(poll);
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.id, profile?.roleCode, refreshChats, refreshFounderChat, language]);
+
+  useEffect(() => {
+    if (!profile || typeof Notification === 'undefined' || Notification.permission !== 'default') return;
+    const ask = () => {
+      Notification.requestPermission().catch(() => {});
+    };
+    window.addEventListener('pointerdown', ask, { once: true });
+    return () => window.removeEventListener('pointerdown', ask);
+  }, [profile?.id]);
 
   useEffect(() => {
     refreshPatients();
@@ -1298,6 +1437,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         chats,
         selectedChatId,
         setSelectedChatId,
+        founderUnreadCount,
+        unrepliedChatCount,
         sendChatMessage,
         founderChatMessages,
         sendFounderMessage,
