@@ -1,10 +1,12 @@
 import React from 'react';
 import { Gift } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 
 export const FreePeriodBanner: React.FC = () => {
   const { activeTenant, freePeriodDays, freeInfoFromStart, isRTL } = useApp();
-  if (!activeTenant) return null;
+  const { profile } = useAuth();
+  if (profile?.roleCode !== 'founder' || !activeTenant) return null;
 
   const info = freeInfoFromStart(activeTenant.startDate);
   if (!info.active) return null;
