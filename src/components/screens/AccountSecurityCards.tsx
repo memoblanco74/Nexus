@@ -71,6 +71,7 @@ export const ChangePasswordCard: React.FC = () => {
       />
       <SaveButton
         signature={`${current}|${next}|${confirm}`}
+        baseline="||"
         onSave={submit}
         disabled={!current || !next || !confirm}
         label={isRTL ? 'حفظ كلمة المرور' : 'Save password'}

@@ -406,6 +406,7 @@ export const SuperAdminView: React.FC = () => {
               <div className="flex justify-end">
                 <SaveButton
                   signature={`${announcementTitle}|${announcementText}`}
+                  baseline={`${language === 'ar' ? announcement.titleAr : announcement.title}|${language === 'ar' ? announcement.messageAr : announcement.message}`}
                   onSave={handleSaveAnnouncement}
                   label={isRTL ? 'حفظ ونشر الإعلان' : 'Broadcast Announcement'}
                   className="px-3 py-1.5"
@@ -510,6 +511,7 @@ export const SuperAdminView: React.FC = () => {
             />
             <SaveButton
               signature={freeDaysInput}
+              baseline=""
               label={isRTL ? 'حفظ' : 'Save'}
               className="px-3 py-2"
               onSave={async () => {

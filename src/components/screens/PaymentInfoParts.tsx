@@ -148,7 +148,8 @@ export const PaymentInfoEditor: React.FC = () => {
         </div>
       </div>
       <div className="flex justify-end">
-        <SaveButton signature={JSON.stringify(form)} onSave={save} className="px-4 py-2" />
+        <SaveButton signature={JSON.stringify(form)}
+          baseline={JSON.stringify(paymentInfo)} onSave={save} className="px-4 py-2" />
       </div>
     </div>
   );

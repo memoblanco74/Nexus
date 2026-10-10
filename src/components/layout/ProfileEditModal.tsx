@@ -120,6 +120,7 @@ export const ProfileEditModal: React.FC<{ isRTL: boolean; onClose: () => void }>
           />
           <SaveButton
             signature={`${fullName}|${phone}`}
+            baseline={`${profile?.fullName || ''}|${profile?.phone || ''}`}
             onSave={handleSaveDetails}
             label={isRTL ? 'حفظ البيانات' : 'Save Details'}
             className="w-full py-2 font-semibold"
