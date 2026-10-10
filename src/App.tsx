@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthScreen } from './components/auth/AuthScreen';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
+import { FreePeriodBanner } from './components/layout/FreePeriodBanner';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 
 // Screens
@@ -75,6 +76,7 @@ const DashboardContent: React.FC = () => {
         <Header onToggleSidebar={() => setIsMobileSidebarOpen(true)} />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-12">
+          <FreePeriodBanner />
           {screen === 'super_admin' && canSee('super_admin') && <SuperAdminView />}
           {screen === 'founder' && canSee('founder') && <FounderView />}
           {screen === 'inventory' && canSee('inventory') && <InventoryView />}

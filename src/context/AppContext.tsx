@@ -69,9 +69,9 @@ interface AppContextType {
   updateAnnouncement: (a: { title: string; titleAr: string; message: string; messageAr: string }) => void;
   defaultDiscount: string;
   setDefaultDiscount: (discount: string) => void;
-  freeUntil: string;
-  isFreePeriodActive: boolean;
-  setFreeUntil: (date: string) => Promise<void>;
+  freePeriodDays: number;
+  setFreePeriodDays: (days: number) => Promise<void>;
+  freeInfoFromStart: (startDate: string) => { active: boolean; endsOn: string; daysLeft: number };
 
   inventory: InventoryItem[];
   autoDeductLogs: AutoDeductLog[];
@@ -272,7 +272,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     messageAr: 'ترقية البنية السحابية في ١٥ أكتوبر، الساعة ٠٢:٠٠ ص بتوقيت UTC. دون أي انقطاع للخدمة.',
   });
   const [defaultDiscount, setDefaultDiscountState] = useState<string>('15%');
-  const [freeUntil, setFreeUntilState] = useState<string>('');
+  const [freePeriodDays, setFreePeriodDaysState] = useState<number>(0);
 
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [autoDeductLogs, setAutoDeductLogs] = useState<AutoDeductLog[]>(INITIAL_AUTO_DEDUCTIONS);
@@ -383,8 +383,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (tenant.status === 'Suspended') {
       return { system, status: language === 'ar' ? 'معلّق' : 'Suspended', tone: 'bad' as const };
     }
-    if (isFreePeriodActive) {
-      return { system, status: language === 'ar' ? `مجاني حتى ${freeUntil}` : `Free until ${freeUntil}`, tone: 'ok' as const };
+    const free = freeInfoFromStart(tenant.startDate);
+    if (free.active) {
+      return { system, status: language === 'ar' ? `مجاني حتى ${free.endsOn}` : `Free until ${free.endsOn}`, tone: 'ok' as const };
     }
     if (tenant.status === 'Expiring Soon') {
       return { system, status: language === 'ar' ? 'ينتهي قريباً' : 'Expiring soon', tone: 'warn' as const };
@@ -807,7 +808,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     data.forEach((row: any) => { map[row.key] = row.value; });
 
     if (map.default_discount_percent) setDefaultDiscountState(map.default_discount_percent);
-    setFreeUntilState(map.free_until || '');
+    setFreePeriodDaysState(Math.max(0, parseInt(map.free_period_days || '0', 10) || 0));
     setAnnouncement({
       title: map.announcement_title || 'Scheduled Maintenance',
       titleAr: map.announcement_title_ar || 'صيانة دورية مجدولة',
@@ -831,21 +832,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(isRTL ? 'تم تحديث الإعلان العام للنظام' : 'System announcement updated');
   };
 
-  const todayIso = new Date().toISOString().slice(0, 10);
-  const isFreePeriodActive = freeUntil !== '' && todayIso <= freeUntil;
+  const freeInfoFromStart = (startDate: string) => {
+    if (!freePeriodDays || !startDate) return { active: false, endsOn: '', daysLeft: 0 };
+    const start = new Date(startDate);
+    if (isNaN(start.getTime())) return { active: false, endsOn: '', daysLeft: 0 };
+    const end = new Date(start);
+    end.setDate(end.getDate() + freePeriodDays);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const daysLeft = Math.ceil((end.getTime() - today.getTime()) / 86400000);
+    return { active: daysLeft > 0, endsOn: end.toISOString().slice(0, 10), daysLeft: Math.max(daysLeft, 0) };
+  };
 
-  const setFreeUntil = async (date: string) => {
+  const setFreePeriodDays = async (days: number) => {
+    const value = Math.max(0, Math.floor(days || 0));
     const { error } = await supabase
       .from('platform_settings')
-      .upsert({ key: 'free_until', value: date, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      .upsert({ key: 'free_period_days', value: String(value), updated_at: new Date().toISOString() }, { onConflict: 'key' });
     if (error) {
       showToast(error.message);
       return;
     }
-    setFreeUntilState(date);
+    setFreePeriodDaysState(value);
     showToast(
-      date
-        ? isRTL ? `النظام مجاني لكل المشتركين حتى ${date}` : `System is free for all subscribers until ${date}`
+      value
+        ? isRTL ? `فترة مجانية ${value} يوم لكل مشترك من تاريخ اشتراكه` : `${value}-day free period for every subscriber from their subscription date`
         : isRTL ? 'تم إلغاء الفترة المجانية' : 'Free period removed'
     );
   };
@@ -1293,9 +1304,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         announcement,
         updateAnnouncement,
         defaultDiscount,
-        freeUntil,
-        isFreePeriodActive,
-        setFreeUntil,
+        freePeriodDays,
+        setFreePeriodDays,
+        freeInfoFromStart,
         setDefaultDiscount,
         inventory,
         autoDeductLogs,

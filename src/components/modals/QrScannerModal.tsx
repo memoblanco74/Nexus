@@ -132,8 +132,7 @@ export const TenantSwitcherModal: React.FC = () => {
     showToast,
     t,
     describeTenant,
-    isFreePeriodActive,
-  freeUntil,
+    freePeriodDays,
   } = useApp();
 
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -257,7 +256,7 @@ export const TenantSwitcherModal: React.FC = () => {
                       {language === 'ar' ? t.nameAr : t.name}
                     </span>
                     <span className="text-[10px] text-slate-500">
-                      {isFreePeriodActive ? (isRTL ? `مجاني حتى ${freeUntil}` : `Free until ${freeUntil}`) : `${t.subscriptionPrice} EGP/${t.subscriptionPeriod === 'monthly' ? 'mo' : 'yr'}`}
+                      {`${freePeriodDays > 0 ? (isRTL ? `${freePeriodDays} يوم مجاناً ثم ` : `${freePeriodDays} days free, then `) : ''}${t.subscriptionPrice} EGP/${t.subscriptionPeriod === 'monthly' ? 'mo' : 'yr'}`}
                     </span>
                   </button>
                 ))}

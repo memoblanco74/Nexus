@@ -42,9 +42,9 @@ export const SuperAdminView: React.FC = () => {
     updateAnnouncement,
     defaultDiscount,
     setDefaultDiscount,
-    freeUntil,
-    isFreePeriodActive,
-    setFreeUntil,
+    freePeriodDays,
+    setFreePeriodDays,
+    freeInfoFromStart,
     openPdfExport,
     showToast,
     t,
@@ -58,14 +58,10 @@ export const SuperAdminView: React.FC = () => {
   const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
   const [kpiDetail, setKpiDetail] = useState<{ title: string; rows: { name: string; sub?: string; value: string }[] } | null>(null);
 
-  const totalMrr = isFreePeriodActive
-    ? 0
-    : subscriptions.filter((s) => s.status === 'Active').reduce((sum, s) => sum + s.mrr, 0);
-  const addMonthsFromNow = (months: number) => {
-    const base = freeUntil && freeUntil > new Date().toISOString().slice(0, 10) ? new Date(freeUntil) : new Date();
-    base.setMonth(base.getMonth() + months);
-    return base.toISOString().slice(0, 10);
-  };
+  const payingSubscriptions = subscriptions.filter((s) => s.status === 'Active' && !freeInfoFromStart(s.startDate).active);
+  const totalMrr = payingSubscriptions.reduce((sum, s) => sum + s.mrr, 0);
+  const inFreePeriodCount = subscriptions.filter((s) => freeInfoFromStart(s.startDate).active).length;
+  const [freeDaysInput, setFreeDaysInput] = useState<string>('');
   const activeCount = subscriptions.filter((s) => s.status === 'Active').length;
   const pendingReplyChats = chats.filter((c) => {
     const last = c.messages[c.messages.length - 1];
@@ -230,8 +226,8 @@ export const SuperAdminView: React.FC = () => {
             </h3>
           </div>
           <p className="mt-1 text-[11px] text-slate-500">
-            {isFreePeriodActive
-              ? isRTL ? `فترة مجانية حتى ${freeUntil}` : `Free period until ${freeUntil}`
+            {inFreePeriodCount > 0
+              ? isRTL ? `${inFreePeriodCount} مشترك في الفترة المجانية غير محسوبين` : `${inFreePeriodCount} subscriber(s) in free period not counted`
               : isRTL ? 'من الاشتراكات النشطة فقط' : 'From active subscriptions only'}
           </p>
         </button>
@@ -443,33 +439,52 @@ export const SuperAdminView: React.FC = () => {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h3 className="text-sm font-bold text-white dark:text-white light:text-slate-900">
-              {isRTL ? 'الفترة المجانية لكل المشتركين' : 'Free Period for All Subscribers'}
+              {isRTL ? 'فترة الاستخدام المجاني' : 'Free Usage Period'}
             </h3>
             <p className="mt-1 text-xs text-slate-400">
-              {isFreePeriodActive
-                ? isRTL ? `النظام مجاني لكل المشتركين حتى ${freeUntil}` : `The system is free for all subscribers until ${freeUntil}`
-                : isRTL ? 'غير مفعّلة. حدد تاريخ لتجعل النظام مجانياً لكل المشتركين.' : 'Not active. Pick a date to make the system free for all subscribers.'}
+              {freePeriodDays > 0
+                ? isRTL
+                  ? `كل مشترك يحصل على ${freePeriodDays} يوم مجاناً تبدأ من تاريخ اشتراكه في مشروعه.`
+                  : `Every subscriber gets ${freePeriodDays} free days starting from their own subscription date.`
+                : isRTL
+                ? 'غير مفعّلة. حدد عدد الأيام ليحصل كل مشترك على فترة مجانية تبدأ من تاريخ اشتراكه.'
+                : 'Not active. Set a number of days so each subscriber gets a free period from their own subscription date.'}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {[1, 3, 6, 12].map((m) => (
+            {[30, 90, 180, 365].map((d) => (
               <button
-                key={m}
-                onClick={() => setFreeUntil(addMonthsFromNow(m))}
-                className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs font-bold text-slate-300 hover:bg-slate-800"
+                key={d}
+                onClick={() => setFreePeriodDays(d)}
+                className={`rounded-xl px-3 py-2 text-xs font-bold transition ${
+                  freePeriodDays === d
+                    ? 'bg-emerald-600 text-white'
+                    : 'border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800'
+                }`}
               >
-                +{m} {isRTL ? (m === 12 ? 'شهر' : m <= 1 ? 'شهر' : 'أشهر') : m === 1 ? 'month' : 'months'}
+                {d} {isRTL ? 'يوم' : 'days'}
               </button>
             ))}
             <input
-              type="date"
-              value={freeUntil}
-              onChange={(e) => setFreeUntil(e.target.value)}
-              className="rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+              type="number"
+              min={0}
+              value={freeDaysInput}
+              onChange={(e) => setFreeDaysInput(e.target.value)}
+              placeholder={isRTL ? 'عدد الأيام' : 'Days'}
+              className="w-24 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
             />
-            {freeUntil && (
+            <button
+              onClick={() => {
+                setFreePeriodDays(Number(freeDaysInput) || 0);
+                setFreeDaysInput('');
+              }}
+              className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-500"
+            >
+              {isRTL ? 'حفظ' : 'Save'}
+            </button>
+            {freePeriodDays > 0 && (
               <button
-                onClick={() => setFreeUntil('')}
+                onClick={() => setFreePeriodDays(0)}
                 className="rounded-xl bg-red-500/10 border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-500/20"
               >
                 {isRTL ? 'إلغاء' : 'Clear'}
@@ -667,6 +682,11 @@ export const SuperAdminView: React.FC = () => {
                       </td>
                       <td className="py-3 px-3">
                         <span className="font-semibold text-emerald-400">{sub.mrr.toLocaleString()} EGP</span>
+                        {freeInfoFromStart(sub.startDate).active && (
+                          <span className="block text-[10px] text-amber-400">
+                            {isRTL ? `مجاني حتى ${freeInfoFromStart(sub.startDate).endsOn}` : `Free until ${freeInfoFromStart(sub.startDate).endsOn}`}
+                          </span>
+                        )}
                       </td>
                       <td className="py-3 px-3">
                         <span className="font-mono text-[11px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">

@@ -17,7 +17,7 @@ export function mapTenantRow(row: any): Tenant {
     location: row.location || '',
     systemId: row.system_id || undefined,
     subscriptionPaused: row.subscription_paused === true,
-    startDate: row.subscription_started_at || '',
+    startDate: row.subscription_started_at || (row.created_at ? String(row.created_at).slice(0, 10) : ''),
   };
 }
 
