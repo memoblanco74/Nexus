@@ -46,7 +46,16 @@ export interface ReferralInfo {
   defaultPercent: number;
 }
 
+export interface PaymentInfo {
+  phone: string;
+  link: string;
+  qr: string;
+  note: string;
+}
+
 interface AppContextType {
+  paymentInfo: PaymentInfo;
+  updatePaymentInfo: (info: PaymentInfo) => Promise<boolean>;
   referral: ReferralInfo | null;
   referralLoaded: boolean;
   refreshReferral: () => Promise<void>;
@@ -301,6 +310,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     messageAr: 'ترقية البنية السحابية في ١٥ أكتوبر، الساعة ٠٢:٠٠ ص بتوقيت UTC. دون أي انقطاع للخدمة.',
   });
   const [announcementActive, setAnnouncementActiveState] = useState(false);
+  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({ phone: '', link: '', qr: '', note: '' });
   const [defaultDiscount, setDefaultDiscountState] = useState<string>('15%');
   const [freePeriodDays, setFreePeriodDaysState] = useState<number>(0);
 
@@ -1007,6 +1017,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (map.default_discount_percent) setDefaultDiscountState(map.default_discount_percent);
     setFreePeriodDaysState(Math.max(0, parseInt(map.free_period_days || '0', 10) || 0));
     setAnnouncementActiveState(map.announcement_active === 'true');
+    setPaymentInfo({
+      phone: map.payment_instapay_phone || '',
+      link: map.payment_instapay_link || '',
+      qr: map.payment_instapay_qr || '',
+      note: map.payment_note || '',
+    });
     setAnnouncement({
       title: map.announcement_title || 'Scheduled Maintenance',
       titleAr: map.announcement_title_ar || 'صيانة دورية مجدولة',
@@ -1018,6 +1034,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     refreshPlatformSettings();
   }, [refreshPlatformSettings]);
+
+  useEffect(() => {
+    if (!profile || (profile.roleCode !== 'founder' && profile.roleCode !== 'super_admin')) return;
+    const channel = supabase
+      .channel(`platform-settings-${profile.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'platform_settings' }, () => {
+        refreshPlatformSettings();
+      })
+      .subscribe();
+    const poll = setInterval(() => {
+      if (document.visibilityState === 'visible') refreshPlatformSettings();
+    }, 15000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refreshPlatformSettings();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(poll);
+      document.removeEventListener('visibilitychange', onVisible);
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.id, profile?.roleCode, refreshPlatformSettings]);
+
+  const updatePaymentInfo = async (info: PaymentInfo) => {
+    const now = new Date().toISOString();
+    const { error } = await supabase.from('platform_settings').upsert(
+      [
+        { key: 'payment_instapay_phone', value: info.phone.trim(), updated_at: now },
+        { key: 'payment_instapay_link', value: info.link.trim(), updated_at: now },
+        { key: 'payment_instapay_qr', value: info.qr, updated_at: now },
+        { key: 'payment_note', value: info.note.trim(), updated_at: now },
+      ],
+      { onConflict: 'key' }
+    );
+    if (error) {
+      showToast(error.message);
+      return false;
+    }
+    setPaymentInfo({ ...info, phone: info.phone.trim(), link: info.link.trim(), note: info.note.trim() });
+    showToast(isRTL ? 'تم حفظ بيانات الدفع' : 'Payment details saved');
+    return true;
+  };
 
   const updateAnnouncement = async (ann: { title: string; titleAr: string; message: string; messageAr: string }) => {
     setAnnouncement(ann);
@@ -1559,6 +1617,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActiveTenant,
         tenants,
         tenantsLoaded,
+        paymentInfo,
+        updatePaymentInfo,
         referral,
         referralLoaded,
         refreshReferral,

@@ -1,3 +1,4 @@
+import { PaymentInfoEditor } from './PaymentInfoParts';
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
@@ -464,6 +465,8 @@ export const SuperAdminView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <PaymentInfoEditor />
 
       <div className="glass-panel rounded-2xl p-5 border border-slate-800">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { ChangePasswordCard, UserManagementCard } from './AccountSecurityCards';
 import { ReferralCard, ReferralOverviewCard } from './ReferralParts';
+import { PaymentInfoCard } from './PaymentInfoParts';
 import { useAuth, DEFAULT_NOTIFICATION_PREFS, NotificationPrefs } from '../../context/AuthContext';
 import { Settings, Shield, Globe, Bell, Database, Lock, Save, Send } from 'lucide-react';
 
@@ -208,6 +209,8 @@ export const SupportView: React.FC = () => {
           {isRTL ? 'تواصل مباشر مع فريق الإدارة' : 'Direct chat with the platform administrator'}
         </p>
       </div>
+
+      <PaymentInfoCard />
 
       <div className="rounded-2xl border border-slate-800 bg-slate-950/60 flex flex-col h-[60vh]">
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
