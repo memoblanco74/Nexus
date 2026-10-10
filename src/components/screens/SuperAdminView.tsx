@@ -444,7 +444,7 @@ export const SuperAdminView: React.FC = () => {
             <p className="mt-1 text-xs text-slate-400">
               {freePeriodDays > 0
                 ? isRTL
-                  ? `كل مشترك يحصل على ${freePeriodDays} يوم مجاناً تبدأ من تاريخ اشتراكه في مشروعه.`
+                  ? `المحفوظ حالياً: كل مشترك يحصل على ${freePeriodDays} يوم مجاناً تبدأ من تاريخ اشتراكه في مشروعه.`
                   : `Every subscriber gets ${freePeriodDays} free days starting from their own subscription date.`
                 : isRTL
                 ? 'غير مفعّلة. حدد عدد الأيام ليحصل كل مشترك على فترة مجانية تبدأ من تاريخ اشتراكه.'
@@ -455,9 +455,11 @@ export const SuperAdminView: React.FC = () => {
             {[30, 90, 180, 365].map((d) => (
               <button
                 key={d}
-                onClick={() => setFreePeriodDays(d)}
+                onClick={() => setFreeDaysInput(String(d))}
                 className={`rounded-xl px-3 py-2 text-xs font-bold transition ${
-                  freePeriodDays === d
+                  freeDaysInput === String(d)
+                    ? 'bg-blue-600 text-white'
+                    : freePeriodDays === d && freeDaysInput === ''
                     ? 'bg-emerald-600 text-white'
                     : 'border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800'
                 }`}
