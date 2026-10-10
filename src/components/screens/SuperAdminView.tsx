@@ -40,6 +40,8 @@ export const SuperAdminView: React.FC = () => {
     sendChatMessage,
     announcement,
     updateAnnouncement,
+    announcementActive,
+    setAnnouncementActive,
     defaultDiscount,
     setDefaultDiscount,
     freePeriodDays,
@@ -362,6 +364,18 @@ export const SuperAdminView: React.FC = () => {
                 {t('super_admin.system_announcements')}
               </h3>
             </div>
+            <div className="flex items-center gap-3">
+            <button
+              onClick={() => setAnnouncementActive(!announcementActive)}
+              className={`flex items-center gap-2 rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
+                announcementActive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-slate-800 text-slate-400'
+              }`}
+            >
+              <span className={`relative h-4 w-7 rounded-full transition ${announcementActive ? 'bg-emerald-500' : 'bg-slate-600'}`}>
+                <span className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all ${announcementActive ? 'left-3.5' : 'left-0.5'}`} />
+              </span>
+              {announcementActive ? (isRTL ? 'ظاهر للفاوندرز' : 'Visible') : isRTL ? 'مخفي' : 'Hidden'}
+            </button>
             <button
               onClick={() => setIsEditingAnnouncement(!isEditingAnnouncement)}
               className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition"
@@ -370,6 +384,7 @@ export const SuperAdminView: React.FC = () => {
                 ? isRTL ? 'إلغاء' : 'Cancel'
                 : isRTL ? 'تعديل الإعلان' : 'Edit Broadcast'}
             </button>
+            </div>
           </div>
 
           {isEditingAnnouncement ? (

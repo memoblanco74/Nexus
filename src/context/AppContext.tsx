@@ -34,7 +34,24 @@ import {
   mapSystemTemplateRow,
 } from '../lib/dataMappers';
 
+export interface ReferralInfo {
+  code: string | null;
+  redeemed: boolean;
+  redeemedCode: string | null;
+  ownPercent: number;
+  earnedPercent: number;
+  referralsCount: number;
+  totalPercent: number;
+  promptDone: boolean;
+  defaultPercent: number;
+}
+
 interface AppContextType {
+  referral: ReferralInfo | null;
+  referralLoaded: boolean;
+  refreshReferral: () => Promise<void>;
+  redeemReferral: (code: string) => Promise<boolean>;
+  skipReferralPrompt: () => Promise<void>;
   screen: ScreenId;
   setScreen: (screen: ScreenId) => void;
   language: Language;
@@ -69,6 +86,8 @@ interface AppContextType {
 
   announcement: { title: string; titleAr: string; message: string; messageAr: string };
   updateAnnouncement: (a: { title: string; titleAr: string; message: string; messageAr: string }) => void;
+  announcementActive: boolean;
+  setAnnouncementActive: (active: boolean) => Promise<void>;
   defaultDiscount: string;
   setDefaultDiscount: (discount: string) => void;
   freePeriodDays: number;
@@ -258,6 +277,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [tenantsLoaded, setTenantsLoaded] = useState(false);
+  const [referral, setReferral] = useState<ReferralInfo | null>(null);
+  const [referralLoaded, setReferralLoaded] = useState(false);
   const [activeTenant, setActiveTenantState] = useState<Tenant | null>(null);
 
   const [chats, setChats] = useState<ChatMessage[]>([]);
@@ -279,6 +300,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     message: 'System upgrade on Oct 15, 02:00 UTC. Zero downtime expected.',
     messageAr: 'ترقية البنية السحابية في ١٥ أكتوبر، الساعة ٠٢:٠٠ ص بتوقيت UTC. دون أي انقطاع للخدمة.',
   });
+  const [announcementActive, setAnnouncementActiveState] = useState(false);
   const [defaultDiscount, setDefaultDiscountState] = useState<string>('15%');
   const [freePeriodDays, setFreePeriodDaysState] = useState<number>(0);
 
@@ -984,6 +1006,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (map.default_discount_percent) setDefaultDiscountState(map.default_discount_percent);
     setFreePeriodDaysState(Math.max(0, parseInt(map.free_period_days || '0', 10) || 0));
+    setAnnouncementActiveState(map.announcement_active === 'true');
     setAnnouncement({
       title: map.announcement_title || 'Scheduled Maintenance',
       titleAr: map.announcement_title_ar || 'صيانة دورية مجدولة',
@@ -1005,6 +1028,78 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       supabase.from('platform_settings').update({ value: ann.messageAr, updated_at: new Date().toISOString() }).eq('key', 'announcement_message_ar'),
     ]);
     showToast(isRTL ? 'تم تحديث الإعلان العام للنظام' : 'System announcement updated');
+  };
+
+  const refreshReferral = useCallback(async () => {
+    if (!profile || profile.roleCode !== 'founder') {
+      setReferral(null);
+      setReferralLoaded(true);
+      return;
+    }
+    const { data, error } = await supabase.rpc('fn_my_referral');
+    if (error || !data) {
+      setReferralLoaded(true);
+      return;
+    }
+    const d: any = data;
+    setReferral({
+      code: d.code ?? null,
+      redeemed: !!d.redeemed,
+      redeemedCode: d.redeemed_code ?? null,
+      ownPercent: Number(d.own_percent) || 0,
+      earnedPercent: Number(d.earned_percent) || 0,
+      referralsCount: Number(d.referrals_count) || 0,
+      totalPercent: Number(d.total_percent) || 0,
+      promptDone: !!d.prompt_done,
+      defaultPercent: Number(d.default_percent) || 0,
+    });
+    setReferralLoaded(true);
+  }, [profile?.id, profile?.roleCode]);
+
+  useEffect(() => {
+    setReferralLoaded(false);
+    refreshReferral();
+  }, [refreshReferral]);
+
+  const redeemReferral = async (code: string) => {
+    const { error } = await supabase.rpc('fn_redeem_referral', { p_code: code });
+    if (error) {
+      const m = error.message || '';
+      const msg = m.includes('INVALID_CODE')
+        ? isRTL ? 'الكود غير صحيح' : 'Invalid code'
+        : m.includes('OWN_CODE')
+        ? isRTL ? 'لا يمكنك استخدام كودك الخاص' : 'You cannot use your own code'
+        : m.includes('ALREADY_REDEEMED')
+        ? isRTL ? 'لقد استخدمت كود خصم من قبل ولا يمكن استخدام كود آخر' : 'You have already used a discount code'
+        : m;
+      showToast(msg);
+      return false;
+    }
+    await refreshReferral();
+    showToast(isRTL ? 'تم تفعيل كود الخصم' : 'Discount code applied');
+    return true;
+  };
+
+  const skipReferralPrompt = async () => {
+    setReferral((r) => (r ? { ...r, promptDone: true } : r));
+    await supabase.rpc('fn_skip_referral_prompt');
+  };
+
+  const setAnnouncementActive = async (active: boolean) => {
+    setAnnouncementActiveState(active);
+    const { error } = await supabase
+      .from('platform_settings')
+      .upsert({ key: 'announcement_active', value: active ? 'true' : 'false', updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    if (error) {
+      setAnnouncementActiveState(!active);
+      showToast(error.message);
+      return;
+    }
+    showToast(
+      active
+        ? isRTL ? 'الإعلان ظاهر للفاوندرز الآن' : 'Announcement is now visible to founders'
+        : isRTL ? 'تم إخفاء الإعلان عن الفاوندرز' : 'Announcement hidden from founders'
+    );
   };
 
   const freeInfoFromStart = (startDate: string) => {
@@ -1464,6 +1559,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActiveTenant,
         tenants,
         tenantsLoaded,
+        referral,
+        referralLoaded,
+        refreshReferral,
+        redeemReferral,
+        skipReferralPrompt,
         addTenant,
         updateTenant,
         deleteTenant,
@@ -1505,6 +1605,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         subscribeToSystem,
         addSystemTemplate,
         updateSystemTemplate,
+        announcementActive,
+        setAnnouncementActive,
         deleteSystemTemplate,
         addSystemFeature,
         deleteSystemFeature,

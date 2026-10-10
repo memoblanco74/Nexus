@@ -10,6 +10,8 @@ import { AuthScreen } from './components/auth/AuthScreen';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { FreePeriodBanner } from './components/layout/FreePeriodBanner';
+import { ReferralPromptStep } from './components/screens/ReferralParts';
+import { AnnouncementBanner } from './components/layout/AnnouncementBanner';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 
 // Screens
@@ -45,13 +47,15 @@ const ROLE_SCREEN_MAP: Record<string, ScreenId[]> = {
 };
 
 const DashboardContent: React.FC = () => {
-  const { screen, toastMessage, tenants, tenantsLoaded } = useApp();
+  const { screen, toastMessage, tenants, tenantsLoaded, referral, referralLoaded } = useApp();
   const { profile } = useAuth();
   const allowed = (profile ? ROLE_SCREEN_MAP[profile.roleCode] : undefined) || [];
   const canSee = (id: string) => allowed.includes(id as ScreenId);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   if (profile?.roleCode === 'founder' && tenantsLoaded && tenants.length === 0) {
+    if (!referralLoaded) return null;
+    if (referral && !referral.promptDone && !referral.redeemed) return <ReferralPromptStep />;
     return <SystemCatalogView />;
   }
 
@@ -76,6 +80,7 @@ const DashboardContent: React.FC = () => {
         <Header onToggleSidebar={() => setIsMobileSidebarOpen(true)} />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-12">
+          <AnnouncementBanner />
           <FreePeriodBanner />
           {screen === 'super_admin' && canSee('super_admin') && <SuperAdminView />}
           {screen === 'founder' && canSee('founder') && <FounderView />}
