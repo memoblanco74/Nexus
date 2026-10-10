@@ -179,7 +179,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
         </div>
 
         {/* Tenant Quick Switcher Header Card */}
-        {activeTenant && (
+        {activeTenant && profile?.roleCode === 'founder' && (
           <div className="p-3 border-b border-slate-800/60 dark:border-slate-800/60 light:border-slate-200">
             <button
               onClick={() => setIsTenantModalOpen(true)}
