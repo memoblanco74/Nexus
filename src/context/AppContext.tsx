@@ -742,7 +742,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setChats(mapped);
     chatsRef.current = mapped;
-    if (!selectedChatIdRef.current && mapped.length > 0) setSelectedChatId(mapped[0].id);
     return mapped;
   }, [profile]);
 
@@ -801,6 +800,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [selectedChatId]);
   useEffect(() => {
     screenRef.current = screen;
+    if (screen !== 'super_admin') setSelectedChatId('');
   }, [screen]);
   useEffect(() => {
     profileRef.current = profile;
@@ -808,7 +808,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     if (!profile || profile.roleCode !== 'super_admin') return;
-    const viewing = chats.find((c) => c.id === selectedChatId) || chats[0];
+    const viewing = chats.find((c) => c.id === selectedChatId);
     if (viewing && (viewing.unreadCount || 0) > 0 && screen === 'super_admin' && document.visibilityState === 'visible') {
       markChatSeen(viewing.id);
     }

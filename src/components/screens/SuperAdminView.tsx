@@ -120,7 +120,7 @@ export const SuperAdminView: React.FC = () => {
     language === 'ar' ? announcement.titleAr : announcement.title
   );
 
-  const selectedChat = chats.find((c) => c.id === selectedChatId) || chats[0];
+  const selectedChat = chats.find((c) => c.id === selectedChatId);
 
   useEffect(() => {
     document.getElementById('admin-chat-end')?.scrollIntoView({ block: 'end' });
@@ -537,7 +537,7 @@ export const SuperAdminView: React.FC = () => {
               return (
                 <button
                   key={c.id}
-                  onClick={() => setSelectedChatId(c.id)}
+                  onClick={() => setSelectedChatId(isSelected ? '' : c.id)}
                   className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 whitespace-nowrap transition ${
                     isSelected
                       ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40'
@@ -566,7 +566,9 @@ export const SuperAdminView: React.FC = () => {
           {!selectedChat ? (
             <div className="flex-1 flex items-center justify-center p-6 text-center">
               <p className="text-xs text-slate-500">
-                {isRTL ? 'لا توجد محادثات دعم حتى الآن' : 'No support conversations yet'}
+                {chats.length === 0
+                  ? isRTL ? 'لا توجد محادثات دعم حتى الآن' : 'No support conversations yet'
+                  : isRTL ? 'اختر محادثة من الأعلى لعرضها' : 'Select a conversation above to view it'}
               </p>
             </div>
           ) : (
