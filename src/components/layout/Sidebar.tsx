@@ -46,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
     : { system: '', status: '', tone: 'ok' as const };
 
   const ROLE_SCREENS: Record<string, ScreenId[]> = {
-    super_admin: ['super_admin', 'catalog', 'settings', 'support'],
+    super_admin: ['super_admin', 'catalog', 'settings'],
     founder: ['founder', 'projects', 'patients', 'bookings', 'inventory', 'accounting', 'reports', 'assistants', 'settings', 'support'],
     assistant: ['assistant', 'patients', 'bookings', 'inventory', 'settings'],
   };

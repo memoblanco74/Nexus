@@ -39,7 +39,7 @@ import {
 import type { ScreenId } from './types';
 
 const ROLE_SCREEN_MAP: Record<string, ScreenId[]> = {
-  super_admin: ['super_admin', 'catalog', 'settings', 'support'],
+  super_admin: ['super_admin', 'catalog', 'settings'],
   founder: ['founder', 'projects', 'patients', 'bookings', 'inventory', 'accounting', 'reports', 'assistants', 'settings', 'support'],
   assistant: ['assistant', 'patients', 'bookings', 'inventory', 'settings'],
 };
