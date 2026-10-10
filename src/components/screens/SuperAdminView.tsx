@@ -466,8 +466,8 @@ export const SuperAdminView: React.FC = () => {
               </button>
             ))}
             <input
-              type="number"
-              min={0}
+              type="text"
+              inputMode="numeric"
               value={freeDaysInput}
               onChange={(e) => setFreeDaysInput(e.target.value)}
               placeholder={isRTL ? 'عدد الأيام' : 'Days'}
@@ -475,7 +475,15 @@ export const SuperAdminView: React.FC = () => {
             />
             <button
               onClick={() => {
-                setFreePeriodDays(Number(freeDaysInput) || 0);
+                const digits = freeDaysInput
+                  .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+                  .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+                  .replace(/[^0-9]/g, '');
+                if (!digits) {
+                  showToast(isRTL ? 'اكتب عدد الأيام أولاً' : 'Enter the number of days first');
+                  return;
+                }
+                setFreePeriodDays(Number(digits));
                 setFreeDaysInput('');
               }}
               className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-500"
