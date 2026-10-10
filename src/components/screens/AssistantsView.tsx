@@ -94,7 +94,7 @@ export const AssistantsView: React.FC = () => {
       </div>
 
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div onMouseDown={(e) => { if (e.target === e.currentTarget) setIsFormOpen(false); }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
           <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-3">
             <div className="flex items-center gap-2 mb-1">
               <ShieldCheck className="h-4 w-4 text-blue-400" />

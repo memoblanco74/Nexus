@@ -30,7 +30,7 @@ export const QrScannerModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+    <div onMouseDown={(e) => { if (e.target === e.currentTarget) setIsQrScannerOpen(false); }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
       <div className="relative w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl">
         <div className="flex items-center justify-between pb-4 border-b border-slate-800">
           <div className="flex items-center gap-2">
@@ -157,7 +157,7 @@ export const TenantSwitcherModal: React.FC = () => {
   const activeTemplates = systemTemplates.filter((s) => s.isActive);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+    <div onMouseDown={(e) => { if (e.target === e.currentTarget) setIsTenantModalOpen(false); }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
       <div className="relative w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl">
         <div className="flex items-center justify-between pb-4 border-b border-slate-800">
           <h3 className="text-sm font-bold text-white">
@@ -289,7 +289,7 @@ export const ExportPdfModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+    <div onMouseDown={(e) => { if (e.target === e.currentTarget) setIsPdfExportOpen(false); }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
       <div className="relative w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl text-slate-200">
         <div className="flex items-center justify-between pb-4 border-b border-slate-800">
           <h3 className="text-sm font-bold text-white">

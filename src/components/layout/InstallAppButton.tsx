@@ -66,7 +66,7 @@ export const InstallAppButton: React.FC<{ isRTL: boolean }> = ({ isRTL }) => {
       </button>
 
       {showIosHint && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div onMouseDown={(e) => { if (e.target === e.currentTarget) setShowIosHint(false); }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
           <div className="w-full max-w-xs rounded-2xl border border-slate-800 bg-slate-950 p-5 text-center space-y-3">
             <button
               onClick={() => setShowIosHint(false)}

@@ -433,7 +433,7 @@ export const AccountingView: React.FC = () => {
       </div>
 
       {isExpenseFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div onMouseDown={(e) => { if (e.target === e.currentTarget) setIsExpenseFormOpen(false); }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-3">
             <h3 className="text-sm font-bold text-white">{isRTL ? 'إضافة مصروف جديد' : 'Add New Expense'}</h3>
             <input

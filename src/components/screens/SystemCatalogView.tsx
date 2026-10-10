@@ -47,6 +47,9 @@ const TopBar: React.FC = () => {
             )}
           </button>
           {showNotifications && (
+            <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+          )}
+          {showNotifications && (
             <div className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-72 rounded-xl border border-slate-800 bg-slate-900/95 p-3 shadow-2xl backdrop-blur-xl z-50 text-xs`}>
               {notifications.length === 0 ? (
                 <p className="text-center text-slate-500 py-4">{isRTL ? 'لا توجد إشعارات' : 'No notifications'}</p>

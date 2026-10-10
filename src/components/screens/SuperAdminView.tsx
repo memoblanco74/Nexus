@@ -306,7 +306,7 @@ export const SuperAdminView: React.FC = () => {
       </div>
 
       {kpiDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div onMouseDown={(e) => { if (e.target === e.currentTarget) setKpiDetail(null); }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
           <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-950 p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-white">{kpiDetail.title}</h3>
