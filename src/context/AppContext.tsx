@@ -268,6 +268,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [founderConversationId, setFounderConversationId] = useState<string | null>(null);
   const [founderUnreadCount, setFounderUnreadCount] = useState(0);
   const chatsRef = useRef<ChatMessage[]>([]);
+  const showDeviceNotificationRef = useRef<((title: string, body: string, tag: string) => void) | null>(null);
   const selectedChatIdRef = useRef('');
   const screenRef = useRef<ScreenId>('founder');
   const profileRef = useRef(profile);
@@ -536,7 +537,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `tenant_id=eq.${activeTenantId}` },
-        () => refreshNotifications()
+        (payload: any) => {
+          refreshNotifications();
+          const me = profileRef.current;
+          if (me && me.notificationPrefs.systemDevice && document.visibilityState !== 'visible') {
+            showDeviceNotificationRef.current?.(payload.new?.title || 'Nexus', payload.new?.body || '', `sys-${payload.new?.id}`);
+          }
+        }
       )
       .subscribe();
 
@@ -748,6 +755,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await supabase.from('support_conversations').update({ founder_last_seen_at: new Date().toISOString() }).eq('id', founderConversationId);
   }, [founderConversationId]);
 
+  const playNotificationSound = useCallback(() => {
+    try {
+      const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.4);
+      osc.onended = () => ctx.close();
+    } catch {}
+  }, []);
+
   const showDeviceNotification = useCallback((title: string, body: string, tag: string) => {
     try {
       if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
@@ -762,6 +789,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {}
   }, []);
 
+  useEffect(() => {
+    showDeviceNotificationRef.current = showDeviceNotification;
+  }, [showDeviceNotification]);
   useEffect(() => {
     selectedChatIdRef.current = selectedChatId;
   }, [selectedChatId]);
@@ -805,8 +835,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           (selectedChatIdRef.current === row.conversation_id);
         if (!watching) {
           const who = chat?.tenant || 'Founder';
-          showToast(`${who}: ${row.body}`);
-          showDeviceNotification(who, row.body, `chat-${row.conversation_id}`);
+          if (me.notificationPrefs.chatToast) showToast(`${who}: ${row.body}`);
+          if (me.notificationPrefs.chatDevice) showDeviceNotification(who, row.body, `chat-${row.conversation_id}`);
+          if (me.notificationPrefs.chatSound) playNotificationSound();
         }
       } else {
         await refreshFounderChat();
@@ -814,8 +845,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const watching = document.visibilityState === 'visible' && screenRef.current === 'support';
         if (!watching) {
           const who = language === 'ar' ? 'الدعم الفني' : 'Support';
-          showToast(`${who}: ${row.body}`);
-          showDeviceNotification(who, row.body, `chat-${row.conversation_id}`);
+          if (me.notificationPrefs.chatToast) showToast(`${who}: ${row.body}`);
+          if (me.notificationPrefs.chatDevice) showDeviceNotification(who, row.body, `chat-${row.conversation_id}`);
+          if (me.notificationPrefs.chatSound) playNotificationSound();
         }
       }
     };

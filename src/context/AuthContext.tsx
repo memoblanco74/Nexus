@@ -4,6 +4,20 @@ import { supabase } from '../lib/supabaseClient';
 
 export type RoleCode = 'super_admin' | 'founder' | 'assistant';
 
+export interface NotificationPrefs {
+  chatDevice: boolean;
+  chatToast: boolean;
+  chatSound: boolean;
+  systemDevice: boolean;
+}
+
+export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  chatDevice: true,
+  chatToast: true,
+  chatSound: true,
+  systemDevice: true,
+};
+
 interface UserProfile {
   id: string;
   username: string | null;
@@ -14,6 +28,7 @@ interface UserProfile {
   preferredTheme: 'dark' | 'light';
   preferredLanguage: 'ar' | 'en';
   avatarUrl: string | null;
+  notificationPrefs: NotificationPrefs;
 }
 
 interface TenantMembership {
@@ -41,6 +56,7 @@ interface AuthContextType {
   changePassword: (newPassword: string) => Promise<{ error: string | null }>;
   updatePreferredTheme: (theme: 'dark' | 'light') => Promise<void>;
   updatePreferredLanguage: (lang: 'ar' | 'en') => Promise<void>;
+  updateNotificationPrefs: (prefs: NotificationPrefs) => Promise<void>;
   updateProfileDetails: (details: { fullName?: string; phone?: string }) => Promise<{ error: string | null }>;
   uploadAvatar: (file: File) => Promise<{ error: string | null }>;
 }
@@ -86,6 +102,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       roleCode: roleRow.code,
       preferredTheme: (userRow.preferred_theme === 'light' ? 'light' : 'dark') as 'dark' | 'light',
       preferredLanguage: ((userRow as any).preferred_language === 'en' ? 'en' : 'ar') as 'ar' | 'en',
+      notificationPrefs: (() => {
+        let stored: any = (userRow as any).notification_prefs;
+        if (!stored) {
+          try {
+            stored = JSON.parse(localStorage.getItem(`nexus_notif_${userRow.id}`) || 'null');
+          } catch {
+            stored = null;
+          }
+        }
+        return { ...DEFAULT_NOTIFICATION_PREFS, ...(stored && typeof stored === 'object' ? stored : {}) };
+      })(),
       avatarUrl: userRow.avatar_url || null,
     });
 
@@ -244,6 +271,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.from('users').update({ preferred_language: lang }).eq('id', profile.id);
   };
 
+  const updateNotificationPrefs = async (prefs: NotificationPrefs) => {
+    if (!profile) return;
+    setProfile({ ...profile, notificationPrefs: prefs });
+    try {
+      localStorage.setItem(`nexus_notif_${profile.id}`, JSON.stringify(prefs));
+    } catch {}
+    await supabase.from('users').update({ notification_prefs: prefs }).eq('id', profile.id);
+  };
+
   const updateProfileDetails = async (details: { fullName?: string; phone?: string }) => {
     if (!profile) return { error: 'Not signed in' };
     const payload: Record<string, any> = {};
@@ -299,6 +335,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         changePassword,
         updatePreferredTheme,
         updatePreferredLanguage,
+        updateNotificationPrefs,
         updateProfileDetails,
         uploadAvatar,
       }}
