@@ -1,3 +1,4 @@
+import { supabase } from '../../lib/supabaseClient';
 import { RenewSubscriptionModal } from '../modals/RenewSubscriptionModal';
 import { SaveButton } from '../ui/SaveButton';
 import { PaymentInfoEditor } from './PaymentInfoParts';
@@ -161,6 +162,18 @@ export const SuperAdminView: React.FC = () => {
     });
   };
 
+  const [founders, setFounders] = useState<Record<string, { name: string; username: string; email: string; phone: string }>>({});
+
+  useEffect(() => {
+    supabase.rpc('fn_tenant_founders').then(({ data }) => {
+      const map: Record<string, { name: string; username: string; email: string; phone: string }> = {};
+      ((data as any[]) || []).forEach((r) => {
+        map[r.tenant_id] = { name: r.founder_name || '', username: r.founder_username || '', email: r.founder_email || '', phone: r.founder_phone || '' };
+      });
+      setFounders(map);
+    });
+  }, [subscriptions.length]);
+
   const [renewTarget, setRenewTarget] = useState<{ id: string; name: string } | null>(null);
 
   const effectiveStatus = (id: string): 'Active' | 'Expiring Soon' | 'Suspended' => {
@@ -175,7 +188,8 @@ export const SuperAdminView: React.FC = () => {
       sub.tenantName.toLowerCase().includes(subSearch.toLowerCase()) ||
       sub.tenantNameAr.toLowerCase().includes(subSearch.toLowerCase()) ||
       sub.projectId.toLowerCase().includes(subSearch.toLowerCase()) ||
-      sub.planType.toLowerCase().includes(subSearch.toLowerCase());
+      sub.planType.toLowerCase().includes(subSearch.toLowerCase()) ||
+      Object.values(founders[sub.id] || {}).some((v) => String(v || '').toLowerCase().includes(subSearch.toLowerCase()));
     const matchesFilter = subFilter === 'all' || effectiveStatus(sub.id) === subFilter;
     return matchesSearch && matchesFilter;
   });
@@ -715,7 +729,7 @@ export const SuperAdminView: React.FC = () => {
                   type="text"
                   value={subSearch}
                   onChange={(e) => setSubSearch(e.target.value)}
-                  placeholder={isRTL ? 'بحث بالاسم أو المعرف...' : 'Search tenant or ID...'}
+                  placeholder={isRTL ? 'بحث بالاسم أو الإيميل أو الموبايل أو المعرف...' : 'Search name, email, phone or ID...'}
                   className={`rounded-lg border border-slate-800 bg-slate-900/90 py-1.5 ${
                     isRTL ? 'pr-8 pl-3' : 'pl-8 pr-3'
                   } text-xs text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none`}
@@ -761,6 +775,11 @@ export const SuperAdminView: React.FC = () => {
                         <div>
                           <span>{language === 'ar' ? sub.tenantNameAr : sub.tenantName}</span>
                           <span className="block text-[10px] text-slate-500">{sub.projectId}</span>
+                          {founders[sub.id] && (
+                            <span className="block text-[10px] text-slate-400">
+                              {[founders[sub.id].name, founders[sub.id].username, founders[sub.id].email].filter(Boolean).join(' • ')}
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="py-3 px-3">

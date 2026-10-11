@@ -1215,6 +1215,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const isReadOnly =
     !!profile && (profile.roleCode === 'founder' || profile.roleCode === 'assistant') && !!activeTenant && !activeAccess.writable;
 
+  const guardOpen = (setter: (open: boolean) => void) => (open: boolean) => {
+    if (open && isReadOnly) {
+      showToast(
+        isRTL
+          ? 'الاشتراك منتهي، الحساب في وضع القراءة فقط. تواصل مع الدعم لتجديد الاشتراك.'
+          : 'Subscription expired: the account is read-only. Contact support to renew.'
+      );
+      return;
+    }
+    setter(open);
+  };
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('read-only', isReadOnly);
+    return () => document.documentElement.classList.remove('read-only');
+  }, [isReadOnly]);
+
   const renewSubscription = async (tenantId: string, months: number) => {
     const { data, error } = await supabase.rpc('fn_renew_subscription', { p_tenant_id: tenantId, p_months: months });
     if (error) {
@@ -1745,13 +1762,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createAssistant,
         removeAssistant,
         isCreateInvoiceOpen,
-        setIsCreateInvoiceOpen,
+        setIsCreateInvoiceOpen: guardOpen(setIsCreateInvoiceOpen),
         isAddPatientOpen,
-        setIsAddPatientOpen,
+        setIsAddPatientOpen: guardOpen(setIsAddPatientOpen),
         isNewBookingOpen,
-        setIsNewBookingOpen,
+        setIsNewBookingOpen: guardOpen(setIsNewBookingOpen),
         isAdjustStockOpen,
-        setIsAdjustStockOpen,
+        setIsAdjustStockOpen: guardOpen(setIsAdjustStockOpen),
         selectedStockItem,
         setSelectedStockItem,
         isQrScannerOpen,

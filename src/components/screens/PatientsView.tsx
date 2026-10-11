@@ -55,7 +55,7 @@ export const PatientsView: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setIsAddPatientOpen(true)}
+          onClick={() => setIsAddPatientOpen(true)} data-write="1"
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition active:scale-95"
         >
           <UserPlus className="h-4 w-4" />
@@ -132,7 +132,7 @@ export const PatientsView: React.FC = () => {
                   </td>
                   <td className="py-3 px-3 text-center">
                     <button
-                      onClick={() => setIsNewBookingOpen(true)}
+                      onClick={() => setIsNewBookingOpen(true)} data-write="1"
                       className="rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 px-2.5 py-1 text-[11px] font-semibold transition"
                     >
                       {isRTL ? 'حجز موعد' : 'Book'}

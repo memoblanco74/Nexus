@@ -48,7 +48,7 @@ export const BookingsView: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setIsNewBookingOpen(true)}
+          onClick={() => setIsNewBookingOpen(true)} data-write="1"
           className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 hover:from-indigo-500 hover:to-blue-500 transition active:scale-95"
         >
           <CalendarPlus className="h-4 w-4" />

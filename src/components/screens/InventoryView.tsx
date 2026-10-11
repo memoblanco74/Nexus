@@ -98,6 +98,7 @@ export const InventoryView: React.FC = () => {
           </button>
 
           <button
+            data-write="1"
             onClick={() => {
               setSelectedStockItem(inventory[0]);
               setIsAdjustStockOpen(true);
@@ -467,7 +468,7 @@ export const InventoryView: React.FC = () => {
                     </td>
                     <td className="py-3 px-3 text-center">
                       <button
-                        onClick={() => toggleAutoDeduct(item.id)}
+                        onClick={() => toggleAutoDeduct(item.id)} data-write="1"
                         className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
                           item.autoDeduct ? 'bg-blue-600' : 'bg-slate-800'
                         }`}
@@ -501,7 +502,7 @@ export const InventoryView: React.FC = () => {
                     </td>
                     <td className="py-3 px-3 text-center">
                       <button
-                        onClick={() => handleOpenAdjust(item)}
+                        onClick={() => handleOpenAdjust(item)} data-write="1"
                         className="rounded-lg bg-slate-800 hover:bg-slate-700 px-2.5 py-1 text-[11px] font-medium text-slate-200 transition"
                       >
                         {isRTL ? 'تعديل' : 'Adjust'}

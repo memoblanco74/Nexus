@@ -48,7 +48,7 @@ export const AssistantsView: React.FC = () => {
           </p>
         </div>
         <button
-          onClick={() => setIsFormOpen(true)}
+          onClick={() => setIsFormOpen(true)} data-write="1"
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-blue-500 transition active:scale-95"
         >
           <UserPlus className="h-4 w-4" />
@@ -79,7 +79,7 @@ export const AssistantsView: React.FC = () => {
                   <td className="px-4 py-3 text-slate-400">{a.createdAt}</td>
                   <td className="px-4 py-3 text-right">
                     <button
-                      onClick={() => removeAssistant(a.id)}
+                      onClick={() => removeAssistant(a.id)} data-write="1"
                       className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-red-400 hover:bg-red-500/20"
                     >
                       <Trash2 className="h-3 w-3" />

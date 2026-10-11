@@ -108,7 +108,7 @@ export const AccountingView: React.FC = () => {
         {/* Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
           <button
-            onClick={() => setIsCreateInvoiceOpen(true)}
+            onClick={() => setIsCreateInvoiceOpen(true)} data-write="1"
             className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-2 text-xs font-semibold text-white shadow-lg shadow-emerald-600/30 hover:from-emerald-500 hover:to-teal-500 transition active:scale-95"
           >
             <Plus className="h-4 w-4" />
@@ -116,7 +116,7 @@ export const AccountingView: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setIsExpenseFormOpen(true)}
+            onClick={() => setIsExpenseFormOpen(true)} data-write="1"
             className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700 dark:bg-slate-900 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#1e293b]"
           >
             <TrendingDown className="h-4 w-4 text-red-400" />
