@@ -1,3 +1,4 @@
+import { unsubscribePush } from '../lib/webPush';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
@@ -238,6 +239,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    await unsubscribePush();
     await supabase.auth.signOut();
   };
 

@@ -1,3 +1,4 @@
+import { isPushSupported, subscribeToPush } from '../lib/webPush';
 import { SYSTEM_VOCAB, DEFAULT_SYSTEM_KEY } from '../lib/systemVocab';
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
@@ -923,6 +924,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       supabase.removeChannel(channel);
     };
   }, [profile?.id, profile?.roleCode, refreshChats, refreshFounderChat, language]);
+
+  useEffect(() => {
+    if (!profile || !isPushSupported() || Notification.permission !== 'granted') return;
+    subscribeToPush();
+  }, [profile?.id]);
 
   useEffect(() => {
     if (!profile || typeof Notification === 'undefined' || Notification.permission !== 'default') return;

@@ -5,6 +5,7 @@ import { ReferralCard, ReferralOverviewCard } from './ReferralParts';
 import { PaymentInfoCard } from './PaymentInfoParts';
 import { MyDataCard } from './MyDataCard';
 import { useAuth, DEFAULT_NOTIFICATION_PREFS, NotificationPrefs } from '../../context/AuthContext';
+import { subscribeToPush, isPushSupported } from '../../lib/webPush';
 import { Settings, Shield, Globe, Bell, Database, Lock, Save, Send } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
@@ -21,7 +22,20 @@ export const SettingsView: React.FC = () => {
     if (typeof Notification === 'undefined') return;
     const result = await Notification.requestPermission();
     setPermission(result);
+    if (result === 'granted') await registerPush();
   };
+
+  const [pushState, setPushState] = React.useState<'idle' | 'ok' | 'failed' | 'unsupported'>('idle');
+
+  const registerPush = async () => {
+    const res = await subscribeToPush();
+    setPushState(res === 'ok' ? 'ok' : res === 'unsupported' ? 'unsupported' : 'failed');
+    if (res === 'ok') showToast(isRTL ? 'تم تسجيل الجهاز للإشعارات حتى والتطبيق مقفول' : 'Device registered for notifications even when the app is closed');
+  };
+
+  React.useEffect(() => {
+    if (permission === 'granted' && isPushSupported()) registerPush();
+  }, [permission]);
 
   const sendTest = () => {
     const title = isRTL ? 'إشعار تجريبي' : 'Test notification';
@@ -140,6 +154,17 @@ export const SettingsView: React.FC = () => {
                   ? isRTL ? 'محظورة من إعدادات المتصفح، فعّلها من إعدادات الموقع' : 'Blocked in browser settings; allow it from the site settings'
                   : isRTL ? 'لم يتم التفعيل بعد' : 'Not enabled yet'}
               </span>
+              {permission === 'granted' && (
+                <span className={`mt-0.5 block text-[11px] ${pushState === 'ok' ? 'text-emerald-400' : pushState === 'idle' ? 'text-slate-500' : 'text-amber-400'}`}>
+                  {pushState === 'ok'
+                    ? isRTL ? 'الإشعارات بتوصلك حتى والتطبيق مقفول' : 'You will get notifications even when the app is closed'
+                    : pushState === 'idle'
+                    ? isRTL ? 'جاري تسجيل الجهاز...' : 'Registering device...'
+                    : pushState === 'unsupported'
+                    ? isRTL ? 'الجهاز ده مش بيدعم الإشعارات والتطبيق مقفول (على الآيفون ثبّت التطبيق على الشاشة الرئيسية أولًا)' : 'This device cannot receive notifications while closed (on iPhone, add the app to the Home Screen first)'
+                    : isRTL ? 'تعذر تسجيل الجهاز، جرّب مرة تانية' : 'Could not register the device, try again'}
+                </span>
+              )}
             </div>
             <div className="flex gap-2">
               {permission === 'default' && (

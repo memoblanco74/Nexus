@@ -1,4 +1,4 @@
-const CACHE_NAME = "nexus-app-v4";
+const CACHE_NAME = "nexus-app-v5";
 const STATIC_ASSETS = ["/Nexus/manifest.json"];
 
 self.addEventListener("install", function (event) {
@@ -83,4 +83,22 @@ self.addEventListener("notificationclick", function (event) {
       if (self.clients.openWindow) return self.clients.openWindow("/Nexus/");
     })
   );
+});
+
+self.addEventListener("push", function (event) {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {
+    data = { title: "Nexus", body: event.data ? event.data.text() : "" };
+  }
+  const title = data.title || "Nexus";
+  const options = {
+    body: data.body || "",
+    tag: data.tag || undefined,
+    renotify: !!data.tag,
+    icon: "/Nexus/icon-192.png",
+    badge: "/Nexus/icon-192.png",
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
 });
