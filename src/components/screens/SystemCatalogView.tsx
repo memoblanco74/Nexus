@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { SystemTemplate, SystemTemplateFeature } from '../../types';
@@ -47,7 +48,10 @@ const TopBar: React.FC = () => {
             )}
           </button>
           {showNotifications && (
-            <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+            createPortal(
+                <div className="fixed inset-0 z-[25]" onPointerDown={() => setShowNotifications(false)} onClick={() => setShowNotifications(false)} />,
+                document.body
+              )
           )}
           {showNotifications && (
             <div className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-72 rounded-xl border border-slate-800 bg-slate-900/95 p-3 shadow-2xl backdrop-blur-xl z-50 text-xs`}>
