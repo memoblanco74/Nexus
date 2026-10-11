@@ -10,7 +10,7 @@ export function mapTenantRow(row: any): Tenant {
     plan: (row.plan || 'Basic') as Tenant['plan'],
     status: (row.status || 'Active') as Tenant['status'],
     discountCode: row.discount_code || undefined,
-    expiryDate: row.subscription_ends_at || row.subscription_renews_at || '',
+    expiryDate: row.subscription_ends_at || '',
     mrr: Number(row.mrr || 0),
     patientsCount: Number(row.patients_count || 0),
     todayBookings: Number(row.today_bookings || 0),

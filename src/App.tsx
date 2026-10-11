@@ -11,6 +11,7 @@ import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { FreePeriodBanner } from './components/layout/FreePeriodBanner';
 import { ReferralPromptStep } from './components/screens/ReferralParts';
+import { SubscriptionBanner } from './components/layout/SubscriptionBanner';
 import { AnnouncementBanner } from './components/layout/AnnouncementBanner';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 
@@ -80,6 +81,7 @@ const DashboardContent: React.FC = () => {
         <Header onToggleSidebar={() => setIsMobileSidebarOpen(true)} />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-12">
+          <SubscriptionBanner />
           <AnnouncementBanner />
           <FreePeriodBanner />
           {screen === 'super_admin' && canSee('super_admin') && <SuperAdminView />}

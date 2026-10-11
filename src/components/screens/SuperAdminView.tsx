@@ -1,3 +1,4 @@
+import { RenewSubscriptionModal } from '../modals/RenewSubscriptionModal';
 import { SaveButton } from '../ui/SaveButton';
 import { PaymentInfoEditor } from './PaymentInfoParts';
 import React, { useState, useEffect } from 'react';
@@ -11,6 +12,7 @@ import {
   Percent,
   MessageSquare,
   Search,
+  CalendarPlus,
   Filter,
   Download,
   Plus,
@@ -32,6 +34,8 @@ export const SuperAdminView: React.FC = () => {
     language,
     isRTL,
     subscriptions,
+    tenants,
+    tenantAccess,
     updateSubscriptionStatus,
     applyDiscountCode,
     updateTenant,
@@ -157,13 +161,22 @@ export const SuperAdminView: React.FC = () => {
     });
   };
 
+  const [renewTarget, setRenewTarget] = useState<{ id: string; name: string } | null>(null);
+
+  const effectiveStatus = (id: string): 'Active' | 'Expiring Soon' | 'Suspended' => {
+    const a = tenantAccess(tenants.find((t) => t.id === id));
+    if (!a.writable) return 'Suspended';
+    if (!a.inFreePeriod && a.expiresOn && a.daysLeft <= 7) return 'Expiring Soon';
+    return 'Active';
+  };
+
   const filteredSubscriptions = subscriptions.filter((sub) => {
     const matchesSearch =
       sub.tenantName.toLowerCase().includes(subSearch.toLowerCase()) ||
       sub.tenantNameAr.toLowerCase().includes(subSearch.toLowerCase()) ||
       sub.projectId.toLowerCase().includes(subSearch.toLowerCase()) ||
       sub.planType.toLowerCase().includes(subSearch.toLowerCase());
-    const matchesFilter = subFilter === 'all' || sub.status === subFilter;
+    const matchesFilter = subFilter === 'all' || effectiveStatus(sub.id) === subFilter;
     return matchesSearch && matchesFilter;
   });
 
@@ -740,6 +753,8 @@ export const SuperAdminView: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-800/50">
                 {filteredSubscriptions.map((sub) => {
+                  const access = tenantAccess(tenants.find((t) => t.id === sub.id));
+                  const effStatus = effectiveStatus(sub.id);
                   return (
                     <tr key={sub.id} className="hover:bg-slate-900/40 transition">
                       <td className="py-3 px-4 font-medium text-white">
@@ -765,21 +780,30 @@ export const SuperAdminView: React.FC = () => {
                         </span>
                       </td>
                       <td className="py-3 px-3 text-slate-400">{sub.startDate}</td>
-                      <td className="py-3 px-3 text-slate-400">{sub.expiryDate}</td>
+                      <td className="py-3 px-3 text-slate-400">
+                        {access.expiresOn || '-'}
+                        {access.expiresOn && (
+                          <span className={`block text-[10px] ${access.daysLeft < 0 ? 'text-red-400' : access.daysLeft <= 7 ? 'text-amber-400' : 'text-slate-500'}`}>
+                            {access.daysLeft < 0
+                              ? isRTL ? `منتهي منذ ${-access.daysLeft} يوم` : `Ended ${-access.daysLeft}d ago`
+                              : isRTL ? `متبقي ${access.daysLeft} يوم` : `${access.daysLeft}d left`}
+                          </span>
+                        )}
+                      </td>
                       <td className="py-3 px-3">
-                        {sub.status === 'Active' && (
+                        {effStatus === 'Active' && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/20">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                             {isRTL ? 'نشط' : 'Active'}
                           </span>
                         )}
-                        {sub.status === 'Expiring Soon' && (
+                        {effStatus === 'Expiring Soon' && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400 border border-amber-500/20">
                             <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
                             {isRTL ? 'ينتهي قريباً' : 'Expiring'}
                           </span>
                         )}
-                        {sub.status === 'Suspended' && (
+                        {effStatus === 'Suspended' && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-400 border border-red-500/20">
                             <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
                             {isRTL ? 'موقوف' : 'Suspended'}
@@ -789,16 +813,24 @@ export const SuperAdminView: React.FC = () => {
                       <td className="py-3 px-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <button
+                            onClick={() => setRenewTarget({ id: sub.id, name: language === 'ar' ? sub.tenantNameAr : sub.tenantName })}
+                            className="flex items-center gap-1 rounded-lg bg-emerald-600/20 px-2 py-1 text-[11px] font-bold text-emerald-300 hover:bg-emerald-600/30"
+                            title={isRTL ? 'تجديد الاشتراك' : 'Renew'}
+                          >
+                            <CalendarPlus className="h-3.5 w-3.5" />
+                            {isRTL ? 'تجديد' : 'Renew'}
+                          </button>
+                          <button
                             onClick={() =>
                               updateSubscriptionStatus(
                                 sub.id,
-                                sub.status === 'Active' ? 'Suspended' : 'Active'
+                                sub.status === 'Suspended' ? 'Active' : 'Suspended'
                               )
                             }
                             className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
-                            title={sub.status === 'Active' ? 'Suspend' : 'Activate'}
+                            title={sub.status === 'Suspended' ? 'Activate' : 'Suspend'}
                           >
-                            {sub.status === 'Active' ? (
+                            {sub.status !== 'Suspended' ? (
                               <Ban className="h-3.5 w-3.5 text-red-400" />
                             ) : (
                               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
@@ -857,6 +889,7 @@ export const SuperAdminView: React.FC = () => {
           </div>
         </div>
       </div>
+      {renewTarget && <RenewSubscriptionModal tenantId={renewTarget.id} tenantName={renewTarget.name} onClose={() => setRenewTarget(null)} />}
     </div>
   );
 };

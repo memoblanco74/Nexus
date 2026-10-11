@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { ChangePasswordCard, UserManagementCard } from './AccountSecurityCards';
 import { ReferralCard, ReferralOverviewCard } from './ReferralParts';
 import { PaymentInfoCard } from './PaymentInfoParts';
+import { MyDataCard } from './MyDataCard';
 import { useAuth, DEFAULT_NOTIFICATION_PREFS, NotificationPrefs } from '../../context/AuthContext';
 import { Settings, Shield, Globe, Bell, Database, Lock, Save, Send } from 'lucide-react';
 
@@ -118,6 +119,8 @@ export const SettingsView: React.FC = () => {
         {(profile?.roleCode === 'super_admin' || profile?.roleCode === 'founder') && <UserManagementCard />}
 
         {profile?.roleCode === 'super_admin' && <ReferralOverviewCard />}
+
+        {profile?.roleCode === 'founder' && <MyDataCard />}
 
         <div className="glass-panel rounded-2xl border border-slate-800 p-5 space-y-4">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { KeyRound, Search, UserCog } from 'lucide-react';
+import { KeyRound, Search, Trash2, UserCog } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
@@ -153,6 +153,25 @@ export const UserManagementCard: React.FC = () => {
     : all;
   const results = (truncated && needle && remote ? remote : localMatches).slice(0, 25);
 
+  const [delId, setDelId] = useState<string | null>(null);
+  const [delPhrase, setDelPhrase] = useState('');
+  const [delBusy, setDelBusy] = useState(false);
+
+  const deleteFounder = async (u: ManagedUser) => {
+    setDelBusy(true);
+    const { data, error } = await supabase.functions.invoke('delete-account', { body: { userId: u.user_id } });
+    setDelBusy(false);
+    if (error || data?.error) {
+      showToast(data?.error || error?.message || 'Error');
+      return;
+    }
+    setAll((prev) => prev.filter((x) => x.user_id !== u.user_id));
+    setRemote((prev) => (prev ? prev.filter((x) => x.user_id !== u.user_id) : prev));
+    setDelId(null);
+    setDelPhrase('');
+    showToast(isRTL ? 'تم حذف الحساب وكل بياناته' : 'Account and all its data deleted');
+  };
+
   const reset = async (userId: string) => {
     if (newPassword.length < 6) {
       showToast(isRTL ? 'كلمة المرور لازم تكون 6 حروف على الأقل' : 'Password must be at least 6 characters');
@@ -215,7 +234,38 @@ export const UserManagementCard: React.FC = () => {
               >
                 {isRTL ? 'إعادة تعيين كلمة المرور' : 'Reset password'}
               </button>
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setDelId(delId === u.user_id ? null : u.user_id);
+                    setDelPhrase('');
+                  }}
+                  className="shrink-0 rounded-lg border border-red-500/40 bg-red-500/10 p-1.5 text-red-400 hover:bg-red-500/20"
+                  title={isRTL ? 'حذف الحساب وكل بياناته' : 'Delete account and all data'}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
+            {isAdmin && delId === u.user_id && (
+              <div className="space-y-2 rounded-xl border border-red-500/30 bg-red-500/5 p-3">
+                <p className="text-[11px] leading-relaxed text-red-300">
+                  {isRTL
+                    ? `هيتمسح حساب "${u.user_name}" وكل المساعدين التابعين له وكل بياناته (مرضى، حجوزات، فواتير، مخزون، مصروفات) نهائيًا من قاعدة البيانات. اكتب اسم المستخدم للتأكيد.`
+                    : `This permanently erases "${u.user_name}", all their assistants and all their data from the database. Type the username to confirm.`}
+                </p>
+                <div className="flex gap-2">
+                  <input value={delPhrase} onChange={(e) => setDelPhrase(e.target.value)} placeholder={u.user_name || ''} className={inputClass} />
+                  <button
+                    onClick={() => deleteFounder(u)}
+                    disabled={delBusy || !u.user_name || delPhrase.trim().toLowerCase() !== u.user_name.toLowerCase()}
+                    className="shrink-0 rounded-xl bg-red-600 px-3 py-2 text-xs font-bold text-white hover:bg-red-500 disabled:opacity-40"
+                  >
+                    {isRTL ? 'احذف نهائيًا' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            )}
             {openId === u.user_id && (
               <div className="flex gap-2">
                 <input

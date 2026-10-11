@@ -46,6 +46,14 @@ export interface ReferralInfo {
   defaultPercent: number;
 }
 
+export interface TenantAccess {
+  writable: boolean;
+  expiresOn: string;
+  daysLeft: number;
+  reason: 'ok' | 'expired' | 'suspended' | 'paused';
+  inFreePeriod: boolean;
+}
+
 export interface PaymentInfo {
   phone: string;
   link: string;
@@ -54,6 +62,10 @@ export interface PaymentInfo {
 }
 
 interface AppContextType {
+  tenantAccess: (tenant: Tenant | null | undefined) => TenantAccess;
+  activeAccess: TenantAccess;
+  isReadOnly: boolean;
+  renewSubscription: (tenantId: string, months: number) => Promise<string | null>;
   paymentInfo: PaymentInfo;
   updatePaymentInfo: (info: PaymentInfo) => Promise<boolean>;
   referral: ReferralInfo | null;
@@ -383,7 +395,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {}
   }, [profile?.id]);
 
-  const showToast = (msg: string) => {
+  const showToast = (rawMsg: string) => {
+    const msg = /row-level security|violates row-level/i.test(rawMsg)
+      ? language === 'ar'
+        ? 'الاشتراك منتهي، الحساب في وضع القراءة فقط. تواصل مع الدعم لتجديد الاشتراك.'
+        : 'Subscription expired: the account is read-only. Contact support to renew.'
+      : rawMsg;
     setToastMessage(msg);
     setTimeout(() => setToastMessage((prev) => (prev === msg ? null : prev)), 3500);
   };
@@ -1169,6 +1186,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const cairoToday = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' });
+
+  const tenantAccess = (tenant: Tenant | null | undefined): TenantAccess => {
+    if (!tenant) return { writable: true, expiresOn: '', daysLeft: 0, reason: 'ok', inFreePeriod: false };
+    const candidates: string[] = [];
+    if (tenant.expiryDate) candidates.push(tenant.expiryDate.slice(0, 10));
+    let freeEnd = '';
+    if (freePeriodDays > 0 && tenant.startDate) {
+      const d = new Date(tenant.startDate.slice(0, 10) + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() + freePeriodDays);
+      freeEnd = d.toISOString().slice(0, 10);
+      candidates.push(freeEnd);
+    }
+    const expiresOn = candidates.sort().pop() || '';
+    const today = cairoToday();
+    const daysLeft = expiresOn
+      ? Math.round((new Date(expiresOn + 'T00:00:00Z').getTime() - new Date(today + 'T00:00:00Z').getTime()) / 86400000)
+      : -1;
+    const inFreePeriod = !!freeEnd && freeEnd >= today && expiresOn === freeEnd;
+    if (tenant.subscriptionPaused) return { writable: false, expiresOn, daysLeft, reason: 'paused', inFreePeriod };
+    if (tenant.status === 'Suspended') return { writable: false, expiresOn, daysLeft, reason: 'suspended', inFreePeriod };
+    if (daysLeft < 0) return { writable: false, expiresOn, daysLeft, reason: 'expired', inFreePeriod };
+    return { writable: true, expiresOn, daysLeft, reason: 'ok', inFreePeriod };
+  };
+
+  const activeAccess = tenantAccess(activeTenant);
+  const isReadOnly =
+    !!profile && (profile.roleCode === 'founder' || profile.roleCode === 'assistant') && !!activeTenant && !activeAccess.writable;
+
+  const renewSubscription = async (tenantId: string, months: number) => {
+    const { data, error } = await supabase.rpc('fn_renew_subscription', { p_tenant_id: tenantId, p_months: months });
+    if (error) {
+      showToast(error.message);
+      return null;
+    }
+    await refreshTenants();
+    showToast(isRTL ? `تم تجديد الاشتراك حتى ${data}` : `Subscription renewed until ${data}`);
+    return String(data);
+  };
+
   const freeInfoFromStart = (startDate: string) => {
     if (!freePeriodDays || !startDate) return { active: false, endsOn: '', daysLeft: 0 };
     const start = new Date(startDate);
@@ -1654,6 +1711,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         freePeriodDays,
         setFreePeriodDays,
         freeInfoFromStart,
+        tenantAccess,
+        activeAccess,
+        isReadOnly,
+        renewSubscription,
         setDefaultDiscount,
         inventory,
         autoDeductLogs,
