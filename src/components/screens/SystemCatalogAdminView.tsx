@@ -15,7 +15,7 @@ export const SystemCatalogAdminView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
           {isRTL ? 'كتالوج الأنظمة' : 'System Catalog'}
         </h1>
         <p className="mt-1 text-xs text-slate-400">
@@ -27,7 +27,7 @@ export const SystemCatalogAdminView: React.FC = () => {
 
       <div className="grid gap-4">
         {systemTemplates.map((t) => (
-          <div key={t.id} className="rounded-2xl border border-slate-800 bg-slate-950/60 dark:border-slate-800 dark:bg-slate-950/60 light:border-slate-200 light:bg-white p-4">
+          <div key={t.id} className="rounded-2xl border border-slate-800 bg-slate-950/60 dark:border-slate-800 dark:bg-slate-950/60 light:border-[#e2e8f0] light:bg-white p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600/15 text-xl">
@@ -35,7 +35,7 @@ export const SystemCatalogAdminView: React.FC = () => {
                 </span>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-bold text-white dark:text-white light:text-slate-900">
+                    <p className="text-sm font-bold text-white dark:text-white light:text-[#0f172a]">
                       {language === 'ar' ? t.nameAr : t.name}
                     </p>
                     {!t.isActive && (

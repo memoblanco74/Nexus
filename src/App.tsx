@@ -69,7 +69,7 @@ const DashboardContent: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0b0f17] text-slate-100 dark:bg-[#0b0f17] dark:text-slate-100 light:bg-slate-50 light:text-slate-900 font-sans transition-colors duration-200">
+    <div className="flex min-h-screen bg-[#0b0f17] text-slate-100 dark:bg-[#0b0f17] dark:text-slate-100 light:bg-[#f8fafc] light:text-[#0f172a] font-sans transition-colors duration-200">
       {/* Sidebar Navigation */}
       <Sidebar
         isOpenMobile={isMobileSidebarOpen}

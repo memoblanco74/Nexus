@@ -38,7 +38,7 @@ export const AssistantsView: React.FC = () => {
     <div className="space-y-6 pb-12">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
             {isRTL ? 'إدارة المساعدين' : 'Manage Assistants'}
           </h1>
           <p className="mt-1 text-xs text-slate-400">
@@ -56,7 +56,7 @@ export const AssistantsView: React.FC = () => {
         </button>
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-950/60 dark:border-slate-800 dark:bg-slate-950/60 light:border-slate-200 light:bg-white overflow-hidden">
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/60 dark:border-slate-800 dark:bg-slate-950/60 light:border-[#e2e8f0] light:bg-white overflow-hidden">
         {assistants.length === 0 ? (
           <div className="p-8 text-center text-xs text-slate-500">
             {isRTL ? 'لسه معملتش أي حساب مساعد' : 'You have not created any assistant accounts yet'}

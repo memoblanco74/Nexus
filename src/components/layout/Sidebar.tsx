@@ -161,7 +161,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       <aside
         className={`fixed top-0 bottom-0 ${
           isRTL ? 'right-0' : 'left-0'
-        } z-50 flex w-64 flex-col border-r border-slate-800/80 bg-slate-950/95 backdrop-blur-2xl transition-transform duration-300 lg:static lg:translate-x-0 dark:border-slate-800/80 dark:bg-slate-950/95 light:border-slate-200 light:bg-white ${
+        } z-50 flex w-64 flex-col border-r border-slate-800/80 bg-slate-950/95 backdrop-blur-2xl transition-transform duration-300 lg:static lg:translate-x-0 dark:border-slate-800/80 dark:bg-slate-950/95 light:border-[#e2e8f0] light:bg-white ${
           isOpenMobile
             ? 'translate-x-0'
             : isRTL
@@ -170,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
         }`}
       >
         {/* Top Branding Section */}
-        <div className="flex h-16 items-center justify-between border-b border-slate-800/80 px-4 dark:border-slate-800/80 light:border-slate-200">
+        <div className="flex h-16 items-center justify-between border-b border-slate-800/80 px-4 dark:border-slate-800/80 light:border-[#e2e8f0]">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 p-0.5 text-white shadow-lg shadow-blue-500/20">
               <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-slate-950/40">
@@ -179,7 +179,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h1 className="text-sm font-bold tracking-tight text-white dark:text-white light:text-slate-900">
+                <h1 className="text-sm font-bold tracking-tight text-white dark:text-white light:text-[#0f172a]">
                   {language === 'ar' ? 'نيكسوس' : 'Nexus'}
                 </h1>
                 <span className="rounded bg-blue-500/20 px-1 py-0.5 text-[9px] font-bold text-blue-400">
@@ -192,10 +192,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
 
         {/* Tenant Quick Switcher Header Card */}
         {activeTenant && profile?.roleCode === 'founder' && (
-          <div className="p-3 border-b border-slate-800/60 dark:border-slate-800/60 light:border-slate-200">
+          <div className="p-3 border-b border-slate-800/60 dark:border-slate-800/60 light:border-[#e2e8f0]">
             <button
               onClick={() => setIsTenantModalOpen(true)}
-              className="flex w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 p-2.5 text-left text-xs transition hover:border-slate-700 hover:bg-slate-900 dark:border-slate-800 dark:bg-slate-900/60 light:border-slate-200 light:bg-slate-50 light:hover:bg-slate-100"
+              className="flex w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 p-2.5 text-left text-xs transition hover:border-slate-700 hover:bg-slate-900 dark:border-slate-800 dark:bg-slate-900/60 light:border-[#e2e8f0] light:bg-[#f8fafc] light:hover:bg-[#f1f5f9]"
             >
               <div className="flex items-center gap-2.5 overflow-hidden">
                 {activeTenant.logo ? (
@@ -210,7 +210,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
                   </div>
                 )}
                 <div className="truncate">
-                  <p className="font-semibold text-white dark:text-white light:text-slate-900 truncate">
+                  <p className="font-semibold text-white dark:text-white light:text-[#0f172a] truncate">
                     {language === 'ar' ? activeTenant.nameAr : activeTenant.name}
                   </p>
                   <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
@@ -242,7 +242,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
                 className={`group flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-all ${
                   isActive
                     ? 'bg-blue-600/15 text-blue-400 ring-1 ring-blue-500/30 dark:bg-blue-600/15 dark:text-blue-400 light:bg-blue-50 light:text-blue-700 light:ring-blue-300'
-                    : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200 dark:text-slate-400 dark:hover:bg-slate-900/60 dark:hover:text-slate-200 light:text-slate-600 light:hover:bg-slate-100 light:hover:text-slate-900'
+                    : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200 dark:text-slate-400 dark:hover:bg-slate-900/60 dark:hover:text-slate-200 light:text-[#475569] light:hover:bg-[#f1f5f9] light:hover:text-[#0f172a]'
                 }`}
               >
                 <div className="flex items-center gap-2.5 truncate">
@@ -250,7 +250,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
                     className={`transition-colors ${
                       isActive
                         ? 'text-blue-400 light:text-blue-600'
-                        : 'text-slate-400 group-hover:text-slate-200 light:text-slate-500'
+                        : 'text-slate-400 group-hover:text-slate-200 light:text-[#64748b]'
                     }`}
                   >
                     {item.icon}
@@ -273,8 +273,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
         </nav>
 
         {/* Footer info & active nodes */}
-        <div className="border-t border-slate-800/80 p-3.5 dark:border-slate-800/80 light:border-slate-200">
-          <div className="flex items-center justify-between rounded-lg bg-slate-900/40 p-2 text-[11px] text-slate-400 dark:bg-slate-900/40 light:bg-slate-100">
+        <div className="border-t border-slate-800/80 p-3.5 dark:border-slate-800/80 light:border-[#e2e8f0]">
+          <div className="flex items-center justify-between rounded-lg bg-slate-900/40 p-2 text-[11px] text-slate-400 dark:bg-slate-900/40 light:bg-[#f1f5f9]">
             <div className="flex items-center gap-2">
               <Zap className="h-3.5 w-3.5 text-amber-400 animate-bounce" />
               <span>{language === 'ar' ? 'المزامنة التلقائية' : 'Live Syncing'}</span>

@@ -53,7 +53,7 @@ export const FounderView: React.FC = () => {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {t('founder.welcome')}
             </h1>
             <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-semibold text-blue-400 border border-blue-500/30">
@@ -78,7 +78,7 @@ export const FounderView: React.FC = () => {
 
           <button
             onClick={() => setIsNewBookingOpen(true)}
-            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700/80 dark:bg-slate-900/90 light:border-slate-300 light:bg-slate-100 light:text-slate-800"
+            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700/80 dark:bg-slate-900/90 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#1e293b]"
           >
             <CalendarPlus className="h-4 w-4 text-indigo-400" />
             <span>{t('founder.new_booking')}</span>
@@ -86,7 +86,7 @@ export const FounderView: React.FC = () => {
 
           <button
             onClick={() => setIsCreateInvoiceOpen(true)}
-            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700/80 dark:bg-slate-900/90 light:border-slate-300 light:bg-slate-100 light:text-slate-800"
+            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700/80 dark:bg-slate-900/90 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#1e293b]"
           >
             <FilePlus className="h-4 w-4 text-emerald-400" />
             <span>{t('founder.gen_invoice')}</span>
@@ -107,7 +107,7 @@ export const FounderView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {money(thisMonth?.income || 0)}
             </h3>
             {revenueBadge && (
@@ -132,7 +132,7 @@ export const FounderView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {bookings.length}
             </h3>
           </div>
@@ -152,7 +152,7 @@ export const FounderView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {patients.length}
             </h3>
           </div>
@@ -193,7 +193,7 @@ export const FounderView: React.FC = () => {
         <div className="lg:col-span-7 glass-panel rounded-2xl border border-slate-800 p-5">
           <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
             <div>
-              <h3 className="text-sm font-bold text-white dark:text-white light:text-slate-900">
+              <h3 className="text-sm font-bold text-white dark:text-white light:text-[#0f172a]">
                 {t('founder.financial_overview')}
               </h3>
               <p className="text-[11px] text-slate-400">
@@ -261,7 +261,7 @@ export const FounderView: React.FC = () => {
         <div className="lg:col-span-5 glass-panel rounded-2xl border border-slate-800 p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-              <h3 className="text-sm font-bold text-white dark:text-white light:text-slate-900">
+              <h3 className="text-sm font-bold text-white dark:text-white light:text-[#0f172a]">
                 {t('accounting.recent_invoices')}
               </h3>
               <button

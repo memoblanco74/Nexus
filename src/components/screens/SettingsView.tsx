@@ -69,7 +69,7 @@ export const SettingsView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12 max-w-4xl">
       <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
           {t('nav.settings')}
         </h1>
         <p className="mt-1 text-xs text-slate-400">
@@ -205,7 +205,7 @@ export const SupportView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12 max-w-2xl">
       <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
           {t('nav.support')}
         </h1>
         <p className="mt-1 text-xs text-slate-400">

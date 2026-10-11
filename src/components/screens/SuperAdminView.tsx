@@ -209,7 +209,7 @@ export const SuperAdminView: React.FC = () => {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {t('super_admin.title')}
             </h1>
           </div>
@@ -228,7 +228,7 @@ export const SuperAdminView: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={exportCsv}
-            className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-800 dark:bg-slate-900/80 light:border-slate-300 light:bg-slate-100 light:text-slate-800"
+            className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-800 dark:bg-slate-900/80 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#1e293b]"
           >
             <Download className="h-4 w-4" />
             <span>{t('super_admin.export_csv')}</span>
@@ -252,7 +252,7 @@ export const SuperAdminView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl font-bold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h3 className="text-2xl font-bold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {totalMrr.toLocaleString()} EGP
             </h3>
           </div>
@@ -277,7 +277,7 @@ export const SuperAdminView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl font-bold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h3 className="text-2xl font-bold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {subscriptions.length}
             </h3>
           </div>
@@ -300,7 +300,7 @@ export const SuperAdminView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl font-bold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h3 className="text-2xl font-bold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {activeCount}
             </h3>
             <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-400">
@@ -374,7 +374,7 @@ export const SuperAdminView: React.FC = () => {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400">
                 <Megaphone className="h-4 w-4" />
               </div>
-              <h3 className="text-sm font-bold text-white dark:text-white light:text-slate-900">
+              <h3 className="text-sm font-bold text-white dark:text-white light:text-[#0f172a]">
                 {t('super_admin.system_announcements')}
               </h3>
             </div>
@@ -427,13 +427,13 @@ export const SuperAdminView: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="mt-3 flex items-start gap-3 rounded-xl bg-slate-900/50 p-3 border border-slate-800/60 dark:bg-slate-900/50 light:bg-slate-50">
+            <div className="mt-3 flex items-start gap-3 rounded-xl bg-slate-900/50 p-3 border border-slate-800/60 dark:bg-slate-900/50 light:bg-[#f8fafc]">
               <span className="mt-0.5 flex h-2 w-2 rounded-full bg-blue-500 animate-ping" />
               <div>
-                <p className="text-xs font-bold text-white dark:text-white light:text-slate-900">
+                <p className="text-xs font-bold text-white dark:text-white light:text-[#0f172a]">
                   {language === 'ar' ? announcement.titleAr : announcement.title}
                 </p>
-                <p className="mt-0.5 text-xs text-slate-300 dark:text-slate-300 light:text-slate-600 leading-relaxed">
+                <p className="mt-0.5 text-xs text-slate-300 dark:text-slate-300 light:text-[#475569] leading-relaxed">
                   {language === 'ar' ? announcement.messageAr : announcement.message}
                 </p>
               </div>
@@ -448,7 +448,7 @@ export const SuperAdminView: React.FC = () => {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
                 <Percent className="h-4 w-4" />
               </div>
-              <h3 className="text-sm font-bold text-white dark:text-white light:text-slate-900">
+              <h3 className="text-sm font-bold text-white dark:text-white light:text-[#0f172a]">
                 {t('super_admin.default_discount')}
               </h3>
             </div>
@@ -485,7 +485,7 @@ export const SuperAdminView: React.FC = () => {
       <div className="glass-panel rounded-2xl p-5 border border-slate-800">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h3 className="text-sm font-bold text-white dark:text-white light:text-slate-900">
+            <h3 className="text-sm font-bold text-white dark:text-white light:text-[#0f172a]">
               {isRTL ? 'فترة الاستخدام المجاني' : 'Free Usage Period'}
             </h3>
             <p className="mt-1 text-xs text-slate-400">
@@ -564,7 +564,7 @@ export const SuperAdminView: React.FC = () => {
                 <MessageSquare className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-white dark:text-white light:text-slate-900">
+                <h3 className="text-xs font-bold text-white dark:text-white light:text-[#0f172a]">
                   {t('super_admin.live_support')}
                 </h3>
                 <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
@@ -704,7 +704,7 @@ export const SuperAdminView: React.FC = () => {
         <div className="lg:col-span-7 glass-panel rounded-2xl border border-slate-800 flex flex-col overflow-hidden h-[540px]">
           {/* Table Header & Search Filter */}
           <div className="p-4 border-b border-slate-800/80 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-xs font-bold text-white dark:text-white light:text-slate-900">
+            <h3 className="text-xs font-bold text-white dark:text-white light:text-[#0f172a]">
               {t('super_admin.subscriptions_mgmt')}
             </h3>
 

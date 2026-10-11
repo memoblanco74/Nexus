@@ -93,7 +93,7 @@ export const AccountingView: React.FC = () => {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {t('accounting.title')}
             </h1>
             <span className="rounded-full bg-emerald-500/20 px-3 py-0.5 text-xs font-semibold text-emerald-400 border border-emerald-500/30">
@@ -117,7 +117,7 @@ export const AccountingView: React.FC = () => {
 
           <button
             onClick={() => setIsExpenseFormOpen(true)}
-            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700 dark:bg-slate-900 light:border-slate-300 light:bg-slate-100 light:text-slate-800"
+            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700 dark:bg-slate-900 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#1e293b]"
           >
             <TrendingDown className="h-4 w-4 text-red-400" />
             <span>{isRTL ? 'إضافة مصروف' : 'Add Expense'}</span>
@@ -125,7 +125,7 @@ export const AccountingView: React.FC = () => {
 
           <button
             onClick={exportExcel}
-            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700 dark:bg-slate-900 light:border-slate-300 light:bg-slate-100 light:text-slate-800"
+            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700 dark:bg-slate-900 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#1e293b]"
           >
             <FileSpreadsheet className="h-4 w-4 text-emerald-400" />
             <span>{t('accounting.export_excel')}</span>
@@ -133,7 +133,7 @@ export const AccountingView: React.FC = () => {
 
           <button
             onClick={() => openPdfExport('Nexus Financial Ledger & Tax Audit')}
-            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700 dark:bg-slate-900 light:border-slate-300 light:bg-slate-100 light:text-slate-800"
+            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700 dark:bg-slate-900 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#1e293b]"
           >
             <Download className="h-4 w-4 text-blue-400" />
             <span>{t('founder.export_pdf')}</span>
@@ -154,7 +154,7 @@ export const AccountingView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {money(financials.totalIncome)}
             </h3>
             <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-bold text-emerald-400">
@@ -177,7 +177,7 @@ export const AccountingView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {money(financials.totalExpenses)}
             </h3>
             <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-medium text-slate-400">
@@ -227,7 +227,7 @@ export const AccountingView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {money(financials.estimatedTaxes)}
             </h3>
             <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-medium text-slate-400">
@@ -244,7 +244,7 @@ export const AccountingView: React.FC = () => {
       <div className="glass-panel rounded-2xl border border-slate-800 p-5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-800/80">
           <div>
-            <h3 className="text-sm font-bold text-white dark:text-white light:text-slate-900">
+            <h3 className="text-sm font-bold text-white dark:text-white light:text-[#0f172a]">
               {t('accounting.pnl')}
             </h3>
             <p className="text-[11px] text-slate-400">
@@ -313,7 +313,7 @@ export const AccountingView: React.FC = () => {
       <div className="glass-panel rounded-2xl border border-slate-800 p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between pb-4 border-b border-slate-800/80">
           <div>
-            <h3 className="text-sm font-bold text-white dark:text-white light:text-slate-900">
+            <h3 className="text-sm font-bold text-white dark:text-white light:text-[#0f172a]">
               {t('accounting.recent_invoices')}
             </h3>
             <p className="text-[11px] text-slate-400">

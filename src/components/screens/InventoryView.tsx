@@ -75,7 +75,7 @@ export const InventoryView: React.FC = () => {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {t('inventory.title')}
             </h1>
             <span className="rounded-full bg-amber-500/20 px-3 py-0.5 text-xs font-semibold text-amber-400 border border-amber-500/30">
@@ -102,7 +102,7 @@ export const InventoryView: React.FC = () => {
               setSelectedStockItem(inventory[0]);
               setIsAdjustStockOpen(true);
             }}
-            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700 dark:bg-slate-900 light:border-slate-300 light:bg-slate-100 light:text-slate-800"
+            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition dark:border-slate-700 dark:bg-slate-900 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#1e293b]"
           >
             <Sliders className="h-4 w-4 text-indigo-400" />
             <span>{t('inventory.adjust_stock')}</span>
@@ -123,7 +123,7 @@ export const InventoryView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {inventory.length}
             </h3>
           </div>
@@ -168,7 +168,7 @@ export const InventoryView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {autoDeductLogs.reduce((sum, l) => sum + (l.units || 0), 0)} {isRTL ? 'وحدة' : 'Units'}
             </h3>
           </div>
@@ -188,7 +188,7 @@ export const InventoryView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-slate-900">
+            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
               {money(avgUnitCost, 2)}
             </h3>
           </div>
@@ -202,7 +202,7 @@ export const InventoryView: React.FC = () => {
           <div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-800/80">
               <div>
-                <h3 className="text-sm font-bold text-white dark:text-white light:text-slate-900">
+                <h3 className="text-sm font-bold text-white dark:text-white light:text-[#0f172a]">
                   {t('inventory.purchase_history')}
                 </h3>
                 <p className="text-[11px] text-slate-400">
@@ -306,7 +306,7 @@ export const InventoryView: React.FC = () => {
                 <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400">
                   <Zap className="h-3.5 w-3.5" />
                 </div>
-                <h3 className="text-sm font-bold text-white dark:text-white light:text-slate-900">
+                <h3 className="text-sm font-bold text-white dark:text-white light:text-[#0f172a]">
                   {t('inventory.auto_deduct_log')}
                 </h3>
               </div>
@@ -357,7 +357,7 @@ export const InventoryView: React.FC = () => {
         {/* Filter & Search Bar */}
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between pb-4 border-b border-slate-800/80">
           <div>
-            <h3 className="text-sm font-bold text-white dark:text-white light:text-slate-900">
+            <h3 className="text-sm font-bold text-white dark:text-white light:text-[#0f172a]">
               {t('inventory.inventory_master')}
             </h3>
             <p className="text-[11px] text-slate-400">

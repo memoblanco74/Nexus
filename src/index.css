@@ -38,6 +38,57 @@
   }
 }
 
+
+html.light {
+  --color-slate-50: #0f172a;
+  --color-slate-100: #0f172a;
+  --color-slate-200: #1e293b;
+  --color-slate-300: #334155;
+  --color-slate-400: #475569;
+  --color-slate-500: #64748b;
+  --color-slate-600: #94a3b8;
+  --color-slate-700: #cbd5e1;
+  --color-slate-800: #d9e6ec;
+  --color-slate-900: #e8f3f6;
+  --color-slate-950: #f4fafb;
+  --color-emerald-300: #047857;
+  --color-emerald-400: #059669;
+  --color-amber-300: #b45309;
+  --color-amber-400: #d97706;
+  --color-red-300: #b91c1c;
+  --color-red-400: #dc2626;
+  --color-sky-300: #0369a1;
+  --color-sky-400: #0284c7;
+  --color-purple-300: #7e22ce;
+  --color-purple-400: #9333ea;
+}
+
+html.light .text-white {
+  color: #10202b;
+}
+
+html.light .text-white:is(
+    [class*="bg-blue-"],
+    [class*="bg-emerald-"],
+    [class*="bg-red-"],
+    [class*="bg-amber-"],
+    [class*="bg-indigo-"],
+    [class*="bg-cyan-"],
+    [class*="bg-gradient"],
+    [class*="from-"]
+  ):not([class*="bg-slate-"]) {
+  color: #ffffff;
+}
+
+html.light [class*="hover:text-white"]:hover:not([class*="hover:bg-blue"]):not([class*="hover:bg-emerald"]):not([class*="hover:bg-red"]):not([class*="hover:bg-amber"]) {
+  color: #10202b;
+}
+
+html.light select option {
+  background: #ffffff;
+  color: #10202b;
+}
+
 /* Glassmorphism and specialized cards matching the mockups */
 .glass-panel {
   background: rgba(15, 23, 42, 0.75);
