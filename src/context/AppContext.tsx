@@ -744,6 +744,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return [];
     }
 
+    const founderNames: Record<string, string> = {};
+    const { data: founderRows } = await supabase
+      .from('tenant_users')
+      .select('tenant_id, users(username, full_name)')
+      .eq('is_founder', true)
+      .in('tenant_id', (conversations as any[]).map((c) => c.tenant_id));
+    ((founderRows as any[]) || []).forEach((r) => {
+      const u = Array.isArray(r.users) ? r.users[0] : r.users;
+      if (u) founderNames[r.tenant_id] = u.username || u.full_name || '';
+    });
+
     const mapped: ChatMessage[] = [];
     for (const conv of conversations as any[]) {
       const { data: msgs } = await supabase
@@ -768,7 +779,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       mapped.push({
         id: conv.id,
         tenant: tenantName,
-        senderName: tenantName,
+        senderName: founderNames[conv.tenant_id] || tenantName,
         senderRole: 'Project Founder',
         senderRoleAr: 'مؤسس المشروع',
         projectId: (conv.tenant_id as string).slice(0, 8).toUpperCase(),
@@ -888,7 +899,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           screenRef.current === 'super_admin' &&
           (selectedChatIdRef.current === row.conversation_id);
         if (!watching) {
-          const who = chat?.tenant || 'Founder';
+          const who = chat?.senderName || chat?.tenant || 'Founder';
           if (me.notificationPrefs.chatToast) showToast(`${who}: ${row.body}`);
           if (me.notificationPrefs.chatDevice) showDeviceNotification(who, row.body, `chat-${row.conversation_id}`);
           if (me.notificationPrefs.chatSound) playNotificationSound();
