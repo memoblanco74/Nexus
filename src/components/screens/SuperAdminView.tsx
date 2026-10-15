@@ -174,6 +174,18 @@ export const SuperAdminView: React.FC = () => {
     });
   }, [subscriptions.length]);
 
+  const [refInfo, setRefInfo] = useState<Record<string, { used: string; percent: number; invites: number }>>({});
+
+  useEffect(() => {
+    supabase.rpc('fn_referral_overview').then(({ data }) => {
+      const map: Record<string, { used: string; percent: number; invites: number }> = {};
+      ((data as any[]) || []).forEach((r) => {
+        if (r.email) map[String(r.email).toLowerCase()] = { used: r.used_code || '', percent: Number(r.total_percent) || 0, invites: Number(r.referrals_count) || 0 };
+      });
+      setRefInfo(map);
+    });
+  }, [subscriptions.length]);
+
   const [renewTarget, setRenewTarget] = useState<{ id: string; name: string } | null>(null);
 
   const effectiveStatus = (id: string): 'Active' | 'Expiring Soon' | 'Suspended' => {
@@ -794,9 +806,24 @@ export const SuperAdminView: React.FC = () => {
                         )}
                       </td>
                       <td className="py-3 px-3">
-                        <span className="font-mono text-[11px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                          {sub.discount}
-                        </span>
+                        {(() => {
+                          const ref = refInfo[(founders[sub.id]?.email || '').toLowerCase()];
+                          return (
+                            <div className="space-y-1">
+                              {ref && ref.percent > 0 && (
+                                <span className="block w-fit font-mono text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                                  {ref.percent}%
+                                </span>
+                              )}
+                              {ref?.used && <span className="block text-[10px] text-slate-400">{isRTL ? 'استخدم' : 'Used'}: {ref.used}</span>}
+                              {ref && ref.invites > 0 && <span className="block text-[10px] text-slate-400">{isRTL ? `دعا ${ref.invites}` : `Invited ${ref.invites}`}</span>}
+                              {sub.discount !== '-' && (
+                                <span className="block w-fit font-mono text-[11px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">{sub.discount}</span>
+                              )}
+                              {!(ref && (ref.percent > 0 || ref.used || ref.invites > 0)) && sub.discount === '-' && <span className="text-slate-500">-</span>}
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="py-3 px-3 text-slate-400">{sub.startDate}</td>
                       <td className="py-3 px-3 text-slate-400">
