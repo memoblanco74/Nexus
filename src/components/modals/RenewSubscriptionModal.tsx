@@ -5,11 +5,12 @@ import { useApp } from '../../context/AppContext';
 interface Props {
   tenantId: string;
   tenantName: string;
+  discountPercent?: number;
   onClose: () => void;
 }
 
-export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, onClose }) => {
-  const { isRTL, tenants, tenantAccess, renewSubscription } = useApp();
+export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, discountPercent = 0, onClose }) => {
+  const { isRTL, tenants, tenantAccess, renewSubscription, money } = useApp();
   const [months, setMonths] = useState(1);
   const [custom, setCustom] = useState('');
   const [busy, setBusy] = useState(false);
@@ -27,6 +28,11 @@ export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, 
     d.setUTCDate(Math.min(day, last));
     return d.toISOString().slice(0, 10);
   })();
+
+  const monthly = tenant?.mrr || 0;
+  const gross = monthly * months;
+  const discountValue = gross * (discountPercent / 100);
+  const total = Math.round((gross - discountValue) * 100) / 100;
 
   const pickCustom = (v: string) => {
     const digits = v
@@ -89,6 +95,14 @@ export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, 
             placeholder={isRTL ? 'أو اكتب عدد آخر' : 'Or enter another number'}
             className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
           />
+        </div>
+        <div className="space-y-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-slate-200">
+          <div className="flex justify-between"><span className="text-slate-400">{isRTL ? 'السعر الشهري' : 'Monthly price'}</span><span>{money(monthly, 2)}</span></div>
+          <div className="flex justify-between"><span className="text-slate-400">{isRTL ? `× ${months} شهر` : `× ${months} month(s)`}</span><span>{money(gross, 2)}</span></div>
+          {discountPercent > 0 && (
+            <div className="flex justify-between text-emerald-300"><span>{isRTL ? `خصم ${discountPercent}%` : `Discount ${discountPercent}%`}</span><span>- {money(discountValue, 2)}</span></div>
+          )}
+          <div className="flex justify-between border-t border-blue-500/30 pt-1.5 text-sm font-extrabold text-white"><span>{isRTL ? 'المطلوب من المشترك' : 'Amount due'}</span><span>{money(total, 2)}</span></div>
         </div>
         <p className="rounded-xl bg-emerald-500/10 p-3 text-xs text-emerald-300">
           {isRTL ? `هيتجدد حتى ${preview}` : `Will be renewed until ${preview}`}
