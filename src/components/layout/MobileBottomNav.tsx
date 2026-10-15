@@ -17,7 +17,7 @@ import {
 type Tab = { id: ScreenId; label: string; icon: React.ReactNode };
 
 export const MobileBottomNav: React.FC = () => {
-  const { screen, setScreen, setIsQrScannerOpen, isRTL } = useApp();
+  const { screen, setScreen, setIsQrScannerOpen, isRTL, systemKey } = useApp();
   const { profile } = useAuth();
 
   const role = profile?.roleCode;
@@ -45,6 +45,16 @@ export const MobileBottomNav: React.FC = () => {
       { id: 'assistant', label: isRTL ? 'الرئيسية' : 'Home', icon: <LayoutDashboard className="h-5 w-5" /> },
       { id: 'bookings', label: isRTL ? 'الحجوزات' : 'Bookings', icon: <CalendarCheck className="h-5 w-5" /> },
       { id: 'inventory', label: isRTL ? 'المخزون' : 'Stock', icon: <Package className="h-5 w-5" /> },
+    ];
+    showScanFab = false;
+  }
+
+  if (systemKey === 'nursery' && (role === 'founder' || role === 'assistant')) {
+    tabs = [
+      { id: role === 'founder' ? 'founder' : 'assistant', label: isRTL ? 'الرئيسية' : 'Home', icon: <LayoutDashboard className="h-5 w-5" /> },
+      { id: 'patients', label: isRTL ? 'الأطفال' : 'Children', icon: <Users className="h-5 w-5" /> },
+      { id: 'bookings', label: isRTL ? 'اليومية' : 'Daily', icon: <CalendarCheck className="h-5 w-5" /> },
+      { id: 'accounting', label: isRTL ? 'الاشتراكات' : 'Fees', icon: <CircleDollarSign className="h-5 w-5" /> },
     ];
     showScanFab = false;
   }

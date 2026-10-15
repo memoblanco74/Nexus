@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { ScreenId } from '../../types';
+import { screensFor } from '../../lib/screenAccess';
 import {
   ShieldCheck,
   LayoutDashboard,
@@ -39,18 +40,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
     describeTenant,
     founderUnreadCount,
     unrepliedChatCount,
+    systemKey,
   } = useApp();
   const { profile } = useAuth();
   const tenantInfo = activeTenant
     ? describeTenant(activeTenant)
     : { system: '', status: '', tone: 'ok' as const };
 
-  const ROLE_SCREENS: Record<string, ScreenId[]> = {
-    super_admin: ['super_admin', 'catalog', 'settings'],
-    founder: ['founder', 'projects', 'patients', 'bookings', 'inventory', 'accounting', 'reports', 'assistants', 'settings', 'support'],
-    assistant: ['assistant', 'patients', 'bookings', 'inventory', 'settings'],
-  };
-  const allowedScreens = profile ? ROLE_SCREENS[profile.roleCode] || [] : [];
+  const allowedScreens = screensFor(profile?.roleCode, systemKey);
 
   const navItems: Array<{
     id: ScreenId;

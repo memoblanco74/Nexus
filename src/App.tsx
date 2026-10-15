@@ -40,18 +40,16 @@ import {
 } from './components/modals/QrScannerModal';
 
 import type { ScreenId } from './types';
-
-const ROLE_SCREEN_MAP: Record<string, ScreenId[]> = {
-  super_admin: ['super_admin', 'catalog', 'settings'],
-  founder: ['founder', 'projects', 'patients', 'bookings', 'inventory', 'accounting', 'reports', 'assistants', 'settings', 'support'],
-  assistant: ['assistant', 'patients', 'bookings', 'inventory', 'settings'],
-};
+import { NurseryRoot } from './components/nursery/NurseryRoot';
+import { NURSERY_SCREENS, screensFor } from './lib/screenAccess';
 
 const DashboardContent: React.FC = () => {
-  const { screen, toastMessage, tenants, tenantsLoaded, referral, referralLoaded } = useApp();
+  const { screen, toastMessage, tenants, tenantsLoaded, referral, referralLoaded, systemKey } = useApp();
   const { profile } = useAuth();
-  const allowed = (profile ? ROLE_SCREEN_MAP[profile.roleCode] : undefined) || [];
   const canSee = (id: string) => allowed.includes(id as ScreenId);
+  const allowed = screensFor(profile?.roleCode, systemKey);
+  const isNursery = systemKey === 'nursery' && profile?.roleCode !== 'super_admin';
+  const nurseryActive = isNursery && NURSERY_SCREENS.includes(screen) && canSee(screen);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   if (profile?.roleCode === 'founder' && tenantsLoaded && tenants.length === 0) {
@@ -84,15 +82,16 @@ const DashboardContent: React.FC = () => {
           <SubscriptionBanner />
           <AnnouncementBanner />
           <FreePeriodBanner />
+          {nurseryActive && <NurseryRoot />}
           {screen === 'super_admin' && canSee('super_admin') && <SuperAdminView />}
-          {screen === 'founder' && canSee('founder') && <FounderView />}
-          {screen === 'inventory' && canSee('inventory') && <InventoryView />}
-          {screen === 'accounting' && canSee('accounting') && <AccountingView />}
-          {screen === 'patients' && canSee('patients') && <PatientsView />}
-          {screen === 'bookings' && canSee('bookings') && <BookingsView />}
-          {screen === 'assistant' && canSee('assistant') && <AssistantView />}
-          {screen === 'projects' && canSee('projects') && <ProjectsView />}
-          {screen === 'reports' && canSee('reports') && <ReportsView />}
+          {!isNursery && screen === 'founder' && canSee('founder') && <FounderView />}
+          {!isNursery && screen === 'inventory' && canSee('inventory') && <InventoryView />}
+          {!isNursery && screen === 'accounting' && canSee('accounting') && <AccountingView />}
+          {!isNursery && screen === 'patients' && canSee('patients') && <PatientsView />}
+          {!isNursery && screen === 'bookings' && canSee('bookings') && <BookingsView />}
+          {!isNursery && screen === 'assistant' && canSee('assistant') && <AssistantView />}
+          {!isNursery && screen === 'projects' && canSee('projects') && <ProjectsView />}
+          {!isNursery && screen === 'reports' && canSee('reports') && <ReportsView />}
           {screen === 'settings' && canSee('settings') && <SettingsView />}
           {screen === 'support' && canSee('support') && <SupportView />}
           {screen === 'catalog' && canSee('catalog') && <SystemCatalogAdminView />}

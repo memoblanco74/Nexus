@@ -66,6 +66,7 @@ interface AppContextType {
   tenantAccess: (tenant: Tenant | null | undefined) => TenantAccess;
   activeAccess: TenantAccess;
   isReadOnly: boolean;
+  systemKey: string;
   renewSubscription: (tenantId: string, months: number) => Promise<string | null>;
   paymentInfo: PaymentInfo;
   updatePaymentInfo: (info: PaymentInfo) => Promise<boolean>;
@@ -1707,6 +1708,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         screen,
         setScreen,
+        systemKey,
         language,
         setLanguage,
         toggleLanguage,

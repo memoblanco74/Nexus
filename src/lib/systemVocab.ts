@@ -47,4 +47,14 @@ export const SYSTEM_VOCAB: Record<string, Record<string, Entry>> = {
   },
 };
 
+SYSTEM_VOCAB.nursery = {
+  'nav.founder': { en: 'Nursery Overview', ar: 'نظرة عامة' },
+  'nav.assistant': { en: 'Nursery Overview', ar: 'نظرة عامة' },
+  'nav.patients': { en: 'Children', ar: 'الأطفال' },
+  'nav.bookings': { en: 'Daily Log', ar: 'اليومية' },
+  'nav.accounting': { en: 'Fees & Payments', ar: 'الاشتراكات والمدفوعات' },
+  'vocab.founder_badge': { en: 'Nursery Owner', ar: 'مالك الحضانة' },
+  'vocab.switcher_title': { en: 'Switch Project', ar: 'تبديل المشروع' },
+};
+
 export const DEFAULT_SYSTEM_KEY = 'clinic';
