@@ -44,14 +44,12 @@ const download = (content: string, filename: string, type: string) => {
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 };
 
-export const MyDataCard: React.FC = () => {
-  const { isRTL, showToast } = useApp();
-  const { signOut } = useAuth();
+export const ProjectDataCard: React.FC = () => {
+  const { isRTL, showToast, activeTenant, wipeTenantData } = useApp();
   const [exporting, setExporting] = useState<'json' | 'xls' | null>(null);
-  const [password, setPassword] = useState('');
   const [phrase, setPhrase] = useState('');
-  const [deleting, setDeleting] = useState(false);
-  const word = isRTL ? 'حذف' : 'DELETE';
+  const [wiping, setWiping] = useState(false);
+  const projectName = activeTenant ? (isRTL ? activeTenant.nameAr || activeTenant.name : activeTenant.name) : '';
 
   const exportData = async (kind: 'json' | 'xls') => {
     setExporting(kind);
@@ -63,40 +61,34 @@ export const MyDataCard: React.FC = () => {
     }
     const stamp = new Date().toISOString().slice(0, 10);
     if (kind === 'json') {
-      download(JSON.stringify(data, null, 2), `my-data-${stamp}.json`, 'application/json');
+      download(JSON.stringify(data, null, 2), `project-data-${stamp}.json`, 'application/json');
     } else {
       const { exported_at, ...tables } = data as Record<string, any>;
-      download(buildWorkbook({ account: tables.account, ...tables }), `my-data-${stamp}.xml`, 'application/vnd.ms-excel');
+      download(buildWorkbook({ account: tables.account, ...tables }), `project-data-${stamp}.xml`, 'application/vnd.ms-excel');
     }
-    showToast(isRTL ? 'تم تجهيز ملف بياناتك' : 'Your data file is ready');
+    showToast(isRTL ? 'تم تجهيز ملف البيانات' : 'Your data file is ready');
   };
 
-  const deleteAll = async () => {
-    if (!password || phrase.trim().toUpperCase() !== word.toUpperCase()) return;
-    setDeleting(true);
-    const { data, error } = await supabase.functions.invoke('delete-account', { body: { password } });
-    setDeleting(false);
-    if (error || data?.error) {
-      const code = data?.error || error?.message || 'Error';
-      showToast(code === 'wrong_password' ? (isRTL ? 'كلمة المرور غير صحيحة' : 'Wrong password') : code);
-      return;
-    }
-    showToast(isRTL ? 'تم حذف كل بياناتك' : 'All your data has been deleted');
-    await signOut();
+  const wipe = async () => {
+    if (!activeTenant) return;
+    setWiping(true);
+    const ok = await wipeTenantData(activeTenant.id);
+    setWiping(false);
+    if (ok) setPhrase('');
   };
 
   return (
     <div className="glass-panel space-y-4 rounded-2xl border border-slate-800 p-5">
       <h3 className="flex items-center gap-2 text-sm font-bold text-white">
         <Database className="h-4 w-4 text-blue-400" />
-        <span>{isRTL ? 'بياناتي' : 'My Data'}</span>
+        <span>{isRTL ? 'بيانات المشروع' : 'Project data'}</span>
       </h3>
 
       <div className="space-y-2">
         <p className="text-[11px] text-slate-400">
           {isRTL
-            ? 'حمّل نسخة كاملة من بياناتك أنت بس (مشاريعك، المساعدين، المرضى، الحجوزات، الفواتير، المصروفات، المخزون).'
-            : 'Download a full copy of your own data only (projects, assistants, patients, bookings, invoices, expenses, inventory).'}
+            ? 'حمّل نسخة كاملة من كل بيانات مشاريعك (المساعدين، الأطفال أو المرضى، الحجوزات، الفواتير، المصروفات، المخزون، الاشتراكات).'
+            : 'Download a full copy of all your project data (assistants, children or patients, bookings, invoices, expenses, inventory, subscriptions).'}
         </p>
         <div className="flex flex-wrap gap-2">
           <button
@@ -118,26 +110,71 @@ export const MyDataCard: React.FC = () => {
         </div>
       </div>
 
-      <div className="space-y-2 rounded-xl border border-red-500/30 bg-red-500/5 p-3">
+      <div data-write="1" className="space-y-2 rounded-xl border border-red-500/30 bg-red-500/5 p-3">
         <p className="flex items-center gap-2 text-xs font-bold text-red-400">
           <Trash2 className="h-4 w-4" />
-          {isRTL ? 'حذف كل بياناتي نهائيًا' : 'Delete all my data permanently'}
+          {isRTL ? 'مسح كل بيانات المشروع' : 'Erase all project data'}
         </p>
         <p className="text-[11px] leading-relaxed text-slate-400">
           {isRTL
-            ? 'هيتمسح حسابك وكلمة مرورك وكل المساعدين وكلمات مرورهم وكل الشغل اللي اتسجّل (مرضى، حجوزات، فواتير، مخزون، مصروفات). مش هترجع تاني. لو عايز نسخة، صدّر بياناتك الأول.'
-            : 'Your account and password, all assistants and their passwords, and all recorded work will be erased. This cannot be undone. Export your data first if you want a copy.'}
+            ? `هتتمسح كل البيانات المسجلة في "${projectName}" (الأطفال أو المرضى، الحضور، الحجوزات، الفواتير، المصروفات، المخزون، الاشتراكات والمدفوعات). المشروع والمساعدين واشتراكك بيفضلوا زي ما هما. مش هترجع تاني، فصدّر نسخة الأول.`
+            : `All data recorded in "${projectName}" will be erased. The project, assistants and your subscription stay. This cannot be undone, so export a copy first.`}
         </p>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={isRTL ? 'كلمة المرور الحالية' : 'Current password'} autoComplete="current-password" className={inputClass} />
-        <input value={phrase} onChange={(e) => setPhrase(e.target.value)} placeholder={isRTL ? `اكتب "${word}" للتأكيد` : `Type "${word}" to confirm`} className={inputClass} />
+        <input value={phrase} onChange={(e) => setPhrase(e.target.value)} placeholder={isRTL ? 'اكتب اسم المشروع للتأكيد' : 'Type the project name to confirm'} className={inputClass} />
         <button
-          onClick={deleteAll}
-          disabled={deleting || !password || phrase.trim().toUpperCase() !== word.toUpperCase()}
+          onClick={wipe}
+          disabled={wiping || !projectName || phrase.trim() !== projectName}
           className="w-full rounded-xl bg-red-600 py-2 text-xs font-bold text-white hover:bg-red-500 disabled:opacity-40"
         >
-          {deleting ? '...' : isRTL ? 'احذف كل بياناتي' : 'Delete all my data'}
+          {wiping ? '...' : isRTL ? 'امسح كل البيانات' : 'Erase all data'}
         </button>
       </div>
+    </div>
+  );
+};
+
+export const DeleteAccountCard: React.FC = () => {
+  const { isRTL, showToast } = useApp();
+  const { signOut } = useAuth();
+  const [password, setPassword] = useState('');
+  const [phrase, setPhrase] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const word = isRTL ? 'حذف' : 'DELETE';
+
+  const deleteAll = async () => {
+    if (!password || phrase.trim().toUpperCase() !== word.toUpperCase()) return;
+    setDeleting(true);
+    const { data, error } = await supabase.functions.invoke('delete-account', { body: { password } });
+    setDeleting(false);
+    if (error || data?.error) {
+      const code = data?.error || error?.message || 'Error';
+      showToast(code === 'wrong_password' ? (isRTL ? 'كلمة المرور غير صحيحة' : 'Wrong password') : code);
+      return;
+    }
+    showToast(isRTL ? 'تم حذف حسابك وكل بياناتك' : 'Your account and all data were deleted');
+    await signOut();
+  };
+
+  return (
+    <div className="glass-panel space-y-2 rounded-2xl border border-red-500/30 p-5">
+      <p className="flex items-center gap-2 text-sm font-bold text-red-400">
+        <Trash2 className="h-4 w-4" />
+        {isRTL ? 'حذف حسابي نهائيًا' : 'Delete my account permanently'}
+      </p>
+      <p className="text-[11px] leading-relaxed text-slate-400">
+        {isRTL
+          ? 'هيتمسح حسابك وكلمة مرورك وكل مشاريعك والمساعدين وكل البيانات. مش هترجع تاني. صدّر بياناتك الأول من إعدادات المشروع.'
+          : 'Your account, all your projects, assistants and data will be erased. This cannot be undone. Export your data first from project settings.'}
+      </p>
+      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={isRTL ? 'كلمة المرور الحالية' : 'Current password'} autoComplete="current-password" className={inputClass} />
+      <input value={phrase} onChange={(e) => setPhrase(e.target.value)} placeholder={isRTL ? `اكتب "${word}" للتأكيد` : `Type "${word}" to confirm`} className={inputClass} />
+      <button
+        onClick={deleteAll}
+        disabled={deleting || !password || phrase.trim().toUpperCase() !== word.toUpperCase()}
+        className="w-full rounded-xl bg-red-600 py-2 text-xs font-bold text-white hover:bg-red-500 disabled:opacity-40"
+      >
+        {deleting ? '...' : isRTL ? 'احذف حسابي' : 'Delete my account'}
+      </button>
     </div>
   );
 };

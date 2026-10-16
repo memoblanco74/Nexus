@@ -1,9 +1,10 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { ChangePasswordCard, UserManagementCard } from './AccountSecurityCards';
-import { ReferralCard, ReferralOverviewCard } from './ReferralParts';
+import { ReferralOverviewCard } from './ReferralParts';
 import { PaymentInfoCard } from './PaymentInfoParts';
-import { MyDataCard } from './MyDataCard';
+import { DeleteAccountCard } from './MyDataCard';
+import { LogoutCard, ProfilePhotoCard } from './ProfileSettingsCards';
 import { useAuth, DEFAULT_NOTIFICATION_PREFS, NotificationPrefs } from '../../context/AuthContext';
 import { subscribeToPush, isPushSupported } from '../../lib/webPush';
 import { Settings, Shield, Globe, Bell, Database, Lock, Save, Send } from 'lucide-react';
@@ -92,6 +93,8 @@ export const SettingsView: React.FC = () => {
       </div>
 
       <div className="space-y-4">
+        <ProfilePhotoCard />
+
         {/* Localization & Theme */}
         <div className="glass-panel rounded-2xl border border-slate-800 p-5 space-y-4">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -126,15 +129,11 @@ export const SettingsView: React.FC = () => {
           </div>
         </div>
 
-        {profile?.roleCode === 'founder' && <ReferralCard />}
-
         <ChangePasswordCard />
 
-        {(profile?.roleCode === 'super_admin' || profile?.roleCode === 'founder') && <UserManagementCard />}
+        {profile?.roleCode === 'super_admin' && <UserManagementCard />}
 
         {profile?.roleCode === 'super_admin' && <ReferralOverviewCard />}
-
-        {profile?.roleCode === 'founder' && <MyDataCard />}
 
         <div className="glass-panel rounded-2xl border border-slate-800 p-5 space-y-4">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -207,6 +206,10 @@ export const SettingsView: React.FC = () => {
             </div>
           ))}
         </div>
+
+        {profile?.roleCode === 'founder' && <DeleteAccountCard />}
+
+        <LogoutCard />
       </div>
     </div>
   );

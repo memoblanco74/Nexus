@@ -2,12 +2,12 @@ import type { ScreenId } from '../types';
 
 const BASE: Record<string, ScreenId[]> = {
   super_admin: ['super_admin', 'catalog', 'platform', 'settings'],
-  founder: ['founder', 'projects', 'patients', 'bookings', 'inventory', 'accounting', 'reports', 'assistants', 'settings', 'support'],
+  founder: ['founder', 'projects', 'patients', 'bookings', 'inventory', 'accounting', 'reports', 'project_settings', 'settings', 'support'],
   assistant: ['assistant', 'patients', 'bookings', 'inventory', 'settings'],
 };
 
 const NURSERY: Record<string, ScreenId[]> = {
-  founder: ['founder', 'patients', 'bookings', 'accounting', 'assistants', 'settings', 'support'],
+  founder: ['founder', 'patients', 'bookings', 'accounting', 'project_settings', 'settings', 'support'],
   assistant: ['assistant', 'patients', 'bookings', 'accounting', 'settings'],
 };
 

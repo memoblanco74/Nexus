@@ -138,7 +138,9 @@ interface AppContextType {
   projects: Project[];
 
   systemTemplates: SystemTemplate[];
-  subscribeToSystem: (templateId: string) => Promise<void>;
+  subscribeToSystem: (templateId: string, projectName?: string) => Promise<boolean>;
+  renameTenant: (tenantId: string, name: string) => Promise<boolean>;
+  wipeTenantData: (tenantId: string) => Promise<boolean>;
   addSystemTemplate: (t: Omit<SystemTemplate, 'id' | 'features'>) => Promise<void>;
   updateSystemTemplate: (id: string, updates: Partial<SystemTemplate>) => Promise<void>;
   deleteSystemTemplate: (id: string) => Promise<void>;
@@ -194,11 +196,12 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
   'nav.inventory': { en: 'Inventory & ERP', ar: 'المخزون ونظام ERP' },
   'nav.accounting': { en: 'Accounting', ar: 'المحاسبة والمالية' },
   'nav.reports': { en: 'Reports', ar: 'التقارير والإحصاءات' },
-  'nav.settings': { en: 'Settings', ar: 'الإعدادات' },
+  'nav.settings': { en: 'My Settings', ar: 'إعداداتي' },
   'nav.support': { en: 'Support', ar: 'الدعم الفني' },
   'nav.catalog': { en: 'System Catalog', ar: 'كتالوج الأنظمة' },
   'nav.assistants': { en: 'Assistants', ar: 'المساعدين' },
   'nav.platform': { en: 'Platform Settings', ar: 'إعدادات المنصة' },
+  'nav.project_settings': { en: 'Project Settings', ar: 'إعدادات المشروع' },
   'nav.collapse': { en: 'Collapse', ar: 'طي القائمة' },
   'super_admin.title': { en: 'Super Admin Control Center', ar: 'مركز تحكم المشرف العام' },
   'super_admin.badge': { en: 'Nexus Cloud v2.4 (Enterprise)', ar: 'سحابة نيكسوس الإصدار ٢.٤ (المؤسسات)' },
@@ -1576,21 +1579,57 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await refreshBookings();
   };
 
-  const subscribeToSystem = async (templateId: string) => {
-    if (!profile) return;
+  const subscribeToSystem = async (templateId: string, projectName?: string): Promise<boolean> => {
+    if (!profile) return false;
 
     const { data: newTenantId, error } = await supabase.rpc('fn_subscribe_to_system', {
       p_template_id: templateId,
+      p_name: projectName?.trim() || null,
     });
 
     if (error || !newTenantId) {
-      showToast(error?.message || 'Error creating project');
-      return;
+      showToast(
+        error?.message?.includes('INVALID_NAME')
+          ? isRTL ? 'اسم المشروع لازم يكون من 2 إلى 60 حرف' : 'Project name must be 2 to 60 characters'
+          : error?.message || 'Error creating project'
+      );
+      return false;
     }
 
     await refreshTenants();
     setActiveTenantId(newTenantId as string);
     showToast(isRTL ? 'تم الاشتراك بنجاح' : 'Subscribed successfully');
+    return true;
+  };
+
+  const renameTenant = async (tenantId: string, name: string): Promise<boolean> => {
+    const { error } = await supabase.rpc('fn_rename_tenant', { p_tenant_id: tenantId, p_name: name });
+    if (error) {
+      showToast(
+        error.message.includes('INVALID_NAME')
+          ? isRTL ? 'اسم المشروع لازم يكون من 2 إلى 60 حرف' : 'Project name must be 2 to 60 characters'
+          : error.message
+      );
+      return false;
+    }
+    await refreshTenants();
+    showToast(isRTL ? 'تم تعديل اسم المشروع' : 'Project name updated');
+    return true;
+  };
+
+  const wipeTenantData = async (tenantId: string): Promise<boolean> => {
+    const { error } = await supabase.rpc('fn_wipe_tenant_data', { p_tenant_id: tenantId });
+    if (error) {
+      showToast(
+        error.message.includes('READ_ONLY')
+          ? isRTL ? 'الاشتراك منتهي، لا يمكن مسح البيانات' : 'Subscription expired, data cannot be erased'
+          : error.message
+      );
+      return false;
+    }
+    await Promise.all([refreshPatients(), refreshBookings(), refreshInventory(), refreshInvoices(), refreshProjects(), refreshExpenses()]);
+    showToast(isRTL ? 'تم مسح كل بيانات المشروع' : 'All project data erased');
+    return true;
   };
 
   const addSystemTemplate = async (t: Omit<SystemTemplate, 'id' | 'features'>) => {
@@ -1771,6 +1810,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         projects,
         systemTemplates: systemTemplatesWithCounts,
         subscribeToSystem,
+        renameTenant,
+        wipeTenantData,
         addSystemTemplate,
         updateSystemTemplate,
         announcementActive,

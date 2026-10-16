@@ -92,19 +92,24 @@ const TopBar: React.FC = () => {
 };
 
 export const SystemCatalogView: React.FC = () => {
-  const { language, isRTL, systemTemplates, subscribeToSystem, freePeriodDays } = useApp();
+  const { language, isRTL, systemTemplates, subscribeToSystem, freePeriodDays, showToast } = useApp();
   const { signOut } = useAuth();
   const [selected, setSelected] = useState<SystemTemplate | null>(null);
   const [activeFeature, setActiveFeature] = useState<SystemTemplateFeature | null>(null);
   const [subscribing, setSubscribing] = useState(false);
+  const [projectName, setProjectName] = useState('');
 
   const activeTemplates = systemTemplates.filter((t) => t.isActive);
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   const handleSubscribe = async () => {
     if (!selected) return;
+    if (projectName.trim().length < 2) {
+      showToast(isRTL ? 'اكتب اسم المشروع الأول' : 'Enter the project name first');
+      return;
+    }
     setSubscribing(true);
-    await subscribeToSystem(selected.id);
+    await subscribeToSystem(selected.id, projectName);
     setSubscribing(false);
   };
 
@@ -203,6 +208,22 @@ export const SystemCatalogView: React.FC = () => {
                   </p>
                 </div>
               )}
+
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-300">
+                  {isRTL ? 'اسم المشروع' : 'Project name'}
+                </label>
+                <input
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  maxLength={60}
+                  placeholder={isRTL ? 'مثال: حضانة الأمل' : 'e.g. Al Amal Nursery'}
+                  className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  {isRTL ? 'هيظهر لك ولكل المساعدين، وتقدر تعدله بعدين من إعدادات المشروع.' : 'Shown to you and all your assistants. You can change it later in project settings.'}
+                </p>
+              </div>
 
               <button
                 onClick={handleSubscribe}

@@ -14,6 +14,7 @@ export type ScreenId =
   | 'support'
   | 'catalog'
   | 'platform'
+  | 'project_settings'
   | 'assistants';
 
 export interface Tenant {

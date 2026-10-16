@@ -115,9 +115,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       icon: <Settings2 className="h-4 w-4" />,
     },
     {
-      id: 'assistants',
-      label: t('nav.assistants'),
-      icon: <UserPlus className="h-4 w-4" />,
+      id: 'project_settings',
+      label: t('nav.project_settings'),
+      icon: <Settings2 className="h-4 w-4" />,
     },
     {
       id: 'settings',

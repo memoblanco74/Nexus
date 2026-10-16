@@ -28,6 +28,7 @@ import { ReportsView } from './components/screens/ReportsView';
 import { SettingsView, SupportView } from './components/screens/SettingsView';
 import { SystemCatalogView } from './components/screens/SystemCatalogView';
 import { AssistantsView } from './components/screens/AssistantsView';
+import { ProjectSettingsView } from './components/screens/ProjectSettingsView';
 import { PlatformSettingsView } from './components/screens/PlatformSettingsView';
 import { SystemCatalogAdminView } from './components/screens/SystemCatalogAdminView';
 
@@ -99,6 +100,7 @@ const DashboardContent: React.FC = () => {
           {screen === 'support' && canSee('support') && <SupportView />}
           {screen === 'catalog' && canSee('catalog') && <SystemCatalogAdminView />}
           {screen === 'platform' && canSee('platform') && <PlatformSettingsView />}
+          {screen === 'project_settings' && canSee('project_settings') && <ProjectSettingsView />}
           {screen === 'assistants' && canSee('assistants') && <AssistantsView />}
         </main>
 
