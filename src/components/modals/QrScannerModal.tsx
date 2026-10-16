@@ -201,7 +201,7 @@ export const TenantSwitcherModal: React.FC = () => {
                           </p>
                           {isActive && (
                             <span className="rounded bg-blue-500/20 px-1.5 py-0.5 text-[9px] font-bold text-blue-400">
-                              Active
+                              {isRTL ? 'المحدد' : 'Selected'}
                             </span>
                           )}
                         </div>
@@ -213,7 +213,7 @@ export const TenantSwitcherModal: React.FC = () => {
                       <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
                         {describeTenant(t).system}
                       </span>
-                      <span className="block text-[10px] text-slate-500 mt-1">{describeTenant(t).status}</span>
+                      <span className={`block text-[10px] font-semibold mt-1 ${describeTenant(t).tone === 'ok' ? 'text-emerald-400' : describeTenant(t).tone === 'warn' ? 'text-amber-400' : 'text-red-400'}`}>{describeTenant(t).status}</span>
                     </div>
                   </button>
                 );

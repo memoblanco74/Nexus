@@ -446,9 +446,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (tenant.status === 'Suspended') {
       return { system, status: language === 'ar' ? 'معلّق' : 'Suspended', tone: 'bad' as const };
     }
-    const free = freeInfoFromStart(tenant.startDate);
-    if (free.active) {
-      return { system, status: language === 'ar' ? `مجاني حتى ${free.endsOn}` : `Free until ${free.endsOn}`, tone: 'ok' as const };
+    const acc = tenantAccess(tenant);
+    if (acc.reason === 'expired') {
+      return { system, status: language === 'ar' ? 'منتهي (عرض فقط)' : 'Expired (view only)', tone: 'bad' as const };
+    }
+    if (acc.inFreePeriod) {
+      return { system, status: language === 'ar' ? `مجاني حتى ${acc.expiresOn}` : `Free until ${acc.expiresOn}`, tone: 'ok' as const };
     }
     if (tenant.status === 'Expiring Soon') {
       return { system, status: language === 'ar' ? 'ينتهي قريباً' : 'Expiring soon', tone: 'warn' as const };
