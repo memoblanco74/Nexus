@@ -69,7 +69,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [tenantMemberships, setTenantMemberships] = useState<TenantMembership[]>([]);
-  const [activeTenantId, setActiveTenantId] = useState<string | null>(null);
+  const [activeTenantId, setActiveTenantIdState] = useState<string | null>(null);
+  const profileIdRef = React.useRef<string | null>(null);
+  const setActiveTenantId = (id: string | null) => {
+    setActiveTenantIdState(id);
+    try {
+      if (id && profileIdRef.current) localStorage.setItem(`nexus_active_tenant_${profileIdRef.current}`, id);
+    } catch { /* ignore */ }
+  };
   const [loading, setLoading] = useState(true);
 
   const loadProfile = async (currentSession: Session) => {
@@ -82,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error || !userRow) {
       setProfile(null);
       setTenantMemberships([]);
-      setActiveTenantId(null);
+      setActiveTenantIdState(null);
       return;
     }
 
@@ -91,10 +98,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('User row has no matching role (orphaned role_id):', userRow.id);
       setProfile(null);
       setTenantMemberships([]);
-      setActiveTenantId(null);
+      setActiveTenantIdState(null);
       return;
     }
 
+    profileIdRef.current = userRow.id;
     setProfile({
       id: userRow.id,
       username: userRow.username,
@@ -129,7 +137,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isFounder: m.is_founder,
       }));
       setTenantMemberships(list);
-      if (list.length > 0) setActiveTenantId(list[0].tenantId);
+      if (list.length > 0) {
+        let saved: string | null = null;
+        try { saved = localStorage.getItem(`nexus_active_tenant_${userRow.id}`); } catch { /* ignore */ }
+        setActiveTenantIdState((cur) => {
+          if (cur && list.some((m) => m.tenantId === cur)) return cur;
+          if (saved && list.some((m) => m.tenantId === saved)) return saved;
+          return list[0].tenantId;
+        });
+      }
     }
   };
 
@@ -163,7 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             setProfile(null);
             setTenantMemberships([]);
-            setActiveTenantId(null);
+            setActiveTenantIdState(null);
           }
         } catch (err) {
           console.error('Auth change handling failed:', err);
