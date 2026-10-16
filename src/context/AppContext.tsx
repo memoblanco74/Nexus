@@ -177,7 +177,7 @@ interface AppContextType {
   dbHealthy: boolean | null;
   dbLatencyMs: number | null;
 
-  notifications: { id: string; title: string; body: string; type: string; isRead: boolean; createdAt: string }[];
+  notifications: { id: string; title: string; body: string; type: string; isRead: boolean; createdAt: string; code?: string | null; params?: Record<string, any> }[];
   unreadNotificationCount: number;
   markNotificationRead: (id: string) => void;
 
@@ -558,18 +558,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [activeTenantId]);
 
   const [notifications, setNotifications] = useState<
-    { id: string; title: string; body: string; type: string; isRead: boolean; createdAt: string }[]
+    { id: string; title: string; body: string; type: string; isRead: boolean; createdAt: string; code?: string | null; params?: Record<string, any> }[]
   >([]);
 
+  const isSuperAdminRole = profile?.roleCode === 'super_admin';
   const refreshNotifications = useCallback(async () => {
-    if (!activeTenantId) {
+    if (!isSuperAdminRole && !activeTenantId) {
       setNotifications([]);
       return;
     }
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('tenant_id', activeTenantId)
+    const base = supabase.from('notifications').select('*');
+    const { data } = await (isSuperAdminRole ? base.eq('audience', 'super_admin') : base.eq('tenant_id', activeTenantId!))
       .order('created_at', { ascending: false })
       .limit(30);
     if (data) {
@@ -581,20 +580,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           type: n.type,
           isRead: n.is_read,
           createdAt: n.created_at,
+          code: n.code,
+          params: n.params || {},
         }))
       );
     }
-  }, [activeTenantId]);
+  }, [activeTenantId, isSuperAdminRole]);
 
   useEffect(() => {
     refreshNotifications();
-    if (!activeTenantId) return;
+    if (!isSuperAdminRole && !activeTenantId) return;
 
     const channel = supabase
-      .channel(`notifications-${activeTenantId}`)
+      .channel(`notifications-${isSuperAdminRole ? 'super-admin' : activeTenantId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `tenant_id=eq.${activeTenantId}` },
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: isSuperAdminRole ? 'audience=eq.super_admin' : `tenant_id=eq.${activeTenantId}` },
         (payload: any) => {
           refreshNotifications();
           const me = profileRef.current;
@@ -608,7 +609,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeTenantId, refreshNotifications]);
+  }, [activeTenantId, isSuperAdminRole, refreshNotifications]);
 
   const unreadNotificationCount = notifications.filter((n) => !n.isRead).length;
 

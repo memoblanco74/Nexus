@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
+import { ScreenId } from '../../types';
+import { screensFor } from '../../lib/screenAccess';
 import { useAuth } from '../../context/AuthContext';
 import { InstallAppButton } from './InstallAppButton';
 import { ProfileEditModal } from './ProfileEditModal';
@@ -21,9 +23,34 @@ import {
   User,
 } from 'lucide-react';
 
+const localizeNotification = (n: { title: string; body: string; code?: string | null; params?: Record<string, any> }, ar: boolean) => {
+  const p = n.params || {};
+  switch (n.code) {
+    case 'nursery_child_added': return { title: ar ? 'طفل جديد' : 'New child', body: ar ? `تم تسجيل الطفل ${p.name}` : `Child ${p.name} was registered` };
+    case 'nursery_payment': return { title: ar ? 'دفعة جديدة' : 'New payment', body: ar ? `تم تسجيل دفعة ${p.amount} ج.م للطفل ${p.name}` : `Payment of ${p.amount} EGP recorded for ${p.name}` };
+    case 'sub_renewed': return { title: ar ? 'تم تجديد الاشتراك' : 'Subscription renewed', body: ar ? `تم تجديد اشتراكك حتى ${p.until}` : `Your subscription is renewed until ${p.until}` };
+    case 'new_subscriber': return { title: ar ? 'مشترك جديد' : 'New subscriber', body: ar ? `اشترك مشروع جديد: ${p.name}` : `New project subscribed: ${p.name}` };
+    case 'chat_from_admin': return { title: ar ? 'الدعم الفني' : 'Support', body: p.preview || n.body };
+    case 'chat_from_founder': return { title: ar ? `رسالة جديدة من ${p.tenant}` : `New message from ${p.tenant}`, body: p.preview || n.body };
+    default: return { title: n.title, body: n.body };
+  }
+};
+
+const notificationTarget = (code: string | null | undefined, role: string | undefined): ScreenId | null => {
+  if (code === 'chat_from_admin') return 'support';
+  if (code === 'chat_from_founder') return 'super_admin';
+  if (code === 'new_subscriber') return 'super_admin';
+  if (code === 'sub_renewed') return role === 'founder' ? 'project_settings' : null;
+  if (code === 'nursery_child_added') return 'patients';
+  if (code === 'nursery_payment') return 'accounting';
+  return null;
+};
+
 export const Header: React.FC = () => {
   const {
     screen,
+    setScreen,
+    systemKey,
     language,
     toggleLanguage,
     theme,
@@ -123,7 +150,9 @@ export const Header: React.FC = () => {
             >
               <Bell className="h-4 w-4" />
               {unreadNotificationCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-slate-950" />
+                <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-slate-950">
+                  {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+                </span>
               )}
             </button>
 
@@ -157,20 +186,24 @@ export const Header: React.FC = () => {
                   {notifications.map((n) => (
                     <button
                       key={n.id}
-                      onClick={() => markNotificationRead(n.id)}
-                      className="w-full text-left py-2.5 flex flex-col gap-0.5 hover:bg-slate-800/40 rounded px-1.5 transition"
+                      onClick={() => {
+                        markNotificationRead(n.id);
+                        const go = notificationTarget(n.code, profile?.roleCode);
+                        if (go && screensFor(profile?.roleCode, systemKey).includes(go)) { setScreen(go); setShowNotifications(false); }
+                      }}
+                      className="w-full text-start py-2.5 flex flex-col gap-0.5 hover:bg-slate-800/40 rounded px-1.5 transition"
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-slate-200 dark:text-slate-200 light:text-[#1e293b] flex items-center gap-1.5">
                           {!n.isRead && <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />}
-                          {n.title}
+                          {localizeNotification(n, isRTL).title}
                         </span>
                         <span className="text-[10px] text-slate-500">
                           {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-400 dark:text-slate-400 light:text-[#475569] leading-relaxed">
-                        {n.body}
+                        {localizeNotification(n, isRTL).body}
                       </p>
                     </button>
                   ))}
