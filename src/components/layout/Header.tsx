@@ -17,6 +17,7 @@ import {
   Sparkles,
   Layers,
   LogOut,
+  User,
 } from 'lucide-react';
 
 export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSidebar }) => {
@@ -41,6 +42,7 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/85 light:border-[#e2e8f0] light:bg-white/90 transition-colors">
@@ -224,13 +226,13 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
             )}
           </div>
 
-          {/* User Profile & Sign Out */}
-          <div className="flex items-center gap-2 pl-1">
+          {/* User Profile Menu */}
+          <div className="relative flex items-center gap-2 pl-1">
             <div className="hidden sm:flex flex-col items-end leading-tight">
               <span className="text-xs font-semibold text-white">{profile?.fullName || profile?.username}</span>
               <span className="text-[10px] text-slate-400 capitalize">{profile?.roleCode.replace('_', ' ')}</span>
             </div>
-            <button onClick={() => setShowProfileModal(true)} className="relative" title={isRTL ? 'حسابي' : 'My Account'}>
+            <button onClick={() => setShowProfileMenu((v) => !v)} className="relative" title={isRTL ? 'حسابي' : 'My Account'}>
               {profile?.avatarUrl ? (
                 <img
                   src={profile.avatarUrl}
@@ -244,13 +246,39 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
               )}
               <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-950" />
             </button>
-            <button
-              onClick={() => signOut()}
-              title={isRTL ? 'تسجيل الخروج' : 'Sign out'}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-red-500/10 hover:text-red-400 transition"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-            </button>
+            {showProfileMenu &&
+              createPortal(
+                <div className="fixed inset-0 z-[25]" onPointerDown={() => setShowProfileMenu(false)} onClick={() => setShowProfileMenu(false)} />,
+                document.body
+              )}
+            {showProfileMenu && (
+              <div className={`absolute top-full ${isRTL ? 'left-0' : 'right-0'} z-50 mt-2 w-56 rounded-xl border border-slate-800 bg-slate-900 p-1.5 text-xs shadow-2xl dark:border-slate-800 dark:bg-slate-900 light:border-[#cbd5e1] light:bg-white`}>
+                <div className="border-b border-slate-800 px-3 py-2 sm:hidden">
+                  <p className="truncate font-semibold text-white">{profile?.fullName || profile?.username}</p>
+                  <p className="text-[10px] capitalize text-slate-400">{profile?.roleCode.replace('_', ' ')}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    setShowProfileModal(true);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start font-medium text-slate-200 hover:bg-slate-800"
+                >
+                  <User className="h-3.5 w-3.5" />
+                  {isRTL ? 'حسابي' : 'My account'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    signOut();
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start font-medium text-red-400 hover:bg-red-500/10"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  {isRTL ? 'تسجيل الخروج' : 'Sign out'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
