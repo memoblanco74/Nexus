@@ -7,6 +7,7 @@ import { PaymentInfoCard } from './PaymentInfoParts';
 import { UserManagementCard } from './AccountSecurityCards';
 import { AssistantsView } from './AssistantsView';
 import { ProjectDataCard } from './MyDataCard';
+import { SubscriptionHistoryList } from '../modals/SubscriptionHistory';
 
 const inputClass =
   'w-full rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none';
@@ -47,6 +48,17 @@ const ProjectNameCard: React.FC = () => {
         <input value={name} maxLength={60} onChange={(e) => setName(e.target.value)} className={inputClass} />
         <SaveButton signature={name.trim()} baseline={baseline} onSave={save} label={isRTL ? 'حفظ' : 'Save'} className="shrink-0 px-5 py-2" />
       </div>
+    </div>
+  );
+};
+
+const PaymentHistoryCard: React.FC = () => {
+  const { isRTL, activeTenant } = useApp();
+  if (!activeTenant) return null;
+  return (
+    <div className="glass-panel space-y-3 rounded-2xl p-4">
+      <h3 className="text-sm font-bold text-white dark:text-white light:text-[#0f172a]">{isRTL ? 'سجل المدفوعات والتجديدات' : 'Payments & renewals history'}</h3>
+      <SubscriptionHistoryList tenantId={activeTenant.id} />
     </div>
   );
 };
@@ -139,6 +151,7 @@ export const ProjectSettingsView: React.FC = () => {
       </div>
       <ProjectNameCard />
       <SubscriptionCard />
+      <PaymentHistoryCard />
       <ReferralCard />
       <AssistantsView />
       <UserManagementCard />

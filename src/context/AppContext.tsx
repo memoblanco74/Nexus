@@ -67,7 +67,7 @@ interface AppContextType {
   activeAccess: TenantAccess;
   isReadOnly: boolean;
   systemKey: string;
-  renewSubscription: (tenantId: string, months: number, amountPaid?: number | null, amountDue?: number | null) => Promise<string | null>;
+  renewSubscription: (tenantId: string, months: number, amountPaid?: number | null, amountDue?: number | null, extra?: { method?: string; reference?: string; paidAt?: string; sender?: string; note?: string }) => Promise<string | null>;
   paymentInfo: PaymentInfo;
   updatePaymentInfo: (info: PaymentInfo) => Promise<boolean>;
   referral: ReferralInfo | null;
@@ -1254,8 +1254,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => document.documentElement.classList.remove('read-only');
   }, [isReadOnly]);
 
-  const renewSubscription = async (tenantId: string, months: number, amountPaid: number | null = null, amountDue: number | null = null) => {
-    const { data, error } = await supabase.rpc('fn_renew_subscription', { p_tenant_id: tenantId, p_months: months, p_amount_paid: amountPaid, p_amount_due: amountDue });
+  const renewSubscription = async (tenantId: string, months: number, amountPaid: number | null = null, amountDue: number | null = null, extra: { method?: string; reference?: string; paidAt?: string; sender?: string; note?: string } = {}) => {
+    const { data, error } = await supabase.rpc('fn_renew_subscription', { p_tenant_id: tenantId, p_months: months, p_amount_paid: amountPaid, p_amount_due: amountDue, p_method: extra.method || null, p_reference: extra.reference || null, p_paid_at: extra.paidAt ? new Date(extra.paidAt + '+03:00').toISOString() : null, p_sender: extra.sender || null, p_note: extra.note || null });
     if (error) {
       showToast(error.message);
       return null;

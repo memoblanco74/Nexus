@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabaseClient';
 import { RenewSubscriptionModal } from '../modals/RenewSubscriptionModal';
+import { SubscriptionHistoryModal } from '../modals/SubscriptionHistory';
 import { SaveButton } from '../ui/SaveButton';
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
@@ -181,6 +182,7 @@ export const SuperAdminView: React.FC = () => {
   }, [subscriptions.length]);
 
   const [renewTarget, setRenewTarget] = useState<{ id: string; name: string } | null>(null);
+  const [historyTarget, setHistoryTarget] = useState<{ id: string; name: string } | null>(null);
   const [rev, setRev] = useState<{ total_paid: number; month_paid: number; month_renewals: number; paying_tenants: number; paying_tenants_month: number } | null>(null);
   useEffect(() => {
     supabase.rpc('fn_revenue_summary').then(({ data }) => { if (data) setRev(data as any); });
@@ -767,6 +769,13 @@ export const SuperAdminView: React.FC = () => {
                       <td className="py-3 px-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <button
+                            onClick={() => setHistoryTarget({ id: sub.id, name: language === 'ar' ? sub.tenantNameAr : sub.tenantName })}
+                            className="flex items-center gap-1 rounded-lg bg-blue-600/20 px-2 py-1 text-[11px] font-bold text-blue-300 hover:bg-blue-600/30"
+                            title={isRTL ? 'سجل المدفوعات' : 'Payment history'}
+                          >
+                            {isRTL ? 'السجل' : 'History'}
+                          </button>
+                          <button
                             onClick={() => setRenewTarget({ id: sub.id, name: language === 'ar' ? sub.tenantNameAr : sub.tenantName })}
                             className="flex items-center gap-1 rounded-lg bg-emerald-600/20 px-2 py-1 text-[11px] font-bold text-emerald-300 hover:bg-emerald-600/30"
                             title={isRTL ? 'تجديد الاشتراك' : 'Renew'}
@@ -843,6 +852,7 @@ export const SuperAdminView: React.FC = () => {
           </div>
         </div>
       </div>
+      {historyTarget && <SubscriptionHistoryModal tenantId={historyTarget.id} tenantName={historyTarget.name} onClose={() => setHistoryTarget(null)} />}
       {renewTarget && <RenewSubscriptionModal tenantId={renewTarget.id} tenantName={renewTarget.name} discountPercent={refInfo[(founders[renewTarget.id]?.email || '').toLowerCase()]?.percent || 0} onClose={() => setRenewTarget(null)} />}
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CalendarPlus, X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { parsePaymentMessage } from '../../lib/paymentParse';
 
 interface Props {
   tenantId: string;
@@ -14,6 +15,25 @@ export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, 
   const [months, setMonths] = useState(1);
   const [paid, setPaid] = useState('');
   const [custom, setCustom] = useState('');
+  const [msg, setMsg] = useState('');
+  const [method, setMethod] = useState('InstaPay');
+  const [reference, setReference] = useState('');
+  const [sender, setSender] = useState('');
+  const [paidAt, setPaidAt] = useState(() => new Date().toLocaleString('sv-SE', { timeZone: 'Africa/Cairo' }).slice(0, 16).replace(' ', 'T'));
+  const [note, setNote] = useState('');
+  const [filled, setFilled] = useState('');
+
+  const onPasteMsg = (v: string) => {
+    setMsg(v);
+    const p = parsePaymentMessage(v);
+    const got: string[] = [];
+    if (p.amount) { setPaid(p.amount); got.push(isRTL ? 'المبلغ' : 'amount'); }
+    if (p.reference) { setReference(p.reference); got.push(isRTL ? 'المرجع' : 'reference'); }
+    if (p.sender) { setSender(p.sender); got.push(isRTL ? 'المحوّل' : 'sender'); }
+    if (p.paidAt) { setPaidAt(p.paidAt); got.push(isRTL ? 'التاريخ' : 'date'); }
+    if (p.method) setMethod(p.method);
+    setFilled(v.trim() ? (got.length ? (isRTL ? 'تمت تعبئة: ' : 'Filled: ') + got.join('، ') : (isRTL ? 'لم أستطع قراءة الرسالة' : 'Could not read the message')) : '');
+  };
   const [busy, setBusy] = useState(false);
 
   const tenant = tenants.find((t) => t.id === tenantId);
@@ -47,8 +67,8 @@ export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, 
   const confirm = async () => {
     setBusy(true);
     const paidNum = paid.trim() === '' ? total : Number(paid);
-    if (!Number.isFinite(paidNum) || paidNum < 0) return;
-    const res = await renewSubscription(tenantId, months, paidNum, total);
+    if (!Number.isFinite(paidNum) || paidNum < 0) { setBusy(false); return; }
+    const res = await renewSubscription(tenantId, months, paidNum, total, { method, reference, paidAt, sender, note });
     setBusy(false);
     if (res) onClose();
   };
@@ -106,10 +126,20 @@ export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, 
             <div className="flex justify-between text-emerald-300"><span>{isRTL ? `خصم ${discountPercent}%` : `Discount ${discountPercent}%`}</span><span>- {money(discountValue, 2)}</span></div>
           )}
           <div className="flex justify-between border-t border-blue-500/30 pt-1.5 text-sm font-extrabold text-white"><span>{isRTL ? 'المطلوب من المشترك' : 'Amount due'}</span><span>{money(total, 2)}</span></div>
-        <label className="block space-y-1">
-          <span className="text-xs text-slate-400">{isRTL ? 'المبلغ المحصّل فعلياً (اتركه فارغاً = المطلوب)' : 'Amount actually received (empty = amount due)'}</span>
+        </div>
+        <div className="space-y-2 rounded-xl border border-slate-800 p-3">
+          <p className="text-[11px] font-semibold text-slate-300">{isRTL ? 'بيانات الدفع' : 'Payment details'}</p>
+          <textarea value={msg} onChange={(e) => onPasteMsg(e.target.value)} rows={2} placeholder={isRTL ? 'الصق رسالة التحويل هنا لتعبئة البيانات تلقائياً' : 'Paste the transfer message to auto-fill'} className={"w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500 resize-none text-xs"} />
+          {filled && <p className="text-[11px] text-emerald-300">{filled}</p>}
+          <span className="block text-[11px] text-slate-400">{isRTL ? 'المبلغ المحصّل (فارغ = المطلوب)' : 'Amount received (empty = due)'}</span>
           <input inputMode="decimal" value={paid} onChange={(e) => setPaid(e.target.value.replace(/[^0-9.]/g, ''))} placeholder={String(total)} className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500" />
-        </label>
+          <select value={method} onChange={(e) => setMethod(e.target.value)} className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500">
+            {['InstaPay', 'Vodafone Cash', 'Bank transfer', 'Cash', 'Other'].map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <input value={reference} onChange={(e) => setReference(e.target.value)} dir="ltr" placeholder={isRTL ? 'الرقم المرجعي (إن وجد)' : 'Reference (if any)'} className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500" />
+          <input value={sender} onChange={(e) => setSender(e.target.value)} placeholder={isRTL ? 'اسم المحوّل' : 'Sender name'} className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500" />
+          <input type="datetime-local" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500" />
+          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={isRTL ? 'ملاحظة (اختياري)' : 'Note (optional)'} className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500" />
         </div>
         <p className="rounded-xl bg-emerald-500/10 p-3 text-xs text-emerald-300">
           {isRTL ? `هيتجدد حتى ${preview}` : `Will be renewed until ${preview}`}
