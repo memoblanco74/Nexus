@@ -47,13 +47,13 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
       <div className="flex h-full items-center justify-between px-4 sm:px-6">
         {/* Left section: Hamburger (mobile), Logo / Screen Breadcrumb */}
         <div className="flex items-center gap-3">
-          <button
+          {profile?.roleCode !== 'super_admin' && <button
             onClick={onToggleSidebar}
             className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700/60 bg-slate-900/50 text-slate-300 hover:bg-slate-800 lg:hidden dark:border-slate-700/60 dark:bg-slate-900/50 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#334155]"
             aria-label="Toggle navigation menu"
           >
             <Layers className="h-5 w-5" />
-          </button>
+          </button>}
 
           <div className="hidden sm:flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-sm shadow-blue-500/30">
@@ -71,7 +71,7 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
         </div>
 
         {/* Center section: Global Search Bar */}
-        <div className="flex flex-1 max-w-md mx-4">
+        {profile?.roleCode === 'super_admin' ? <div className="flex-1" /> : <div className="flex flex-1 max-w-md mx-4">
           <div className="relative w-full">
             <Search className={`absolute top-2.5 ${isRTL ? 'right-3' : 'left-3'} h-4 w-4 text-slate-400`} />
             <input
@@ -90,7 +90,7 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
               } text-xs text-slate-200 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500/50 dark:border-slate-800 dark:bg-slate-900/70 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#0f172a] light:placeholder-[#64748b]`}
             />
           </div>
-        </div>
+        </div>}
 
         {/* Right section: System Badge, Tenant Selector, Language & Theme Controls, Profile */}
         <div className="flex items-center gap-2 sm:gap-3">

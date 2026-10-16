@@ -83,7 +83,7 @@ export const MobileBottomNav: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t border-slate-800 bg-slate-950/90 px-2 backdrop-blur-xl lg:hidden dark:border-slate-800 dark:bg-slate-950/90 light:border-[#e2e8f0] light:bg-white/95">
+    <div className={`fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t border-slate-800 bg-slate-950/90 px-2 backdrop-blur-xl ${role === 'super_admin' ? '' : 'lg:hidden'} dark:border-slate-800 dark:bg-slate-950/90 light:border-[#e2e8f0] light:bg-white/95`}>
       {firstHalf.map(renderTab)}
 
       {showScanFab && (

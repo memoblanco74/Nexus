@@ -70,10 +70,12 @@ const DashboardContent: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-[#0b0f17] text-slate-100 dark:bg-[#0b0f17] dark:text-slate-100 light:bg-[#dcedf0] light:text-[#0f172a] font-sans transition-colors duration-200">
       {/* Sidebar Navigation */}
-      <Sidebar
-        isOpenMobile={isMobileSidebarOpen}
-        onCloseMobile={() => setIsMobileSidebarOpen(false)}
-      />
+      {profile?.roleCode !== 'super_admin' && (
+        <Sidebar
+          isOpenMobile={isMobileSidebarOpen}
+          onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
 
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col min-w-0">
