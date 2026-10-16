@@ -188,8 +188,8 @@ interface AppContextType {
 
 const DICTIONARY: Record<string, { en: string; ar: string }> = {
   'nav.super_admin': { en: 'Super Admin', ar: 'المشرف العام' },
-  'nav.founder': { en: 'Founder & Clinic', ar: 'المؤسس والعيادة' },
-  'nav.assistant': { en: 'Assistant Desk', ar: 'مكتب المساعد' },
+  'nav.founder': { en: 'Home', ar: 'الرئيسية' },
+  'nav.assistant': { en: 'Home', ar: 'الرئيسية' },
   'nav.projects': { en: 'Projects', ar: 'المشاريع' },
   'nav.patients': { en: 'Patients', ar: 'المرضى' },
   'nav.bookings': { en: 'Bookings', ar: 'الحجوزات' },
@@ -217,7 +217,7 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
   'super_admin.add_tenant': { en: 'Add Tenant', ar: 'إضافة مستأجر جديد' },
   'super_admin.export_csv': { en: 'Export CSV', ar: 'تصدير CSV' },
   'super_admin.search_placeholder': { en: 'Search tenant, project ID or code...', ar: 'ابحث عن مستأجر، معرف المشروع أو الرمز...' },
-  'founder.title': { en: 'Founder & Clinic Overview', ar: 'نظرة عامة للمؤسس والعيادة' },
+  'founder.title': { en: 'Overview', ar: 'نظرة عامة' },
   'founder.welcome': { en: 'Welcome back', ar: 'مرحباً بعودتك' },
   'founder.subtitle': { en: 'Here is what is happening across your clinics today.', ar: 'إليك ملخص ما يحدث في عياداتك ومراكزك اليوم.' },
   'founder.add_patient': { en: 'Add Patient', ar: 'إضافة مريض' },
