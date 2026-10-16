@@ -6,7 +6,8 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { SaveButton } from '../ui/SaveButton';
 import { Badge, Field, Modal, cardClass, inputClass } from './ui';
-import { Child, FeeItem, NurseryCore, cairoToday, childDue, feeName, monthOf } from './nurseryApi';
+import { Child, FeeItem, NurseryCore, cairoToday, childDue, feeName, monthOf, phoneForWhatsApp } from './nurseryApi';
+import { renderReportPdf } from './reportPdf';
 
 type Category = FeeItem['category'];
 
@@ -237,12 +238,56 @@ const PaymentModal: React.FC<{ child: Child; period: string; due: number; paid: 
   );
 };
 
+const childPhone = (c: Child) => c.mother_phone || c.father_phone || c.guardian_phone || '';
+
+const reminderText = (name: string, period: string, remaining: number, nursery: string, ar: boolean) =>
+  ar
+    ? `السلام عليكم، تذكير ودي من ${nursery}: المتبقي من اشتراك ${name} عن شهر ${period} هو ${remaining} ج.م. برجاء السداد في أقرب وقت. شكراً لكم.`
+    : `Hello, a friendly reminder from ${nursery}: the remaining fee for ${name} for ${period} is ${remaining} EGP. Please settle at your earliest convenience. Thank you.`;
+
+const openReminder = (c: Child, period: string, remaining: number, nursery: string, ar: boolean) => {
+  const digits = phoneForWhatsApp(childPhone(c));
+  window.open(`https://wa.me/${digits}?text=${encodeURIComponent(reminderText(c.full_name, period, remaining, nursery, ar))}`, '_blank');
+};
+
+const RemindersModal: React.FC<{ rows: { child: Child; remaining: number }[]; period: string; nursery: string; onClose: () => void }> = ({ rows, period, nursery, onClose }) => {
+  const { isRTL, money } = useApp();
+  const tx = (ar: string, en: string) => (isRTL ? ar : en);
+  const [sent, setSent] = useState<Record<string, boolean>>({});
+  return (
+    <Modal title={tx(`تذكير المتأخرين — ${period}`, `Overdue reminders — ${period}`)} onClose={onClose}>
+      <p className="text-[11px] text-slate-400">{tx('كل ضغطة بتفتح واتساب برسالة جاهزة لولي الأمر. تم إرسال', 'Each tap opens WhatsApp with a ready message. Sent')} {Object.keys(sent).length} / {rows.length}</p>
+      <div className="space-y-2">
+        {rows.map((r) => {
+          const phone = childPhone(r.child);
+          return (
+            <div key={r.child.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-800 p-3">
+              <div className="min-w-0">
+                <p className="truncate text-xs font-bold text-white">{r.child.full_name}</p>
+                <p className="text-[11px] text-slate-500"><span dir="ltr">{phone || tx('مفيش رقم', 'No phone')}</span> • {money(r.remaining)}</p>
+              </div>
+              {phone && (
+                <button onClick={() => { openReminder(r.child, period, r.remaining, nursery, isRTL); setSent((x) => ({ ...x, [r.child.id]: true })); }} className={`shrink-0 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold ${sent[r.child.id] ? 'border-slate-700 text-slate-400' : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'}`}>
+                  {sent[r.child.id] ? tx('إعادة', 'Again') : tx('واتساب', 'WhatsApp')}
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </Modal>
+  );
+};
+
 const PaymentsTab: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const { isRTL, money } = useApp();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const [period, setPeriod] = useState(monthOf(cairoToday()));
   const [filter, setFilter] = useState<'all' | 'unpaid' | 'paid'>('all');
   const [paying, setPaying] = useState<string | null>(null);
+  const [remindOpen, setRemindOpen] = useState(false);
+  const { activeTenant, language } = useApp();
+  const nurseryName = language === 'ar' ? activeTenant?.nameAr || activeTenant?.name || '' : activeTenant?.name || '';
 
   const rows = useMemo(
     () =>
@@ -258,6 +303,25 @@ const PaymentsTab: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const totals = rows.reduce((a, r) => ({ due: a.due + r.due, paid: a.paid + r.paid }), { due: 0, paid: 0 });
   const shown = rows.filter((r) => (filter === 'all' ? true : filter === 'paid' ? r.due > 0 && r.remaining === 0 : r.remaining > 0));
   const payingRow = rows.find((r) => r.child.id === paying) || null;
+  const overdue = rows.filter((r) => r.remaining > 0);
+
+  const exportOverdue = async () => {
+    const esc = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const html = `<div dir="${isRTL ? 'rtl' : 'ltr'}" style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;color:#0f172a;padding:28px;width:760px;background:#fff">
+      <h2 style="margin:0 0 4px;color:#1d4ed8">${esc(nurseryName)}</h2>
+      <p style="margin:0 0 14px;font-size:12px;color:#475569">${tx('كشف المتأخرين عن شهر', 'Overdue statement for')} ${period} — ${tx('الإجمالي المتبقي', 'Total outstanding')}: <b>${overdue.reduce((a, r) => a + r.remaining, 0)}</b></p>
+      <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr>${[tx('الطفل', 'Child'), tx('المطلوب', 'Due'), tx('المدفوع', 'Paid'), tx('المتبقي', 'Remaining'), tx('موبايل', 'Phone')].map((h) => `<th style="background:#1d4ed8;color:#fff;padding:6px;text-align:${isRTL ? 'right' : 'left'}">${h}</th>`).join('')}</tr></thead>
+      <tbody>${overdue.map((r, i) => `<tr style="background:${i % 2 ? '#f1f5f9' : '#fff'}">${[esc(r.child.full_name), r.due, r.paid, r.remaining, esc(childPhone(r.child))].map((c) => `<td style="padding:5px 6px;border-bottom:1px solid #e2e8f0">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    const blob = await renderReportPdf(html);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `overdue-${period}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  };
 
   return (
     <div className="space-y-4">
@@ -270,6 +334,12 @@ const PaymentsTab: React.FC<{ core: NurseryCore }> = ({ core }) => {
             </button>
           ))}
         </div>
+        {overdue.length > 0 && (
+          <div className="flex gap-1.5">
+            <button onClick={() => setRemindOpen(true)} className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20">{tx('تذكير المتأخرين واتساب', 'Remind overdue')} ({overdue.length})</button>
+            <button onClick={exportOverdue} className="rounded-lg border border-blue-500/40 bg-blue-500/10 px-3 py-1.5 text-[11px] font-bold text-blue-300 hover:bg-blue-500/20">{tx('كشف PDF', 'PDF statement')}</button>
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div className={`${cardClass} text-center`}><p className="text-sm font-extrabold text-white">{money(totals.due)}</p><p className="text-[11px] text-slate-400">{tx('المطلوب', 'Expected')}</p></div>
@@ -293,6 +363,7 @@ const PaymentsTab: React.FC<{ core: NurseryCore }> = ({ core }) => {
           ))}
         </div>
       )}
+      {remindOpen && <RemindersModal rows={overdue} period={period} nursery={nurseryName} onClose={() => setRemindOpen(false)} />}
       {payingRow && <PaymentModal child={payingRow.child} period={period} due={payingRow.due} paid={payingRow.paid} core={core} onClose={() => setPaying(null)} />}
     </div>
   );

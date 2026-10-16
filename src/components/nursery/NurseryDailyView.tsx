@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/supabaseClient';
 import { SaveButton } from '../ui/SaveButton';
 import { Badge, Field, Modal, cardClass, inputClass } from './ui';
+import { NurseryBulkSend } from './NurseryBulkSend';
 import { buildReportHtml, renderReportPdf, sendReportViaWhatsApp } from './reportPdf';
 import { Child, DailyLog, MealEntry, NurseryCore, cairoToday, emptyLog, rowToLog } from './nurseryApi';
 
@@ -328,6 +329,7 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const [q, setQ] = useState('');
   const [editing, setEditing] = useState<Child | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const loadLogs = useCallback(async () => {
     if (!activeTenant) return;
@@ -373,7 +375,13 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
           </h1>
           <p className="mt-1 text-xs text-slate-400">{tx('حضور وغياب كل طفل وتقرير يومه', 'Attendance and daily report per child')}</p>
         </div>
-        <input type="date" value={day} onChange={(e) => e.target.value && setDay(e.target.value)} className={`${inputClass} max-w-[11rem]`} />
+        <div className="flex items-center gap-2">
+          <button onClick={() => setBulkOpen(true)} className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20">
+            <Send className="h-4 w-4" />
+            {tx('إرسال تقارير الكل', 'Send all reports')}
+          </button>
+          <input type="date" value={day} onChange={(e) => e.target.value && setDay(e.target.value)} className={`${inputClass} max-w-[11rem]`} />
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -432,6 +440,8 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
           })}
         </div>
       )}
+
+      {bulkOpen && <NurseryBulkSend day={day} children={active} logs={logs} onClose={() => setBulkOpen(false)} />}
 
       {editing && (
         <ReportEditor

@@ -1,6 +1,7 @@
 import { askConfirm, askPrompt } from '../../lib/dialog';
 import { supabase } from '../../lib/supabaseClient';
 import { RenewSubscriptionModal } from '../modals/RenewSubscriptionModal';
+import { AdminReports } from './AdminReports';
 import { SubscriptionHistoryModal } from '../modals/SubscriptionHistory';
 import { SaveButton } from '../ui/SaveButton';
 import React, { useState, useEffect } from 'react';
@@ -282,6 +283,8 @@ export const SuperAdminView: React.FC = () => {
           <p className="mt-1 text-[11px] text-slate-500">{isRTL ? `هذا الشهر: ${rev?.paying_tenants_month ?? 0}` : `This month: ${rev?.paying_tenants_month ?? 0}`}</p>
         </div>
       </div>
+
+      <AdminReports onRenew={(id, name) => setRenewTarget({ id, name })} />
 
       {/* KPI Cards Grid (4 Top Cards) */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

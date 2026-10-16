@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { requestOpen } from '../../lib/pendingOpen';
 import { supabase } from '../../lib/supabaseClient';
 import type { ScreenId } from '../../types';
 
@@ -21,6 +22,7 @@ interface Hit {
   title: string;
   sub: string;
   screen: ScreenId;
+  childId?: string;
 }
 
 interface Group {
@@ -63,6 +65,7 @@ export const GlobalSearch: React.FC = () => {
           title: c.full_name,
           sub: [c.mother_name || c.father_name || c.guardian_name, c.mother_phone || c.father_phone || c.guardian_phone].filter(Boolean).join(' • '),
           screen: 'patients' as ScreenId,
+          childId: c.id as string,
         }));
       setRemote(hits);
     }, 150);
@@ -116,6 +119,7 @@ export const GlobalSearch: React.FC = () => {
 
   const choose = (hit: Hit) => {
     setScreen(hit.screen);
+    if (hit.childId) setTimeout(() => requestOpen('child', hit.childId!), 0);
     setOpen(false);
     setQuery('');
     inputRef.current?.blur();

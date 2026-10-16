@@ -29,6 +29,8 @@ const localizeNotification = (n: { title: string; body: string; code?: string | 
     case 'nursery_child_added': return { title: ar ? 'طفل جديد' : 'New child', body: ar ? `تم تسجيل الطفل ${p.name}` : `Child ${p.name} was registered` };
     case 'nursery_payment': return { title: ar ? 'دفعة جديدة' : 'New payment', body: ar ? `تم تسجيل دفعة ${p.amount} ج.م للطفل ${p.name}` : `Payment of ${p.amount} EGP recorded for ${p.name}` };
     case 'sub_renewed': return { title: ar ? 'تم تجديد الاشتراك' : 'Subscription renewed', body: ar ? `تم تجديد اشتراكك حتى ${p.until}` : `Your subscription is renewed until ${p.until}` };
+    case 'sub_expiring': return { title: ar ? 'اشتراكك قارب على الانتهاء' : 'Subscription expiring soon', body: ar ? `متبقي ${p.days} يوم على انتهاء الاشتراك (${p.date})` : `${p.days} day(s) left until your subscription ends (${p.date})` };
+    case 'expiring_summary': return { title: ar ? 'اشتراكات قاربت على الانتهاء' : 'Subscriptions expiring soon', body: ar ? `${p.count} مشترك ينتهي اشتراكهم خلال 7 أيام` : `${p.count} subscriber(s) expire within 7 days` };
     case 'new_subscriber': return { title: ar ? 'مشترك جديد' : 'New subscriber', body: ar ? `اشترك مشروع جديد: ${p.name}` : `New project subscribed: ${p.name}` };
     case 'chat_from_admin': return { title: ar ? 'الدعم الفني' : 'Support', body: p.preview || n.body };
     case 'chat_from_founder': return { title: ar ? `رسالة جديدة من ${p.tenant}` : `New message from ${p.tenant}`, body: p.preview || n.body };
@@ -39,7 +41,8 @@ const localizeNotification = (n: { title: string; body: string; code?: string | 
 const notificationTarget = (code: string | null | undefined, role: string | undefined): ScreenId | null => {
   if (code === 'chat_from_admin') return 'support';
   if (code === 'chat_from_founder') return 'super_admin';
-  if (code === 'new_subscriber') return 'super_admin';
+  if (code === 'new_subscriber' || code === 'expiring_summary') return 'super_admin';
+  if (code === 'sub_expiring') return role === 'founder' ? 'project_settings' : null;
   if (code === 'sub_renewed') return role === 'founder' ? 'project_settings' : null;
   if (code === 'nursery_child_added') return 'patients';
   if (code === 'nursery_payment') return 'accounting';

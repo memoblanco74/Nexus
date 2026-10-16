@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { onPending, takePending } from '../../lib/pendingOpen';
 import { Baby, Pencil, Plus, Search, Syringe, Trash2, Truck } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
@@ -284,6 +285,15 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
   const [editing, setEditing] = useState<Child | null | 'new'>(null);
   const [viewing, setViewing] = useState<string | null>(null);
   const period = monthOf(cairoToday());
+
+  useEffect(() => {
+    const check = () => {
+      const id = takePending('child');
+      if (id) setViewing(id);
+    };
+    check();
+    return onPending(check);
+  }, []);
 
   const needle = q.trim().toLowerCase();
   const list = core.children.filter((c) =>

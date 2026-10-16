@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { History, X } from 'lucide-react';
+import { Download, FileText, History, X } from 'lucide-react';
+import { exportPaymentsPdf, exportPaymentsXlsx, fetchPayments } from '../../lib/paymentsExport';
 import { supabase } from '../../lib/supabaseClient';
 import { useApp } from '../../context/AppContext';
 
@@ -24,12 +25,31 @@ export const SubscriptionHistoryList: React.FC<{ tenantId: string; reloadKey?: n
     });
   }, [tenantId, reloadKey]);
 
+  const [busy, setBusy] = useState(false);
+  const doExport = async (kind: 'xlsx' | 'pdf') => {
+    setBusy(true);
+    try {
+      const all = await fetchPayments(tenantId);
+      const name = `nexus-payments-${new Date().toISOString().slice(0, 10)}`;
+      if (kind === 'xlsx') await exportPaymentsXlsx(all, isRTL, name);
+      else await exportPaymentsPdf(all, isRTL, name, isRTL ? 'سجل المدفوعات' : 'Payments history');
+    } catch (e: any) {
+      setErr(e?.message || 'Export failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (rows === null) return <p className="text-xs text-slate-400">{isRTL ? 'جاري التحميل...' : 'Loading...'}</p>;
   if (err) return <p className="text-xs text-red-400">{err}</p>;
   if (rows.length === 0) return <p className="text-xs text-slate-400">{isRTL ? 'لا توجد مدفوعات مسجلة بعد' : 'No payments recorded yet'}</p>;
 
   return (
     <div className="space-y-2">
+      <div className="flex gap-1.5">
+        <button disabled={busy} onClick={() => doExport('xlsx')} className="flex items-center gap-1 rounded-lg bg-emerald-600/20 px-2.5 py-1 text-[11px] font-bold text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"><Download className="h-3.5 w-3.5" />Excel</button>
+        <button disabled={busy} onClick={() => doExport('pdf')} className="flex items-center gap-1 rounded-lg bg-blue-600/20 px-2.5 py-1 text-[11px] font-bold text-blue-300 hover:bg-blue-600/30 disabled:opacity-50"><FileText className="h-3.5 w-3.5" />PDF</button>
+      </div>
       {rows.map((r) => (
         <div key={r.id} className="space-y-1 rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-xs text-slate-200">
           <div className="flex items-center justify-between">
