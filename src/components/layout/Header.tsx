@@ -139,29 +139,6 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
           {/* Install App */}
           <InstallAppButton isRTL={isRTL} />
 
-          {/* Language Switcher */}
-          <button
-            onClick={toggleLanguage}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-2.5 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white dark:border-slate-800 dark:bg-slate-900/60 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#334155] transition"
-            title="Switch Language (AR / EN)"
-          >
-            <Globe className="h-3.5 w-3.5 text-blue-400" />
-            <span>{language === 'en' ? 'العربية' : 'EN'}</span>
-          </button>
-
-          {/* Theme Switcher */}
-          <button
-            onClick={toggleTheme}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white dark:border-slate-800 dark:bg-slate-900/60 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#334155] transition"
-            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {theme === 'dark' ? (
-              <Sun className="h-4 w-4 text-amber-400" />
-            ) : (
-              <Moon className="h-4 w-4 text-indigo-500" />
-            )}
-          </button>
-
           {/* Notification Button & Dropdown */}
           <div className="relative">
             <button
@@ -267,6 +244,25 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
                   <User className="h-3.5 w-3.5" />
                   {isRTL ? 'حسابي' : 'My account'}
                 </button>
+                <button
+                  onClick={toggleLanguage}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start font-medium text-slate-200 hover:bg-slate-800"
+                >
+                  <Globe className="h-3.5 w-3.5 text-blue-400" />
+                  <span className="flex-1">{isRTL ? 'اللغة' : 'Language'}</span>
+                  <span className="rounded-md bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-slate-300">{language === 'en' ? 'العربية' : 'EN'}</span>
+                </button>
+                <button
+                  onClick={toggleTheme}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start font-medium text-slate-200 hover:bg-slate-800"
+                >
+                  {theme === 'dark' ? <Sun className="h-3.5 w-3.5 text-amber-400" /> : <Moon className="h-3.5 w-3.5 text-indigo-500" />}
+                  <span className="flex-1">{isRTL ? 'المظهر' : 'Theme'}</span>
+                  <span className="rounded-md bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-slate-300">
+                    {theme === 'dark' ? (isRTL ? 'فاتح' : 'Light') : isRTL ? 'داكن' : 'Dark'}
+                  </span>
+                </button>
+                <div className="my-1 border-t border-slate-800" />
                 <button
                   onClick={() => {
                     setShowProfileMenu(false);
