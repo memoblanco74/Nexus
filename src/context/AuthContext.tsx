@@ -338,6 +338,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (uploadError) return { error: uploadError.message };
 
+    try {
+      const { data: existing } = await supabase.storage.from('avatars').list(session.user.id);
+      const stale = (existing || []).filter((f) => f.name !== `avatar.${ext}`).map((f) => `${session.user.id}/${f.name}`);
+      if (stale.length) await supabase.storage.from('avatars').remove(stale);
+    } catch { /* ignore */ }
+
     const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(path);
     const url = `${publicUrlData.publicUrl}?t=${Date.now()}`;
 
