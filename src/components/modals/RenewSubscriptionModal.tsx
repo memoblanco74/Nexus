@@ -74,8 +74,8 @@ export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="w-full max-w-sm space-y-4 rounded-2xl border border-slate-800 bg-slate-950 p-5" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 pb-20" onClick={onClose}>
+      <div className="max-h-[80vh] w-full max-w-sm space-y-4 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-950 p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-sm font-bold text-white">
             <CalendarPlus className="h-4 w-4 text-emerald-400" />

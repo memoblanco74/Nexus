@@ -55,8 +55,8 @@ export const SubscriptionHistoryList: React.FC<{ tenantId: string; reloadKey?: n
 export const SubscriptionHistoryModal: React.FC<{ tenantId: string; tenantName: string; onClose: () => void }> = ({ tenantId, tenantName, onClose }) => {
   const { isRTL } = useApp();
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="max-h-[85vh] w-full max-w-md space-y-3 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-950 p-5" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 pb-20" onClick={onClose}>
+      <div className="max-h-[80vh] w-full max-w-md space-y-3 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-950 p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-sm font-bold text-white"><History className="h-4 w-4 text-blue-400" />{isRTL ? 'سجل المدفوعات' : 'Payment history'}</h3>
           <button onClick={onClose} className="rounded p-1 text-slate-400 hover:bg-slate-800"><X className="h-4 w-4" /></button>
