@@ -29,19 +29,19 @@ const SUGGESTIONS: Array<{ name: string; name_ar: string; category: Category }> 
 const FeeRow: React.FC<{ item: FeeItem; canEdit: boolean; onChanged: () => void }> = ({ item, canEdit, onChanged }) => {
   const { isRTL, showToast } = useApp();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
-  const initial = { name_ar: item.name_ar || item.name, price: String(item.price), active: item.active, category: item.category };
+  const initial = { name_ar: feeName(item, true), name_en: feeName(item, false), price: String(item.price), active: item.active, category: item.category };
   const [form, setForm] = useState(initial);
   const [baseline, setBaseline] = useState(JSON.stringify(initial));
 
   const save = async () => {
     const price = Number(form.price);
-    if (!isFinite(price) || price < 0 || !form.name_ar.trim()) {
+    if (!isFinite(price) || price < 0 || (!form.name_ar.trim() && !form.name_en.trim())) {
       showToast(tx('راجع الاسم والسعر', 'Check name and price'));
       return false;
     }
     const { error } = await supabase
       .from('nursery_fee_items')
-      .update({ name: form.name_ar.trim(), name_ar: form.name_ar.trim(), price, active: form.active, category: form.category })
+      .update({ name: form.name_en.trim() || form.name_ar.trim(), name_ar: form.name_ar.trim() || form.name_en.trim(), price, active: form.active, category: form.category })
       .eq('id', item.id);
     if (error) {
       showToast(error.message);
@@ -61,7 +61,10 @@ const FeeRow: React.FC<{ item: FeeItem; canEdit: boolean; onChanged: () => void 
 
   return (
     <div className="grid grid-cols-1 gap-2 rounded-xl border border-slate-800 p-3 sm:grid-cols-[1fr_9rem_7rem_auto_auto] sm:items-center">
-      <input disabled={!canEdit} className={inputClass} value={form.name_ar} onChange={(e) => setForm({ ...form, name_ar: e.target.value })} />
+      <div className="space-y-1.5">
+        <input disabled={!canEdit} dir="rtl" className={inputClass} placeholder="الاسم بالعربي" value={form.name_ar} onChange={(e) => setForm({ ...form, name_ar: e.target.value })} />
+        <input disabled={!canEdit} dir="ltr" className={inputClass} placeholder="English name" value={form.name_en} onChange={(e) => setForm({ ...form, name_en: e.target.value })} />
+      </div>
       <select disabled={!canEdit} className={inputClass} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as Category })}>
         {(Object.keys(CATEGORY_LABELS) as Category[]).map((c) => (
           <option key={c} value={c}>{CATEGORY_LABELS[c][isRTL ? 0 : 1]}</option>
@@ -88,24 +91,26 @@ const FeesTab: React.FC<{ core: NurseryCore; canEdit: boolean }> = ({ core, canE
   const { isRTL, activeTenant, showToast } = useApp();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const [name, setName] = useState('');
+  const [nameEn, setNameEn] = useState('');
   const [category, setCategory] = useState<Category>('other');
   const [price, setPrice] = useState('');
   const [busy, setBusy] = useState(false);
 
   const add = async () => {
     const p = Number(price);
-    if (!name.trim() || !isFinite(p) || p < 0) {
+    if ((!name.trim() && !nameEn.trim()) || !isFinite(p) || p < 0) {
       showToast(tx('اكتب اسم الاشتراك وسعره', 'Enter name and price'));
       return;
     }
     setBusy(true);
-    const { error } = await supabase.from('nursery_fee_items').insert({ tenant_id: activeTenant!.id, name: name.trim(), name_ar: name.trim(), category, price: p });
+    const { error } = await supabase.from('nursery_fee_items').insert({ tenant_id: activeTenant!.id, name: nameEn.trim() || name.trim(), name_ar: name.trim() || nameEn.trim(), category, price: p });
     setBusy(false);
     if (error) {
       showToast(error.message);
       return;
     }
     setName('');
+    setNameEn('');
     setPrice('');
     core.reload();
   };
@@ -133,14 +138,17 @@ const FeesTab: React.FC<{ core: NurseryCore; canEdit: boolean }> = ({ core, canE
       )}
       <div className="space-y-2">
         {core.feeItems.map((item) => (
-          <FeeRow key={item.id + item.price + item.active + (item.name_ar || '') + item.category} item={item} canEdit={canEdit} onChanged={core.reload} />
+          <FeeRow key={item.id + item.price + item.active + (item.name_ar || '') + (item.name || '') + item.category} item={item} canEdit={canEdit} onChanged={core.reload} />
         ))}
       </div>
       {canEdit && (
         <div data-write="1" className={`${cardClass} space-y-3`}>
           <h4 className="text-xs font-bold text-white">{tx('إضافة نوع اشتراك جديد', 'Add subscription type')}</h4>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_9rem_7rem_auto]">
-            <input className={inputClass} placeholder={tx('اسم الاشتراك', 'Name')} value={name} onChange={(e) => setName(e.target.value)} />
+            <div className="space-y-1.5">
+              <input dir="rtl" className={inputClass} placeholder="الاسم بالعربي" value={name} onChange={(e) => setName(e.target.value)} />
+              <input dir="ltr" className={inputClass} placeholder="English name" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
+            </div>
             <select className={inputClass} value={category} onChange={(e) => setCategory(e.target.value as Category)}>
               {(Object.keys(CATEGORY_LABELS) as Category[]).map((c) => (
                 <option key={c} value={c}>{CATEGORY_LABELS[c][isRTL ? 0 : 1]}</option>

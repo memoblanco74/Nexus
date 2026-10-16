@@ -176,7 +176,26 @@ export const ageLabel = (birth: string | null, ar: boolean) => {
   return m ? `${y}y ${m}m` : `${y}y`;
 };
 
-export const feeName = (f: FeeItem, ar: boolean) => (ar ? f.name_ar || f.name : f.name);
+const KNOWN_FEES: Array<[string, string]> = [
+  ['فول تايم', 'Full time'], ['بارت تايم', 'Part time'], ['بوتي تريننج', 'Potty training'],
+  ['ترانسبورتيشن', 'Transportation'], ['أكتيفيتي', 'Activities'], ['مواصلات', 'Transportation'], ['أنشطة', 'Activities'],
+];
+const hasArabic = (v: string) => /[\u0600-\u06FF]/.test(v);
+const norm = (v: string) => v.trim().toLowerCase();
+export const feeName = (f: FeeItem, ar: boolean) => {
+  const a = (f.name_ar || '').trim();
+  const e = (f.name || '').trim();
+  if (ar) {
+    if (a) return a;
+    if (e && hasArabic(e)) return e;
+    const k = KNOWN_FEES.find(([, en]) => norm(en) === norm(e));
+    return k ? k[0] : e;
+  }
+  if (e && !hasArabic(e)) return e;
+  const src = a || e;
+  const k = KNOWN_FEES.find(([arName]) => arName === src);
+  return k ? k[1] : src;
+};
 
 export const phoneForWhatsApp = (raw: string | null | undefined) => {
   let d = String(raw || '').replace(/[^\d+]/g, '');
