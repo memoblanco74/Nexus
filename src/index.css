@@ -17,7 +17,7 @@
   }
 
   html.light body {
-    background-color: #eef9fa;
+    background-color: #dcedf0;
     color: #10202b;
   }
 
@@ -91,28 +91,42 @@ html.light select option {
 
 /* Glassmorphism and specialized cards matching the mockups */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
+  background: #111a2c;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1.5px solid #2c4166;
+  box-shadow: inset 0 3px 0 0 #3b82f6, 0 10px 26px -10px rgba(0, 0, 0, 0.65);
 }
 
 html.light .glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  border: 1.5px solid #7db4be;
+  box-shadow: inset 0 3px 0 0 #0891b2, 0 8px 22px -8px rgba(14, 116, 144, 0.22);
 }
 
 .glass-card {
-  background: rgba(30, 41, 59, 0.5);
+  background: #16223a;
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1.5px solid #34507a;
+  box-shadow: inset 0 3px 0 0 #22d3ee, 0 8px 22px -10px rgba(0, 0, 0, 0.6);
 }
 
 html.light .glass-card {
-  background: #ffffff;
-  border: 1px solid #d7ecee;
-  box-shadow: 0 2px 8px rgba(14, 116, 144, 0.06);
+  background: #f5fbfc;
+  border: 1.5px solid #8cc1ca;
+  box-shadow: inset 0 3px 0 0 #0e7490, 0 6px 18px -8px rgba(14, 116, 144, 0.2);
+}
+
+html.light body {
+  background-color: #dcedf0;
+}
+
+html.light .border-slate-800 {
+  border-color: #b3d3da;
+}
+
+html.light .divide-slate-800\/60 > :not(:last-child) {
+  border-color: #c5dde2;
 }
 
 .glass-input {
