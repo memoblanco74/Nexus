@@ -27,7 +27,21 @@ export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, 
     setMsg(v);
     const p = parsePaymentMessage(v);
     const got: string[] = [];
-    if (p.amount) { setPaid(p.amount); got.push(isRTL ? 'المبلغ' : 'amount'); }
+    if (p.amount) {
+      setPaid(p.amount);
+      got.push(isRTL ? 'المبلغ' : 'amount');
+      const unit = (tenants.find((t) => t.id === tenantId)?.mrr || 0) * (1 - discountPercent / 100);
+      const amt = Number(p.amount);
+      if (unit > 0 && amt > 0) {
+        let m = Math.round(amt / unit);
+        if (m < 1) m = 1;
+        if (m > 120) m = 120;
+        const exact = Math.abs(unit * m - amt) < 0.5;
+        setMonths(m);
+        setCustom([1, 3, 6, 12].includes(m) ? '' : String(m));
+        got.push(isRTL ? `عدد الأشهر (${m})${exact ? '' : ' تقريبي'}` : `months (${m})${exact ? '' : ', approx.'}`);
+      }
+    }
     if (p.reference) { setReference(p.reference); got.push(isRTL ? 'المرجع' : 'reference'); }
     if (p.sender) { setSender(p.sender); got.push(isRTL ? 'المحوّل' : 'sender'); }
     if (p.paidAt) { setPaidAt(p.paidAt); got.push(isRTL ? 'التاريخ' : 'date'); }
