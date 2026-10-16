@@ -1,4 +1,4 @@
-const CACHE_NAME = "nexus-app-v5";
+const CACHE_NAME = "nexus-app-v6";
 const STATIC_ASSETS = ["/Nexus/manifest.json"];
 
 self.addEventListener("install", function (event) {
@@ -98,7 +98,7 @@ self.addEventListener("push", function (event) {
     tag: data.tag || undefined,
     renotify: !!data.tag,
     icon: "/Nexus/icon-192.png",
-    badge: "/Nexus/icon-192.png",
+    badge: "/Nexus/badge-96.png",
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });

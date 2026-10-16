@@ -42,7 +42,7 @@ export const SettingsView: React.FC = () => {
     const body = isRTL ? 'الإشعارات شغالة على هذا الجهاز' : 'Notifications are working on this device';
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready
-        .then((reg) => reg.showNotification(title, { body, icon: '/Nexus/icon-192.png' }))
+        .then((reg) => reg.showNotification(title, { body, icon: '/Nexus/icon-192.png', badge: '/Nexus/badge-96.png' }))
         .catch(() => new Notification(title, { body }));
     } else {
       new Notification(title, { body });
