@@ -1,3 +1,4 @@
+import { askConfirm, askPrompt } from '../../lib/dialog';
 import { supabase } from '../../lib/supabaseClient';
 import { RenewSubscriptionModal } from '../modals/RenewSubscriptionModal';
 import { SubscriptionHistoryModal } from '../modals/SubscriptionHistory';
@@ -800,11 +801,12 @@ export const SuperAdminView: React.FC = () => {
                             )}
                           </button>
                           <button
-                            onClick={() => {
-                              const newCode = prompt(
-                                isRTL ? 'أدخل كود الخصم الجديد:' : 'Enter new discount code:',
-                                sub.discount === '-' ? 'SPECIAL-20' : sub.discount
-                              );
+                            onClick={async () => {
+                              const newCode = await askPrompt({
+                                title: isRTL ? 'كود الخصم' : 'Discount code',
+                                message: isRTL ? 'أدخل كود الخصم الجديد:' : 'Enter new discount code:',
+                                defaultValue: sub.discount === '-' ? 'SPECIAL-20' : sub.discount,
+                              });
                               if (newCode) applyDiscountCode(sub.id, newCode);
                             }}
                             className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-blue-400"
@@ -813,11 +815,13 @@ export const SuperAdminView: React.FC = () => {
                             <Percent className="h-3.5 w-3.5" />
                           </button>
                           <button
-                            onClick={() => {
-                              const newAmount = prompt(
-                                isRTL ? 'أدخل المبلغ الجديد (جنيه):' : 'Enter new amount (EGP):',
-                                String(sub.mrr)
-                              );
+                            onClick={async () => {
+                              const newAmount = await askPrompt({
+                                title: isRTL ? 'تعديل المبلغ' : 'Edit amount',
+                                message: isRTL ? 'أدخل المبلغ الجديد (جنيه):' : 'Enter new amount (EGP):',
+                                defaultValue: String(sub.mrr),
+                                inputMode: 'decimal',
+                              });
                               if (newAmount && !isNaN(Number(newAmount))) {
                                 updateTenant(sub.id, { mrr: Number(newAmount) });
                               }
@@ -828,13 +832,15 @@ export const SuperAdminView: React.FC = () => {
                             <DollarSign className="h-3.5 w-3.5" />
                           </button>
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               const name = language === 'ar' ? sub.tenantNameAr : sub.tenantName;
-                              const confirmed = window.confirm(
-                                isRTL
+                              const confirmed = await askConfirm({
+                                danger: true,
+                                title: isRTL ? 'حذف المشترك نهائياً' : 'Delete subscriber permanently',
+                                message: isRTL
                                   ? `متأكد إنك عايز تحذف "${name}" نهائيًا؟ هيتمسح كل بياناته (مرضى، حجوزات، فواتير، مخزون) ومش هترجع تاني.`
-                                  : `Permanently delete "${name}"? All their data (patients, bookings, invoices, inventory) will be erased and cannot be recovered.`
-                              );
+                                  : `Permanently delete "${name}"? All their data (patients, bookings, invoices, inventory) will be erased and cannot be recovered.`,
+                              });
                               if (confirmed) deleteTenant(sub.id);
                             }}
                             className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-red-400"

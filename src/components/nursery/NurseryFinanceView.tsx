@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { askConfirm } from '../../lib/dialog';
 import { Plus, Trash2, Wallet } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
@@ -52,7 +53,7 @@ const FeeRow: React.FC<{ item: FeeItem; canEdit: boolean; onChanged: () => void 
   };
 
   const remove = async () => {
-    if (!window.confirm(tx('حذف الاشتراك ده هيشيله من كل الأطفال المشتركين فيه. متأكد؟', 'This removes it from all children. Continue?'))) return;
+    if (!(await askConfirm({ danger: true, message: tx('حذف الاشتراك ده هيشيله من كل الأطفال المشتركين فيه. متأكد؟', 'This removes it from all children. Continue?') }))) return;
     const { error } = await supabase.from('nursery_fee_items').delete().eq('id', item.id);
     if (error) showToast(error.message);
     else onChanged();
@@ -193,7 +194,7 @@ const PaymentModal: React.FC<{ child: Child; period: string; due: number; paid: 
   };
 
   const remove = async (id: string) => {
-    if (!window.confirm(tx('حذف الدفعة دي؟', 'Delete this payment?'))) return;
+    if (!(await askConfirm({ danger: true, message: tx('حذف الدفعة دي؟', 'Delete this payment?') }))) return;
     const { error } = await supabase.from('nursery_payments').delete().eq('id', id);
     if (error) showToast(error.message);
     else core.reload();

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Percent, Settings2, ShieldCheck, Lock, KeyRound, Trash2, Ban, Check } from 'lucide-react';
+import { askConfirm } from '../../lib/dialog';
 import { supabase } from '../../lib/supabaseClient';
 import { useApp } from '../../context/AppContext';
 import { SaveButton } from '../ui/SaveButton';
@@ -69,7 +70,7 @@ const AdminsCard: React.FC = () => {
                 <div className="flex shrink-0 gap-1.5">
                   <button title={isRTL ? 'إعادة تعيين كلمة المرور' : 'Reset password'} onClick={() => { setResetId(resetId === r.id ? null : r.id); setNewPass(''); }} className="rounded-lg bg-blue-600/20 p-1.5 text-blue-300 hover:bg-blue-600/30"><KeyRound className="h-3.5 w-3.5" /></button>
                   <button title={r.is_active ? (isRTL ? 'إيقاف' : 'Suspend') : (isRTL ? 'تفعيل' : 'Activate')} onClick={async () => { if ((await call({ action: 'set_active', userId: r.id, active: !r.is_active }))?.ok) load(); }} className="rounded-lg bg-amber-500/20 p-1.5 text-amber-300 hover:bg-amber-500/30">{r.is_active ? <Ban className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}</button>
-                  <button title={isRTL ? 'حذف' : 'Delete'} onClick={async () => { if (!window.confirm(isRTL ? `حذف ${r.username} نهائياً؟` : `Delete ${r.username} permanently?`)) return; if ((await call({ action: 'delete', userId: r.id }))?.ok) load(); }} className="rounded-lg bg-red-500/20 p-1.5 text-red-300 hover:bg-red-500/30"><Trash2 className="h-3.5 w-3.5" /></button>
+                  <button title={isRTL ? 'حذف' : 'Delete'} onClick={async () => { if (!(await askConfirm({ danger: true, message: isRTL ? `حذف ${r.username} نهائياً؟` : `Delete ${r.username} permanently?` }))) return; if ((await call({ action: 'delete', userId: r.id }))?.ok) load(); }} className="rounded-lg bg-red-500/20 p-1.5 text-red-300 hover:bg-red-500/30"><Trash2 className="h-3.5 w-3.5" /></button>
                 </div>
               )}
             </div>

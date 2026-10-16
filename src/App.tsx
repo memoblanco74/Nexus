@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { DialogHost } from './lib/dialog';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthScreen } from './components/auth/AuthScreen';
@@ -106,6 +107,8 @@ const DashboardContent: React.FC = () => {
 
         <MobileBottomNav />
       </div>
+
+      <DialogHost />
 
       {/* Global Toast Notification */}
       {toastMessage && (
