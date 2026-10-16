@@ -12,6 +12,7 @@ import {
   CircleDollarSign,
   Users,
   CalendarCheck,
+  Settings2,
 } from 'lucide-react';
 
 type Tab = { id: ScreenId; label: string; icon: React.ReactNode };
@@ -29,6 +30,7 @@ export const MobileBottomNav: React.FC = () => {
     tabs = [
       { id: 'super_admin', label: isRTL ? 'المشرف' : 'Admin', icon: <ShieldCheck className="h-5 w-5" /> },
       { id: 'catalog', label: isRTL ? 'الأنظمة' : 'Catalog', icon: <LayoutGrid className="h-5 w-5" /> },
+      { id: 'platform', label: isRTL ? 'المنصة' : 'Platform', icon: <Settings2 className="h-5 w-5" /> },
       { id: 'settings', label: isRTL ? 'الإعدادات' : 'Settings', icon: <Settings className="h-5 w-5" /> },
     ];
     showScanFab = false;

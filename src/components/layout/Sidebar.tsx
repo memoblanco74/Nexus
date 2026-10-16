@@ -21,6 +21,7 @@ import {
   Zap,
   LayoutGrid,
   UserPlus,
+  Settings2,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -107,6 +108,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       id: 'catalog',
       label: t('nav.catalog'),
       icon: <LayoutGrid className="h-4 w-4" />,
+    },
+    {
+      id: 'platform',
+      label: t('nav.platform'),
+      icon: <Settings2 className="h-4 w-4" />,
     },
     {
       id: 'assistants',

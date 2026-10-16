@@ -198,6 +198,7 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
   'nav.support': { en: 'Support', ar: 'الدعم الفني' },
   'nav.catalog': { en: 'System Catalog', ar: 'كتالوج الأنظمة' },
   'nav.assistants': { en: 'Assistants', ar: 'المساعدين' },
+  'nav.platform': { en: 'Platform Settings', ar: 'إعدادات المنصة' },
   'nav.collapse': { en: 'Collapse', ar: 'طي القائمة' },
   'super_admin.title': { en: 'Super Admin Control Center', ar: 'مركز تحكم المشرف العام' },
   'super_admin.badge': { en: 'Nexus Cloud v2.4 (Enterprise)', ar: 'سحابة نيكسوس الإصدار ٢.٤ (المؤسسات)' },

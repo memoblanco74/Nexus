@@ -28,6 +28,7 @@ import { ReportsView } from './components/screens/ReportsView';
 import { SettingsView, SupportView } from './components/screens/SettingsView';
 import { SystemCatalogView } from './components/screens/SystemCatalogView';
 import { AssistantsView } from './components/screens/AssistantsView';
+import { PlatformSettingsView } from './components/screens/PlatformSettingsView';
 import { SystemCatalogAdminView } from './components/screens/SystemCatalogAdminView';
 
 // Modals
@@ -95,6 +96,7 @@ const DashboardContent: React.FC = () => {
           {screen === 'settings' && canSee('settings') && <SettingsView />}
           {screen === 'support' && canSee('support') && <SupportView />}
           {screen === 'catalog' && canSee('catalog') && <SystemCatalogAdminView />}
+          {screen === 'platform' && canSee('platform') && <PlatformSettingsView />}
           {screen === 'assistants' && canSee('assistants') && <AssistantsView />}
         </main>
 

@@ -13,6 +13,7 @@ export type ScreenId =
   | 'settings'
   | 'support'
   | 'catalog'
+  | 'platform'
   | 'assistants';
 
 export interface Tenant {
