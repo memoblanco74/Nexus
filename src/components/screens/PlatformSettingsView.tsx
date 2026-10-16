@@ -1,8 +1,97 @@
-import React, { useState } from 'react';
-import { Percent, Settings2 } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Percent, Settings2, ShieldCheck, Lock, KeyRound, Trash2, Ban, Check } from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient';
 import { useApp } from '../../context/AppContext';
 import { SaveButton } from '../ui/SaveButton';
 import { PaymentInfoEditor } from './PaymentInfoParts';
+
+interface AdminRow { id: string; username: string; email: string; full_name: string; is_active: boolean; is_owner: boolean; is_me: boolean; }
+
+const ERR_AR: Record<string, string> = {
+  username_taken: 'اسم المستخدم مستخدم بالفعل', invalid_username: 'اسم المستخدم حروف وأرقام إنجليزية فقط (3-30)',
+  weak_password: 'كلمة المرور 6 أحرف على الأقل', owner_protected: 'هذا الحساب أساسي ومحمي', cannot_self: 'لا يمكنك تنفيذ ذلك على حسابك',
+  in_use_deactivate_instead: 'لا يمكن الحذف لارتباطه ببيانات، استخدم الإيقاف بدلاً منه', use_own_password_form: 'غيّر كلمة مرورك من إعداداتي',
+};
+
+const AdminsCard: React.FC = () => {
+  const { isRTL, showToast } = useApp();
+  const [rows, setRows] = useState<AdminRow[]>([]);
+  const [username, setUsername] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [resetId, setResetId] = useState<string | null>(null);
+  const [newPass, setNewPass] = useState('');
+  const field = 'w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-white outline-none focus:border-blue-500';
+
+  const call = async (body: any) => {
+    const { data, error } = await supabase.functions.invoke('manage-admins', { body });
+    let code = (data as any)?.error as string | undefined;
+    if (error && !code) {
+      try { code = (await (error as any).context?.json())?.error; } catch { code = error.message; }
+    }
+    if (code) { showToast(isRTL ? (ERR_AR[code] || code) : code); return null; }
+    return data as any;
+  };
+
+  const load = useCallback(async () => {
+    const d = await call({ action: 'list' });
+    if (d?.admins) setRows(d.admins);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const create = async () => {
+    setBusy(true);
+    const d = await call({ action: 'create', username: username.trim(), fullName: fullName.trim(), password });
+    setBusy(false);
+    if (d?.ok) { setUsername(''); setFullName(''); setPassword(''); showToast(isRTL ? 'تم إنشاء المدير' : 'Admin created'); load(); }
+  };
+
+  return (
+    <div className="glass-panel space-y-4 rounded-2xl p-4">
+      <h3 className="flex items-center gap-2 text-sm font-bold text-white dark:text-white light:text-[#0f172a]">
+        <ShieldCheck className="h-4 w-4 text-blue-400" />
+        {isRTL ? 'مديرو النظام (Super Admin)' : 'System admins (Super Admin)'}
+      </h3>
+      <div className="space-y-2">
+        {rows.map((r) => (
+          <div key={r.id} className="space-y-2 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate text-xs font-bold text-slate-100">{r.full_name} <span dir="ltr" className="font-normal text-slate-400">@{r.username}</span></p>
+                <p className="text-[11px] text-slate-400">
+                  {r.is_owner ? (isRTL ? 'الحساب الأساسي — محمي' : 'Primary account — protected') : r.is_active ? (isRTL ? 'نشط' : 'Active') : (isRTL ? 'موقوف' : 'Suspended')}
+                  {r.is_me ? (isRTL ? ' (أنت)' : ' (you)') : ''}
+                </p>
+              </div>
+              {r.is_owner && <Lock className="h-4 w-4 shrink-0 text-amber-400" />}
+              {!r.is_owner && !r.is_me && (
+                <div className="flex shrink-0 gap-1.5">
+                  <button title={isRTL ? 'إعادة تعيين كلمة المرور' : 'Reset password'} onClick={() => { setResetId(resetId === r.id ? null : r.id); setNewPass(''); }} className="rounded-lg bg-blue-600/20 p-1.5 text-blue-300 hover:bg-blue-600/30"><KeyRound className="h-3.5 w-3.5" /></button>
+                  <button title={r.is_active ? (isRTL ? 'إيقاف' : 'Suspend') : (isRTL ? 'تفعيل' : 'Activate')} onClick={async () => { if ((await call({ action: 'set_active', userId: r.id, active: !r.is_active }))?.ok) load(); }} className="rounded-lg bg-amber-500/20 p-1.5 text-amber-300 hover:bg-amber-500/30">{r.is_active ? <Ban className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}</button>
+                  <button title={isRTL ? 'حذف' : 'Delete'} onClick={async () => { if (!window.confirm(isRTL ? `حذف ${r.username} نهائياً؟` : `Delete ${r.username} permanently?`)) return; if ((await call({ action: 'delete', userId: r.id }))?.ok) load(); }} className="rounded-lg bg-red-500/20 p-1.5 text-red-300 hover:bg-red-500/30"><Trash2 className="h-3.5 w-3.5" /></button>
+                </div>
+              )}
+            </div>
+            {resetId === r.id && (
+              <div className="flex gap-2">
+                <input type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder={isRTL ? 'كلمة المرور الجديدة' : 'New password'} className={field} />
+                <button onClick={async () => { if ((await call({ action: 'reset_password', userId: r.id, newPassword: newPass }))?.ok) { setResetId(null); setNewPass(''); showToast(isRTL ? 'تم تغيير كلمة المرور' : 'Password changed'); } }} className="shrink-0 rounded-xl bg-blue-600 px-3 text-xs font-bold text-white hover:bg-blue-500">{isRTL ? 'حفظ' : 'Save'}</button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="space-y-2 rounded-xl border border-slate-800 p-3">
+        <p className="text-[11px] font-semibold text-slate-300">{isRTL ? 'إضافة مدير جديد' : 'Add a new admin'}</p>
+        <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={isRTL ? 'الاسم' : 'Full name'} className={field} />
+        <input dir="ltr" value={username} onChange={(e) => setUsername(e.target.value.replace(/[^A-Za-z0-9]/g, ''))} placeholder={isRTL ? 'اسم المستخدم (إنجليزي)' : 'Username'} className={field} />
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={isRTL ? 'كلمة المرور (6 أحرف على الأقل)' : 'Password (min 6)'} className={field} />
+        <button onClick={create} disabled={busy || username.length < 3 || password.length < 6} className="w-full rounded-xl bg-emerald-600 py-2 text-xs font-bold text-white hover:bg-emerald-500 disabled:opacity-50">{isRTL ? 'إنشاء مدير' : 'Create admin'}</button>
+      </div>
+    </div>
+  );
+};
 
 export const PlatformSettingsView: React.FC = () => {
   const { isRTL, t, showToast, defaultDiscount, setDefaultDiscount, freePeriodDays, setFreePeriodDays } = useApp();
@@ -130,6 +219,7 @@ export const PlatformSettingsView: React.FC = () => {
         </div>
       </div>
 
+      <AdminsCard />
     </div>
   );
 };
