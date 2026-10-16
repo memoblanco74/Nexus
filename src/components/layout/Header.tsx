@@ -21,7 +21,7 @@ import {
   User,
 } from 'lucide-react';
 
-export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSidebar }) => {
+export const Header: React.FC = () => {
   const {
     screen,
     language,
@@ -49,13 +49,6 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
       <div className="flex h-full items-center justify-between px-4 sm:px-6">
         {/* Left section: Hamburger (mobile), Logo / Screen Breadcrumb */}
         <div className="flex items-center gap-3">
-          {profile?.roleCode !== 'super_admin' && <button
-            onClick={onToggleSidebar}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700/60 bg-slate-900/50 text-slate-300 hover:bg-slate-800 lg:hidden dark:border-slate-700/60 dark:bg-slate-900/50 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#334155]"
-            aria-label="Toggle navigation menu"
-          >
-            <Layers className="h-5 w-5" />
-          </button>}
 
           <div className="hidden sm:flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-sm shadow-blue-500/30">

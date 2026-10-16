@@ -9,7 +9,6 @@ import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthScreen } from './components/auth/AuthScreen';
 import { Header } from './components/layout/Header';
-import { Sidebar } from './components/layout/Sidebar';
 import { FreePeriodBanner } from './components/layout/FreePeriodBanner';
 import { ReferralPromptStep } from './components/screens/ReferralParts';
 import { SubscriptionBanner } from './components/layout/SubscriptionBanner';
@@ -53,7 +52,6 @@ const DashboardContent: React.FC = () => {
   const allowed = screensFor(profile?.roleCode, systemKey);
   const isNursery = systemKey === 'nursery' && profile?.roleCode !== 'super_admin';
   const nurseryActive = isNursery && NURSERY_SCREENS.includes(screen) && canSee(screen);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   if (profile?.roleCode === 'founder' && tenantsLoaded && tenants.length === 0) {
     if (!referralLoaded) return null;
@@ -71,19 +69,11 @@ const DashboardContent: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-[#0b0f17] text-slate-100 dark:bg-[#0b0f17] dark:text-slate-100 light:bg-[#dcedf0] light:text-[#0f172a] font-sans transition-colors duration-200">
-      {/* Sidebar Navigation */}
-      {profile?.roleCode !== 'super_admin' && (
-        <Sidebar
-          isOpenMobile={isMobileSidebarOpen}
-          onCloseMobile={() => setIsMobileSidebarOpen(false)}
-        />
-      )}
-
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col min-w-0">
-        <Header onToggleSidebar={() => setIsMobileSidebarOpen(true)} />
+        <Header />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-12">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-24">
           <SubscriptionBanner />
           <AnnouncementBanner />
           <FreePeriodBanner />
@@ -112,7 +102,7 @@ const DashboardContent: React.FC = () => {
 
       {/* Global Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-20 lg:bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-xl border border-blue-500/40 bg-slate-900/95 px-4 py-3 text-xs font-semibold text-white shadow-2xl backdrop-blur-xl animate-fade-in">
+        <div className="fixed bottom-20 right-6 z-50 flex items-center gap-2.5 rounded-xl border border-blue-500/40 bg-slate-900/95 px-4 py-3 text-xs font-semibold text-white shadow-2xl backdrop-blur-xl animate-fade-in">
           <span className="h-2 w-2 rounded-full bg-blue-400 animate-ping" />
           <span>{toastMessage}</span>
         </div>
