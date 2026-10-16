@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { InstallAppButton } from './InstallAppButton';
 import { ProfileEditModal } from './ProfileEditModal';
+import { GlobalSearch } from './GlobalSearch';
 import {
   Search,
   Bell,
@@ -39,7 +40,6 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
   } = useApp();
   const { profile, signOut } = useAuth();
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -74,24 +74,7 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
 
         {/* Center section: Global Search Bar */}
         {profile?.roleCode === 'super_admin' ? <div className="flex-1" /> : <div className="flex flex-1 max-w-md mx-4">
-          <div className="relative w-full">
-            <Search className={`absolute top-2.5 ${isRTL ? 'right-3' : 'left-3'} h-4 w-4 text-slate-400`} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={
-                profile?.roleCode === 'super_admin'
-                  ? isRTL ? 'بحث في المستأجرين والاشتراكات...' : 'Search tenants & subscriptions...'
-                  : profile?.roleCode === 'assistant'
-                  ? isRTL ? 'بحث في المرضى، الحجوزات، الأصناف...' : 'Search patients, bookings, stock...'
-                  : isRTL ? 'بحث في المرضى، الفواتير، الأصناف...' : 'Search patients, invoices, stock...'
-              }
-              className={`w-full rounded-full border border-slate-800/80 bg-slate-900/60 py-1.5 ${
-                isRTL ? 'pr-9 pl-4' : 'pl-9 pr-4'
-              } text-xs text-slate-200 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500/50 dark:border-slate-800 dark:bg-slate-900/70 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#0f172a] light:placeholder-[#64748b]`}
-            />
-          </div>
+          <GlobalSearch />
         </div>}
 
         {/* Right section: System Badge, Tenant Selector, Language & Theme Controls, Profile */}
