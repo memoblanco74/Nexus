@@ -1,4 +1,4 @@
-const CACHE_NAME = "nexus-app-v6";
+const CACHE_NAME = "nexus-app-v7";
 const STATIC_ASSETS = ["/Nexus/manifest.json"];
 
 self.addEventListener("install", function (event) {
