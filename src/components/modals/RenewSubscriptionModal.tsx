@@ -12,6 +12,7 @@ interface Props {
 export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, discountPercent = 0, onClose }) => {
   const { isRTL, tenants, tenantAccess, renewSubscription, money } = useApp();
   const [months, setMonths] = useState(1);
+  const [paid, setPaid] = useState('');
   const [custom, setCustom] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -45,7 +46,9 @@ export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, 
 
   const confirm = async () => {
     setBusy(true);
-    const res = await renewSubscription(tenantId, months);
+    const paidNum = paid.trim() === '' ? total : Number(paid);
+    if (!Number.isFinite(paidNum) || paidNum < 0) return;
+    const res = await renewSubscription(tenantId, months, paidNum, total);
     setBusy(false);
     if (res) onClose();
   };
@@ -103,6 +106,10 @@ export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, 
             <div className="flex justify-between text-emerald-300"><span>{isRTL ? `خصم ${discountPercent}%` : `Discount ${discountPercent}%`}</span><span>- {money(discountValue, 2)}</span></div>
           )}
           <div className="flex justify-between border-t border-blue-500/30 pt-1.5 text-sm font-extrabold text-white"><span>{isRTL ? 'المطلوب من المشترك' : 'Amount due'}</span><span>{money(total, 2)}</span></div>
+        <label className="block space-y-1">
+          <span className="text-xs text-slate-400">{isRTL ? 'المبلغ المحصّل فعلياً (اتركه فارغاً = المطلوب)' : 'Amount actually received (empty = amount due)'}</span>
+          <input inputMode="decimal" value={paid} onChange={(e) => setPaid(e.target.value.replace(/[^0-9.]/g, ''))} placeholder={String(total)} className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500" />
+        </label>
         </div>
         <p className="rounded-xl bg-emerald-500/10 p-3 text-xs text-emerald-300">
           {isRTL ? `هيتجدد حتى ${preview}` : `Will be renewed until ${preview}`}

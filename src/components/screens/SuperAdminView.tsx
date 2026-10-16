@@ -181,6 +181,11 @@ export const SuperAdminView: React.FC = () => {
   }, [subscriptions.length]);
 
   const [renewTarget, setRenewTarget] = useState<{ id: string; name: string } | null>(null);
+  const [rev, setRev] = useState<{ total_paid: number; month_paid: number; month_renewals: number; paying_tenants: number; paying_tenants_month: number } | null>(null);
+  useEffect(() => {
+    supabase.rpc('fn_revenue_summary').then(({ data }) => { if (data) setRev(data as any); });
+  }, [subscriptions.length, renewTarget]);
+
 
   const effectiveStatus = (id: string): 'Active' | 'Expiring Soon' | 'Suspended' => {
     const a = tenantAccess(tenants.find((t) => t.id === id));
@@ -253,6 +258,25 @@ export const SuperAdminView: React.FC = () => {
             <Download className="h-4 w-4" />
             <span>{t('super_admin.export_csv')}</span>
           </button>
+        </div>
+      </div>
+
+      {/* Revenue summary */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="glass-card rounded-2xl p-4">
+          <span className="text-xs font-medium text-slate-400">{isRTL ? 'المحصّل فعلياً (الإجمالي)' : 'Actually collected (all time)'}</span>
+          <h3 className="mt-2 text-2xl font-bold text-emerald-400">{(rev?.total_paid ?? 0).toLocaleString()} EGP</h3>
+          <p className="mt-1 text-[11px] text-slate-500">{isRTL ? `هذا الشهر: ${(rev?.month_paid ?? 0).toLocaleString()} EGP (${rev?.month_renewals ?? 0} تجديد)` : `This month: ${(rev?.month_paid ?? 0).toLocaleString()} EGP (${rev?.month_renewals ?? 0} renewals)`}</p>
+        </div>
+        <div className="glass-card rounded-2xl p-4">
+          <span className="text-xs font-medium text-slate-400">{isRTL ? 'المتوقع شهرياً' : 'Expected monthly'}</span>
+          <h3 className="mt-2 text-2xl font-bold text-blue-400">{totalMrr.toLocaleString()} EGP</h3>
+          <p className="mt-1 text-[11px] text-slate-500">{isRTL ? 'من الاشتراكات النشطة المدفوعة' : 'From active paid subscriptions'}</p>
+        </div>
+        <div className="glass-card rounded-2xl p-4">
+          <span className="text-xs font-medium text-slate-400">{isRTL ? 'مشتركون دفعوا' : 'Subscribers who paid'}</span>
+          <h3 className="mt-2 text-2xl font-bold text-white dark:text-white light:text-[#0f172a]">{rev?.paying_tenants ?? 0}</h3>
+          <p className="mt-1 text-[11px] text-slate-500">{isRTL ? `هذا الشهر: ${rev?.paying_tenants_month ?? 0}` : `This month: ${rev?.paying_tenants_month ?? 0}`}</p>
         </div>
       </div>
 

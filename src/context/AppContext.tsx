@@ -67,7 +67,7 @@ interface AppContextType {
   activeAccess: TenantAccess;
   isReadOnly: boolean;
   systemKey: string;
-  renewSubscription: (tenantId: string, months: number) => Promise<string | null>;
+  renewSubscription: (tenantId: string, months: number, amountPaid?: number | null, amountDue?: number | null) => Promise<string | null>;
   paymentInfo: PaymentInfo;
   updatePaymentInfo: (info: PaymentInfo) => Promise<boolean>;
   referral: ReferralInfo | null;
@@ -1254,8 +1254,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => document.documentElement.classList.remove('read-only');
   }, [isReadOnly]);
 
-  const renewSubscription = async (tenantId: string, months: number) => {
-    const { data, error } = await supabase.rpc('fn_renew_subscription', { p_tenant_id: tenantId, p_months: months });
+  const renewSubscription = async (tenantId: string, months: number, amountPaid: number | null = null, amountDue: number | null = null) => {
+    const { data, error } = await supabase.rpc('fn_renew_subscription', { p_tenant_id: tenantId, p_months: months, p_amount_paid: amountPaid, p_amount_due: amountDue });
     if (error) {
       showToast(error.message);
       return null;
