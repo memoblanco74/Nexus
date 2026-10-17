@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Download, FileText, History, X } from 'lucide-react';
+import { downloadReceipt } from '../../lib/receipt';
 import { exportPaymentsPdf, exportPaymentsXlsx, fetchPayments } from '../../lib/paymentsExport';
 import { supabase } from '../../lib/supabaseClient';
 import { useApp } from '../../context/AppContext';
@@ -7,14 +8,16 @@ import { useApp } from '../../context/AppContext';
 interface Row {
   id: string; months: number; previous_end: string | null; new_end: string | null;
   amount_due: number | null; amount_paid: number | null; payment_method: string | null;
-  reference: string | null; paid_at: string; sender_name: string | null; note: string | null;
+  reference: string | null; paid_at: string; sender_name: string | null; note: string | null; receipt_no: number | null;
 }
 
 export const fmtDateTime = (iso: string, isRTL: boolean) =>
   new Date(iso).toLocaleString(isRTL ? 'ar-EG' : 'en-GB', { timeZone: 'Africa/Cairo', dateStyle: 'medium', timeStyle: 'short' });
 
 export const SubscriptionHistoryList: React.FC<{ tenantId: string; reloadKey?: number }> = ({ tenantId, reloadKey }) => {
-  const { isRTL, money } = useApp();
+  const { isRTL, money, tenants, language } = useApp();
+  const tenant = tenants.find((t) => t.id === tenantId);
+  const tenantName = tenant ? (language === 'ar' ? tenant.nameAr || tenant.name : tenant.name) : '';
   const [rows, setRows] = useState<Row[] | null>(null);
   const [err, setErr] = useState('');
 
@@ -66,6 +69,7 @@ export const SubscriptionHistoryList: React.FC<{ tenantId: string; reloadKey?: n
             {r.amount_due != null && Number(r.amount_due) !== Number(r.amount_paid) ? (isRTL ? ` (المطلوب ${money(Number(r.amount_due), 2)})` : ` (due ${money(Number(r.amount_due), 2)})`) : ''}
           </div>
           {r.note && <div className="text-[11px] text-slate-500">{r.note}</div>}
+          <button onClick={() => downloadReceipt(r as any, tenantName, isRTL)} className="mt-1 flex items-center gap-1 rounded-lg bg-blue-600/20 px-2 py-1 text-[11px] font-bold text-blue-300 hover:bg-blue-600/30"><FileText className="h-3.5 w-3.5" />{isRTL ? 'إيصال PDF' : 'Receipt PDF'}</button>
         </div>
       ))}
     </div>

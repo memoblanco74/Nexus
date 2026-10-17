@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { onPending, takePending } from '../../lib/pendingOpen';
-import { Baby, Pencil, Plus, Search, Syringe, Trash2, Truck } from 'lucide-react';
+import { Baby, MessageCircle, Pencil, Plus, Search, Truck } from 'lucide-react';
+import { AllergyAlert, BulkMessageModal, PortalCard, VaccineSchedule } from './NurseryExtras';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
@@ -31,6 +32,8 @@ const blankForm: ChildForm = {
   guardian_relation: '',
   guardian_phone: '',
   notes: '',
+  allergies: '',
+  health_notes: '',
   status: 'active',
 };
 
@@ -47,6 +50,8 @@ const toForm = (c: Child): ChildForm => ({
   guardian_relation: c.guardian_relation || '',
   guardian_phone: c.guardian_phone || '',
   notes: c.notes || '',
+  allergies: c.allergies || '',
+  health_notes: c.health_notes || '',
   status: c.status,
 });
 
@@ -133,7 +138,13 @@ const ChildFormModal: React.FC<{ child: Child | null; onClose: () => void; onSav
             <option value="inactive">{tx('غير مقيّد', 'Inactive')}</option>
           </select>
         </Field>
-        <Field label={tx('ملاحظات (حساسية، أمور صحية...)', 'Notes (allergies, health...)')} className="sm:col-span-2">
+        <Field label={tx('حساسية الأكل أو الأدوية', 'Food / medicine allergies')} className="sm:col-span-2">
+          <input className={inputClass} value={form.allergies || ''} onChange={(e) => set('allergies', e.target.value)} placeholder={tx('مثال: حساسية بيض، لاكتوز', 'e.g. eggs, lactose')} />
+        </Field>
+        <Field label={tx('ملاحظات صحية (ربو، أنيميا، ...)', 'Health notes')} className="sm:col-span-2">
+          <input className={inputClass} value={form.health_notes || ''} onChange={(e) => set('health_notes', e.target.value)} />
+        </Field>
+        <Field label={tx('ملاحظات عامة', 'General notes')} className="sm:col-span-2">
           <textarea rows={2} className={inputClass} value={form.notes || ''} onChange={(e) => set('notes', e.target.value)} />
         </Field>
       </div>
@@ -204,6 +215,7 @@ const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () 
           {due === 0 ? tx('لا اشتراكات', 'No fees') : paid >= due ? tx('دافع هذا الشهر', 'Paid this month') : tx('لم يدفع هذا الشهر', 'Unpaid this month')}
         </Badge>
       </div>
+      <AllergyAlert child={child} />
       {child.notes && <p className="rounded-xl bg-amber-500/10 p-3 text-[11px] text-amber-300">{child.notes}</p>}
 
       <div className="space-y-1">
@@ -216,27 +228,11 @@ const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () 
         ))}
       </div>
 
-      <div className="space-y-2">
-        <h4 className="flex items-center gap-2 text-xs font-bold text-white">
-          <Syringe className="h-4 w-4 text-emerald-400" />
-          {tx('التطعيمات', 'Vaccinations')}
-        </h4>
-        {vacc.map((v) => (
-          <div key={v.id} className="flex items-center justify-between rounded-xl border border-slate-800 px-3 py-2 text-xs">
-            <span className="text-white">{v.vaccine_name}</span>
-            <span className="text-slate-400">{v.given_on || ''}</span>
-            <button data-write="1" onClick={() => run(() => supabase.from('nursery_vaccinations').delete().eq('id', v.id))} className="text-red-400 hover:text-red-300">
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ))}
-        <div data-write="1" className="flex gap-2">
-          <input className={inputClass} placeholder={tx('اسم التطعيم', 'Vaccine name')} value={vName} onChange={(e) => setVName(e.target.value)} />
-          <input type="date" className={`${inputClass} max-w-[9rem]`} value={vDate} onChange={(e) => setVDate(e.target.value)} />
-          <button onClick={addVaccine} disabled={busy || !vName.trim()} className="shrink-0 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white disabled:opacity-40">
-            {tx('إضافة', 'Add')}
-          </button>
-        </div>
+      <VaccineSchedule child={child} vaccinations={vacc} reload={core.reload} />
+      <div data-write="1" className="flex gap-2">
+        <input className={inputClass} placeholder={tx('إضافة تطعيم يدوي (الاسم)', 'Add a vaccine manually')} value={vName} onChange={(e) => setVName(e.target.value)} />
+        <input type="date" className={`${inputClass} max-w-[9rem]`} value={vDate} onChange={(e) => setVDate(e.target.value)} />
+        <button onClick={addVaccine} disabled={busy || !vName.trim()} className="shrink-0 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white disabled:opacity-40">{tx('إضافة', 'Add')}</button>
       </div>
 
       <div className="space-y-2">
@@ -274,6 +270,7 @@ const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () 
         </div>
         {profile?.roleCode && <p className="text-[10px] text-slate-500">{tx('اكتب سعر خاص في الخانة لو الطفل له خصم، أو سيبها فاضية لسعر الاشتراك العام.', 'Type a custom price to override the default.')}</p>}
       </div>
+      <PortalCard child={child} core={core} />
     </Modal>
   );
 };
@@ -284,6 +281,7 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
   const [q, setQ] = useState('');
   const [editing, setEditing] = useState<Child | null | 'new'>(null);
   const [viewing, setViewing] = useState<string | null>(null);
+  const [bulkMsg, setBulkMsg] = useState(false);
   const period = monthOf(cairoToday());
 
   useEffect(() => {
@@ -313,10 +311,16 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
           </h1>
           <p className="mt-1 text-xs text-slate-400">{tx('بيانات الأطفال وأولياء الأمور والتطعيمات والاشتراكات', 'Children, parents, vaccinations and subscriptions')}</p>
         </div>
-        <button data-write="1" onClick={() => setEditing('new')} className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-blue-500">
-          <Plus className="h-4 w-4" />
-          {tx('إضافة طفل', 'Add child')}
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setBulkMsg(true)} className="flex items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20">
+            <MessageCircle className="h-4 w-4" />
+            {tx('رسالة لأولياء الأمور', 'Message parents')}
+          </button>
+          <button data-write="1" onClick={() => setEditing('new')} className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-blue-500">
+            <Plus className="h-4 w-4" />
+            {tx('إضافة طفل', 'Add child')}
+          </button>
+        </div>
       </div>
 
       <div className="relative">
@@ -342,6 +346,7 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold text-white">{c.full_name}</p>
                     <p className="text-[11px] text-slate-400">{[ageLabel(c.birth_date, isRTL), c.status === 'inactive' ? tx('غير مقيّد', 'Inactive') : ''].filter(Boolean).join(' • ')}</p>
+                    {c.allergies && <p className="mt-1 text-[10px] font-semibold text-red-400">⚠ {c.allergies}</p>}
                   </div>
                   <button
                     data-write="1"
@@ -367,6 +372,8 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
           })}
         </div>
       )}
+
+      {bulkMsg && <BulkMessageModal children={core.children} onClose={() => setBulkMsg(false)} />}
 
       {editing && (
         <ChildFormModal

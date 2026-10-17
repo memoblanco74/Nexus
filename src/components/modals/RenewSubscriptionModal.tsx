@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { CalendarPlus, X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { supabase } from '../../lib/supabaseClient';
+import { ReceiptRow, downloadReceipt, shareReceipt } from '../../lib/receipt';
 import { parsePaymentMessage } from '../../lib/paymentParse';
 
 interface Props {
   tenantId: string;
   tenantName: string;
   discountPercent?: number;
+  founderPhone?: string;
   onClose: () => void;
 }
 
-export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, discountPercent = 0, onClose }) => {
+export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, discountPercent = 0, founderPhone = '', onClose }) => {
   const { isRTL, tenants, tenantAccess, renewSubscription, money } = useApp();
   const [months, setMonths] = useState(1);
   const [paid, setPaid] = useState('');
@@ -22,6 +25,7 @@ export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, 
   const [paidAt, setPaidAt] = useState(() => new Date().toLocaleString('sv-SE', { timeZone: 'Africa/Cairo' }).slice(0, 16).replace(' ', 'T'));
   const [note, setNote] = useState('');
   const [filled, setFilled] = useState('');
+  const [receipt, setReceipt] = useState<ReceiptRow | null>(null);
 
   const onPasteMsg = (v: string) => {
     setMsg(v);
@@ -83,9 +87,30 @@ export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, 
     const paidNum = paid.trim() === '' ? total : Number(paid);
     if (!Number.isFinite(paidNum) || paidNum < 0) { setBusy(false); return; }
     const res = await renewSubscription(tenantId, months, paidNum, total, { method, reference, paidAt, sender, note });
+    if (res) {
+      const { data } = await supabase.rpc('fn_subscription_history', { p_tenant_id: tenantId });
+      const first = ((data as ReceiptRow[]) || [])[0];
+      setBusy(false);
+      if (first) { setReceipt(first); return; }
+      onClose();
+      return;
+    }
     setBusy(false);
-    if (res) onClose();
   };
+
+  if (receipt) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 pb-20" onClick={onClose}>
+        <div className="w-full max-w-sm space-y-3 rounded-2xl border border-emerald-500/40 bg-slate-950 p-5 text-center" onClick={(e) => e.stopPropagation()}>
+          <p className="text-sm font-extrabold text-emerald-300">{isRTL ? 'تم تجديد الاشتراك ✔' : 'Subscription renewed ✔'}</p>
+          <p className="text-xs text-slate-400">{tenantName} — {isRTL ? `حتى ${receipt.new_end}` : `until ${receipt.new_end}`}</p>
+          <button onClick={() => downloadReceipt(receipt, tenantName, isRTL)} className="w-full rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white hover:bg-blue-500">{isRTL ? 'تحميل الإيصال PDF' : 'Download receipt PDF'}</button>
+          {founderPhone && <button onClick={() => shareReceipt(receipt, tenantName, isRTL, founderPhone)} className="w-full rounded-xl border border-emerald-500/40 bg-emerald-500/10 py-2.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20">{isRTL ? 'إرسال الإيصال للمشترك واتساب' : 'Send receipt via WhatsApp'}</button>}
+          <button onClick={onClose} className="w-full rounded-xl border border-slate-800 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800">{isRTL ? 'إغلاق' : 'Close'}</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 pb-20" onClick={onClose}>

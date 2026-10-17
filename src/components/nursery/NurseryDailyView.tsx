@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { SaveButton } from '../ui/SaveButton';
 import { Badge, Field, Modal, cardClass, inputClass } from './ui';
 import { NurseryBulkSend } from './NurseryBulkSend';
+import { AllergyAlert } from './NurseryExtras';
 import { buildReportHtml, renderReportPdf, sendReportViaWhatsApp } from './reportPdf';
 import { Child, DailyLog, MealEntry, NurseryCore, cairoToday, emptyLog, rowToLog } from './nurseryApi';
 
@@ -157,6 +158,7 @@ const ReportEditor: React.FC<{
         </>
       }
     >
+      <AllergyAlert child={child} />
       {phones.length > 0 && (
         <div className="flex items-center gap-2 text-[11px] text-slate-400">
           <span>{tx('إرسال التقرير إلى:', 'Send to:')}</span>
@@ -421,6 +423,7 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
                     {l?.status === 'present' && <Badge tone="ok">{tx('حاضر', 'Present')}{l.arrival_time ? ` ${l.arrival_time}` : ''}</Badge>}
                     {l?.status === 'absent' && <Badge tone="bad">{tx('غائب', 'Absent')}</Badge>}
                     {l?.departure_time && <Badge tone="muted">{tx('انصرف', 'Left')} {l.departure_time}</Badge>}
+                    {c.allergies && <Badge tone="bad">⚠ {c.allergies}</Badge>}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

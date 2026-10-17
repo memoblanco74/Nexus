@@ -862,7 +862,7 @@ export const SuperAdminView: React.FC = () => {
         </div>
       </div>
       {historyTarget && <SubscriptionHistoryModal tenantId={historyTarget.id} tenantName={historyTarget.name} onClose={() => setHistoryTarget(null)} />}
-      {renewTarget && <RenewSubscriptionModal tenantId={renewTarget.id} tenantName={renewTarget.name} discountPercent={refInfo[(founders[renewTarget.id]?.email || '').toLowerCase()]?.percent || 0} onClose={() => setRenewTarget(null)} />}
+      {renewTarget && <RenewSubscriptionModal tenantId={renewTarget.id} tenantName={renewTarget.name} discountPercent={refInfo[(founders[renewTarget.id]?.email || '').toLowerCase()]?.percent || 0} founderPhone={founders[renewTarget.id]?.phone || ''} onClose={() => setRenewTarget(null)} />}
     </div>
   );
 };

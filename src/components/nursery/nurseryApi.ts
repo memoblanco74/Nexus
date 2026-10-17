@@ -16,6 +16,10 @@ export interface Child {
   guardian_relation: string | null;
   guardian_phone: string | null;
   notes: string | null;
+  allergies?: string | null;
+  health_notes?: string | null;
+  portal_token?: string;
+  portal_enabled?: boolean;
   status: 'active' | 'inactive';
 }
 
@@ -41,6 +45,7 @@ export interface Vaccination {
   child_id: string;
   vaccine_name: string;
   given_on: string | null;
+  due_date?: string | null;
   note: string | null;
 }
 
@@ -250,3 +255,25 @@ export const useNurseryCore = (tenantId: string | undefined) => {
 };
 
 export type NurseryCore = ReturnType<typeof useNurseryCore>;
+
+export const VACCINE_SCHEDULE: Array<{ months: number; ar: string; en: string }> = [
+  { months: 0, ar: 'الدرن (BCG) والكبد الوبائي ب', en: 'BCG & Hepatitis B' },
+  { months: 2, ar: 'الخماسي/السداسي (1) + شلل (1) + روتا (1)', en: 'Pentavalent/Hexavalent (1) + Polio (1) + Rota (1)' },
+  { months: 4, ar: 'الخماسي/السداسي (2) + شلل (2) + روتا (2)', en: 'Pentavalent/Hexavalent (2) + Polio (2) + Rota (2)' },
+  { months: 6, ar: 'الخماسي/السداسي (3) + شلل (3)', en: 'Pentavalent/Hexavalent (3) + Polio (3)' },
+  { months: 12, ar: 'الحصبة والنكاف والحصبة الألمانية (MMR)', en: 'MMR (Measles, Mumps, Rubella)' },
+  { months: 18, ar: 'الجرعة المنشطة (ثلاثي + شلل + MMR)', en: 'Booster (DPT + Polio + MMR)' },
+];
+
+export const addMonthsISO = (iso: string, months: number) => {
+  const d = new Date(iso + 'T00:00:00Z');
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(day, last));
+  return d.toISOString().slice(0, 10);
+};
+
+export const daysUntil = (iso: string) =>
+  Math.round((new Date(iso + 'T00:00:00Z').getTime() - new Date(cairoToday() + 'T00:00:00Z').getTime()) / 86400000);

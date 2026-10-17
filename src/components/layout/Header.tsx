@@ -31,6 +31,7 @@ const localizeNotification = (n: { title: string; body: string; code?: string | 
     case 'sub_renewed': return { title: ar ? 'تم تجديد الاشتراك' : 'Subscription renewed', body: ar ? `تم تجديد اشتراكك حتى ${p.until}` : `Your subscription is renewed until ${p.until}` };
     case 'sub_expiring': return { title: ar ? 'اشتراكك قارب على الانتهاء' : 'Subscription expiring soon', body: ar ? `متبقي ${p.days} يوم على انتهاء الاشتراك (${p.date})` : `${p.days} day(s) left until your subscription ends (${p.date})` };
     case 'expiring_summary': return { title: ar ? 'اشتراكات قاربت على الانتهاء' : 'Subscriptions expiring soon', body: ar ? `${p.count} مشترك ينتهي اشتراكهم خلال 7 أيام` : `${p.count} subscriber(s) expire within 7 days` };
+    case 'vaccine_due': return { title: ar ? 'موعد تطعيم' : 'Vaccine due', body: ar ? `تطعيم ${p.vaccine} للطفل ${p.child} ${p.days === 0 ? 'اليوم' : `بعد ${p.days} أيام`}` : `${p.vaccine} for ${p.child} ${p.days === 0 ? 'today' : `in ${p.days} days`}` };
     case 'new_subscriber': return { title: ar ? 'مشترك جديد' : 'New subscriber', body: ar ? `اشترك مشروع جديد: ${p.name}` : `New project subscribed: ${p.name}` };
     case 'chat_from_admin': return { title: ar ? 'الدعم الفني' : 'Support', body: p.preview || n.body };
     case 'chat_from_founder': return { title: ar ? `رسالة جديدة من ${p.tenant}` : `New message from ${p.tenant}`, body: p.preview || n.body };
@@ -46,6 +47,7 @@ const notificationTarget = (code: string | null | undefined, role: string | unde
   if (code === 'sub_renewed') return role === 'founder' ? 'project_settings' : null;
   if (code === 'nursery_child_added') return 'patients';
   if (code === 'nursery_payment') return 'accounting';
+  if (code === 'vaccine_due') return 'patients';
   return null;
 };
 
