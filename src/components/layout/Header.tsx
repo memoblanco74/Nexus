@@ -32,6 +32,7 @@ const localizeNotification = (n: { title: string; body: string; code?: string | 
     case 'sub_expiring': return { title: ar ? 'اشتراكك قارب على الانتهاء' : 'Subscription expiring soon', body: ar ? `متبقي ${p.days} يوم على انتهاء الاشتراك (${p.date})` : `${p.days} day(s) left until your subscription ends (${p.date})` };
     case 'expiring_summary': return { title: ar ? 'اشتراكات قاربت على الانتهاء' : 'Subscriptions expiring soon', body: ar ? `${p.count} مشترك ينتهي اشتراكهم خلال 7 أيام` : `${p.count} subscriber(s) expire within 7 days` };
     case 'vaccine_due': return { title: ar ? 'موعد تطعيم' : 'Vaccine due', body: ar ? `تطعيم ${p.vaccine} للطفل ${p.child} ${p.days === 0 ? 'اليوم' : `بعد ${p.days} أيام`}` : `${p.vaccine} for ${p.child} ${p.days === 0 ? 'today' : `in ${p.days} days`}` };
+    case 'admin_view': return { title: ar ? 'معاينة من الدعم الفني' : 'Support viewed your project', body: ar ? 'دخل الدعم الفني لمعاينة مشروعك (قراءة فقط) لمساعدتك في حل مشكلة' : 'Support viewed your project (read-only) to help with an issue' };
     case 'new_subscriber': return { title: ar ? 'مشترك جديد' : 'New subscriber', body: ar ? `اشترك مشروع جديد: ${p.name}` : `New project subscribed: ${p.name}` };
     case 'chat_from_admin': return { title: ar ? 'الدعم الفني' : 'Support', body: p.preview || n.body };
     case 'chat_from_founder': return { title: ar ? `رسالة جديدة من ${p.tenant}` : `New message from ${p.tenant}`, body: p.preview || n.body };

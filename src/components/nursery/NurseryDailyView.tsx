@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { CalendarCheck, Check, FileText, Loader2, Plus, Search, Send, Trash2, X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/supabaseClient';
+import { cacheGet, cacheSet, onOutboxChange, pendingLogs, upsertLogOfflineAware } from '../../lib/offlineQueue';
 import { SaveButton } from '../ui/SaveButton';
 import { Badge, Field, Modal, cardClass, inputClass } from './ui';
 import { NurseryBulkSend } from './NurseryBulkSend';
@@ -110,11 +111,12 @@ const ReportEditor: React.FC<{
       teacher_comment: log.teacher_comment || null,
       updated_at: new Date().toISOString(),
     };
-    const { error } = await supabase.from('nursery_daily_logs').upsert(payload, { onConflict: 'child_id,day' });
-    if (error) {
-      showToast(error.message);
+    const res = await upsertLogOfflineAware(payload as any);
+    if (!res.ok) {
+      showToast(res.error || 'Error');
       return false;
     }
+    if (res.queued) showToast(tx('اتحفظ على الجهاز وهيتزامن لما النت يرجع', 'Saved on this device, will sync when online'));
     setBaseline(JSON.stringify(log));
     onSaved();
     return true;
@@ -335,9 +337,16 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
 
   const loadLogs = useCallback(async () => {
     if (!activeTenant) return;
-    const { data } = await supabase.from('nursery_daily_logs').select('*').eq('tenant_id', activeTenant.id).eq('day', day);
+    const cacheKey = `logs_${activeTenant.id}_${day}`;
+    const { data, error } = await supabase.from('nursery_daily_logs').select('*').eq('tenant_id', activeTenant.id).eq('day', day);
+    let rows: any[] = (data as any[]) || [];
+    if (error) rows = cacheGet<any[]>(cacheKey) || [];
+    else cacheSet(cacheKey, rows);
+    const byChild: Record<string, any> = {};
+    rows.forEach((r) => { byChild[r.child_id] = r; });
+    pendingLogs(activeTenant.id, day).forEach((p) => { byChild[p.child_id] = { ...(byChild[p.child_id] || {}), ...p }; });
     const map: Record<string, DailyLog> = {};
-    (data || []).forEach((r: any) => {
+    Object.values(byChild).forEach((r: any) => {
       map[r.child_id] = rowToLog(r);
     });
     setLogs(map);
@@ -346,6 +355,8 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
   useEffect(() => {
     loadLogs();
   }, [loadLogs]);
+
+  useEffect(() => onOutboxChange(() => { loadLogs(); }), [loadLogs]);
 
   const active = core.children.filter((c) => c.status === 'active');
   const needle = q.trim().toLowerCase();
@@ -358,10 +369,10 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
     const existing = logs[child.id];
     const payload: any = { tenant_id: activeTenant!.id, child_id: child.id, day, status, updated_at: new Date().toISOString() };
     if (status === 'present' && !existing?.arrival_time && day === cairoToday()) payload.arrival_time = nowHHMM();
-    const { error } = await supabase.from('nursery_daily_logs').upsert(payload, { onConflict: 'child_id,day' });
+    const res = await upsertLogOfflineAware(payload);
     setBusyId(null);
-    if (error) {
-      showToast(error.message);
+    if (!res.ok) {
+      showToast(res.error || 'Error');
       return;
     }
     loadLogs();

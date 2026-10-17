@@ -70,6 +70,9 @@ export function mapBookingRow(row: any): Booking {
     date: row.date_label || (scheduled ? scheduled.toLocaleDateString() : ''),
     status: (row.status || 'confirmed') as Booking['status'],
     type: (row.booking_type || 'Consultation') as Booking['type'],
+    scheduledAt: row.scheduled_at || undefined,
+    patientPhone: row.patients?.phone || '',
+    reminderSentAt: row.reminder_sent_at || null,
   };
 }
 

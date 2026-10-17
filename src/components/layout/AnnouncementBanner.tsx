@@ -10,7 +10,7 @@ const keyFor = (text: string) => {
 };
 
 export const AnnouncementBanner: React.FC = () => {
-  const { announcement, announcementActive, language } = useApp();
+  const { announcement, announcementActive, announcementTarget, tenants, systemTemplates, language } = useApp();
   const { profile } = useAuth();
   const title = language === 'ar' ? announcement.titleAr : announcement.title;
   const message = language === 'ar' ? announcement.messageAr : announcement.message;
@@ -26,7 +26,16 @@ export const AnnouncementBanner: React.FC = () => {
     }
   }
 
-  if (profile?.roleCode !== 'founder' || !announcementActive || dismissed || (!title && !message)) return null;
+  const targeted = announcementTarget.systems.length > 0 || announcementTarget.tenants.length > 0;
+  const matches =
+    !targeted ||
+    tenants.some((tn) => {
+      if (announcementTarget.tenants.includes(tn.id)) return true;
+      const key = systemTemplates.find((tpl) => tpl.id === tn.systemId)?.key;
+      return !!key && announcementTarget.systems.includes(key);
+    });
+
+  if (profile?.roleCode !== 'founder' || !announcementActive || !matches || dismissed || (!title && !message)) return null;
 
   const dismiss = () => {
     try {

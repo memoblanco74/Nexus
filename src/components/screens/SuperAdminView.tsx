@@ -6,6 +6,7 @@ import { SubscriptionHistoryModal } from '../modals/SubscriptionHistory';
 import { SaveButton } from '../ui/SaveButton';
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   TrendingUp,
   Building,
@@ -51,6 +52,9 @@ export const SuperAdminView: React.FC = () => {
     updateAnnouncement,
     announcementActive,
     setAnnouncementActive,
+    announcementTarget,
+    updateAnnouncementTarget,
+    systemTemplates,
     freeInfoFromStart,
     openPdfExport,
     showToast,
@@ -64,6 +68,13 @@ export const SuperAdminView: React.FC = () => {
   const [subSearch, setSubSearch] = useState('');
   const [subFilter, setSubFilter] = useState<'all' | 'Active' | 'Expiring Soon' | 'Suspended'>('all');
   const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
+  const [tgMode, setTgMode] = useState<'all' | 'systems' | 'tenants'>(announcementTarget.systems.length ? 'systems' : announcementTarget.tenants.length ? 'tenants' : 'all');
+  const [tgSystems, setTgSystems] = useState<string[]>(announcementTarget.systems);
+  const [tgTenants, setTgTenants] = useState<string[]>(announcementTarget.tenants);
+  const tgPayload = { systems: tgMode === 'systems' ? tgSystems : [], tenants: tgMode === 'tenants' ? tgTenants : [] };
+  const tgSig = JSON.stringify(tgPayload);
+  const tgBase = JSON.stringify({ systems: announcementTarget.systems, tenants: announcementTarget.tenants });
+  const toggleIn = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const [kpiDetail, setKpiDetail] = useState<{ title: string; rows: { name: string; sub?: string; value: string }[] } | null>(null);
 
   const payingSubscriptions = subscriptions.filter((s) => s.status === 'Active' && !freeInfoFromStart(s.startDate).active);
@@ -183,6 +194,12 @@ export const SuperAdminView: React.FC = () => {
     });
   }, [subscriptions.length]);
 
+  const { startViewAs } = useAuth();
+  const openView = async (id: string, name: string) => {
+    if (!(await askConfirm({ title: isRTL ? 'معاينة المشروع' : 'View project', message: isRTL ? `هتدخل لمعاينة بيانات «${name}» للقراءة فقط، وهيتسجل الدخول في سجل التدقيق وصاحب المشروع هيوصله إشعار. متابعة؟` : `You will view “${name}” read-only. This is logged and the founder is notified. Continue?` }))) return;
+    const err = await startViewAs(id, name);
+    if (err) showToast(err);
+  };
   const [renewTarget, setRenewTarget] = useState<{ id: string; name: string } | null>(null);
   const [historyTarget, setHistoryTarget] = useState<{ id: string; name: string } | null>(null);
   const [rev, setRev] = useState<{ total_paid: number; month_paid: number; month_renewals: number; paying_tenants: number; paying_tenants_month: number } | null>(null);
@@ -448,6 +465,35 @@ export const SuperAdminView: React.FC = () => {
                 ? isRTL ? 'إلغاء' : 'Cancel'
                 : isRTL ? 'تعديل الإعلان' : 'Edit Broadcast'}
             </button>
+            </div>
+          </div>
+
+          <div className="mt-3 space-y-2 rounded-xl border border-slate-800/60 p-3">
+            <p className="text-[11px] font-bold text-slate-300">{isRTL ? 'لمين يظهر الإعلان؟' : 'Who sees this announcement?'}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {([['all', isRTL ? 'الكل' : 'Everyone'], ['systems', isRTL ? 'حسب نوع النظام' : 'By system'], ['tenants', isRTL ? 'مشتركين محددين' : 'Specific subscribers']] as const).map(([k, label]) => (
+                <button key={k} onClick={() => setTgMode(k)} className={`rounded-lg border px-2.5 py-1 text-[11px] font-bold ${tgMode === k ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-slate-700 text-slate-400 hover:bg-slate-800'}`}>{label}</button>
+              ))}
+            </div>
+            {tgMode === 'systems' && (
+              <div className="flex flex-wrap gap-1.5">
+                {systemTemplates.map((tpl) => (
+                  <button key={tpl.id} onClick={() => setTgSystems(toggleIn(tgSystems, tpl.key))} className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${tgSystems.includes(tpl.key) ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300' : 'border-slate-700 text-slate-400 hover:bg-slate-800'}`}>{isRTL ? tpl.nameAr || tpl.name : tpl.name}</button>
+                ))}
+              </div>
+            )}
+            {tgMode === 'tenants' && (
+              <div className="max-h-36 space-y-1 overflow-y-auto">
+                {subscriptions.map((sub) => (
+                  <label key={sub.id} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 text-[11px] text-slate-300 hover:bg-slate-800/60">
+                    <input type="checkbox" checked={tgTenants.includes(sub.id)} onChange={() => setTgTenants(toggleIn(tgTenants, sub.id))} />
+                    {isRTL ? sub.tenantNameAr || sub.tenantName : sub.tenantName}
+                  </label>
+                ))}
+              </div>
+            )}
+            <div className="flex justify-end">
+              <SaveButton signature={tgSig} baseline={tgBase} onSave={() => updateAnnouncementTarget(tgPayload)} label={isRTL ? 'حفظ الاستهداف' : 'Save targeting'} className="px-3 py-1.5" />
             </div>
           </div>
 
@@ -772,6 +818,13 @@ export const SuperAdminView: React.FC = () => {
                       </td>
                       <td className="py-3 px-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => openView(sub.id, language === 'ar' ? sub.tenantNameAr || sub.tenantName : sub.tenantName)}
+                            className="flex items-center gap-1 rounded-lg bg-slate-700/40 px-2 py-1 text-[11px] font-bold text-slate-200 hover:bg-slate-700/70"
+                            title={isRTL ? 'معاينة المشروع (قراءة فقط)' : 'View project (read-only)'}
+                          >
+                            {isRTL ? 'معاينة' : 'View'}
+                          </button>
                           <button
                             onClick={() => setHistoryTarget({ id: sub.id, name: language === 'ar' ? sub.tenantNameAr : sub.tenantName })}
                             className="flex items-center gap-1 rounded-lg bg-blue-600/20 px-2 py-1 text-[11px] font-bold text-blue-300 hover:bg-blue-600/30"

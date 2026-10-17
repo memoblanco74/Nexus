@@ -153,6 +153,9 @@ export interface Booking {
   date: string;
   status: 'confirmed' | 'pending' | 'cancelled';
   type: 'General Checkup' | 'Surgery Follow-up' | 'Dental' | 'Radiology' | 'Consultation';
+  scheduledAt?: string;
+  patientPhone?: string;
+  reminderSentAt?: string | null;
 }
 
 export interface Project {

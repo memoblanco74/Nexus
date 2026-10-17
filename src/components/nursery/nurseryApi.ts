@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { cacheGet, cacheSet } from '../../lib/offlineQueue';
 
 export interface Child {
   id: string;
@@ -235,14 +236,23 @@ export const useNurseryCore = (tenantId: string | undefined) => {
       supabase.from('nursery_children').select('*').eq('tenant_id', tenantId).order('full_name'),
       supabase.from('nursery_fee_items').select('*').eq('tenant_id', tenantId).order('created_at'),
       supabase.from('nursery_child_fees').select('id, child_id, fee_item_id, price_override').eq('tenant_id', tenantId),
-      supabase.from('nursery_vaccinations').select('id, child_id, vaccine_name, given_on, note').eq('tenant_id', tenantId),
+      supabase.from('nursery_vaccinations').select('id, child_id, vaccine_name, given_on, note, due_date').eq('tenant_id', tenantId),
       supabase.from('nursery_payments').select('id, child_id, period, amount, paid_on, method, note').eq('tenant_id', tenantId),
     ]);
-    setChildren((c.data as Child[]) || []);
-    setFeeItems(((f.data as any[]) || []).map((x) => ({ ...x, price: Number(x.price) })));
-    setChildFees(((cf.data as any[]) || []).map((x) => ({ ...x, price_override: x.price_override === null ? null : Number(x.price_override) })));
-    setVaccinations((v.data as Vaccination[]) || []);
-    setPayments(((p.data as any[]) || []).map((x) => ({ ...x, amount: Number(x.amount) })));
+    const failed = [c, f, cf, v, p].find((r) => r.error);
+    const cacheKey = `nursery_core_${tenantId}`;
+    let raw = { c: c.data, f: f.data, cf: cf.data, v: v.data, p: p.data } as any;
+    if (failed) {
+      const cached = cacheGet<any>(cacheKey);
+      if (cached) raw = cached;
+    } else {
+      cacheSet(cacheKey, raw);
+    }
+    setChildren((raw.c as Child[]) || []);
+    setFeeItems(((raw.f as any[]) || []).map((x) => ({ ...x, price: Number(x.price) })));
+    setChildFees(((raw.cf as any[]) || []).map((x) => ({ ...x, price_override: x.price_override === null ? null : Number(x.price_override) })));
+    setVaccinations((raw.v as Vaccination[]) || []);
+    setPayments(((raw.p as any[]) || []).map((x) => ({ ...x, amount: Number(x.amount) })));
     setLoading(false);
   }, [tenantId]);
 

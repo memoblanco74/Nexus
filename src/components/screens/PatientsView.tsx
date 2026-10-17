@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { PatientRecordsModal } from '../clinic/PatientRecordsModal';
+import { Patient } from '../../types';
 import {
   Users,
   UserPlus,
@@ -26,6 +28,7 @@ export const PatientsView: React.FC = () => {
   } = useApp();
 
   const [search, setSearch] = useState('');
+  const [recordsFor, setRecordsFor] = useState<Patient | null>(null);
 
   const filteredPatients = patients.filter((p) => {
     return (
@@ -130,7 +133,13 @@ export const PatientsView: React.FC = () => {
                       {p.status}
                     </span>
                   </td>
-                  <td className="py-3 px-3 text-center">
+                  <td className="py-3 px-3 text-center whitespace-nowrap">
+                    <button
+                      onClick={() => setRecordsFor(p)}
+                      className="mx-1 rounded-lg bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 px-2.5 py-1 text-[11px] font-semibold transition"
+                    >
+                      {isRTL ? 'الملف الطبي' : 'Records'}
+                    </button>
                     <button
                       onClick={() => setIsNewBookingOpen(true)} data-write="1"
                       className="rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 px-2.5 py-1 text-[11px] font-semibold transition"
@@ -144,6 +153,7 @@ export const PatientsView: React.FC = () => {
           </table>
         </div>
       </div>
+      {recordsFor && <PatientRecordsModal patient={recordsFor} onClose={() => setRecordsFor(null)} />}
     </div>
   );
 };

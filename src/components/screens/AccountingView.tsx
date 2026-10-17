@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { buildInvoiceHtml, printHtml } from '../../lib/printDoc';
 import {
   CircleDollarSign,
   TrendingUp,
@@ -27,6 +28,7 @@ export const AccountingView: React.FC = () => {
     updateInvoiceStatus,
     setIsCreateInvoiceOpen,
     openPdfExport,
+    activeTenant,
     showToast,
     addExpense,
     t,
@@ -417,7 +419,7 @@ export const AccountingView: React.FC = () => {
                         <option value="overdue">{isRTL ? 'متأخرة' : 'Overdue'}</option>
                       </select>
                       <button
-                        onClick={() => openPdfExport(`Invoice ${inv.invoiceNumber} - ${inv.clientName}`)}
+                        onClick={() => printHtml(buildInvoiceHtml(inv, language === 'ar' ? activeTenant?.nameAr || activeTenant?.name || '' : activeTenant?.name || '', isRTL, (n) => money(n, 2)), isRTL ? 'rtl' : 'ltr')}
                         className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
                         title="Print / PDF Invoice"
                       >

@@ -13,6 +13,8 @@ import { FreePeriodBanner } from './components/layout/FreePeriodBanner';
 import { ReferralPromptStep } from './components/screens/ReferralParts';
 import { SubscriptionBanner } from './components/layout/SubscriptionBanner';
 import { AnnouncementBanner } from './components/layout/AnnouncementBanner';
+import { OfflineBanner } from './components/layout/OfflineBanner';
+import { ViewAsBanner } from './components/layout/ViewAsBanner';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 
 // Screens
@@ -71,6 +73,8 @@ const DashboardContent: React.FC = () => {
     <div className="flex min-h-screen bg-[#0b0f17] text-slate-100 dark:bg-[#0b0f17] dark:text-slate-100 light:bg-[#dcedf0] light:text-[#0f172a] font-sans transition-colors duration-200">
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col min-w-0">
+        <ViewAsBanner />
+        <OfflineBanner />
         <Header />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-24">

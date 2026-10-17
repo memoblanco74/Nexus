@@ -1,5 +1,5 @@
 import { unsubscribePush } from '../lib/webPush';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
 
@@ -43,6 +43,9 @@ interface AuthContextType {
   tenantMemberships: TenantMembership[];
   activeTenantId: string | null;
   setActiveTenantId: (id: string) => void;
+  viewAs: { tenantId: string; name: string } | null;
+  startViewAs: (tenantId: string, name: string) => Promise<string | null>;
+  stopViewAs: () => Promise<void>;
   loading: boolean;
   signInWithIdentifier: (identifier: string, password: string) => Promise<{ error: string | null }>;
   signUp: (params: {
@@ -67,9 +70,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [tenantMemberships, setTenantMemberships] = useState<TenantMembership[]>([]);
-  const [activeTenantId, setActiveTenantIdState] = useState<string | null>(null);
+  const [realProfile, setProfile] = useState<UserProfile | null>(null);
+  const [realMemberships, setTenantMemberships] = useState<TenantMembership[]>([]);
+  const [realActiveTenantId, setActiveTenantIdState] = useState<string | null>(null);
+  const [viewAs, setViewAs] = useState<{ tenantId: string; name: string } | null>(null);
+  const effectiveView = viewAs && realProfile?.roleCode === 'super_admin' ? viewAs : null;
+  const profile = useMemo(() => (effectiveView && realProfile ? { ...realProfile, roleCode: 'founder' as RoleCode } : realProfile), [realProfile, effectiveView]);
+  const tenantMemberships = useMemo(() => (effectiveView ? [{ tenantId: effectiveView.tenantId, isFounder: true }] : realMemberships), [realMemberships, effectiveView]);
+  const activeTenantId = effectiveView ? effectiveView.tenantId : realActiveTenantId;
   const profileIdRef = React.useRef<string | null>(null);
   const setActiveTenantId = (id: string | null) => {
     setActiveTenantIdState(id);
@@ -254,7 +262,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error: null, needsEmailConfirmation: !data.session };
   };
 
+  const startViewAs = async (tenantId: string, name: string) => {
+    const { error } = await supabase.rpc('fn_start_admin_view', { p_tenant_id: tenantId, p_minutes: 120 });
+    if (error) return error.message;
+    setViewAs({ tenantId, name });
+    return null;
+  };
+
+  const stopViewAs = async () => {
+    const cur = viewAs;
+    setViewAs(null);
+    if (cur) await supabase.rpc('fn_end_admin_view', { p_tenant_id: cur.tenantId });
+  };
+
   const signOut = async () => {
+    if (viewAs) await supabase.rpc('fn_end_admin_view', { p_tenant_id: viewAs.tenantId });
+    setViewAs(null);
     await unsubscribePush();
     await supabase.auth.signOut();
   };
@@ -362,6 +385,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         tenantMemberships,
         activeTenantId,
         setActiveTenantId,
+        viewAs: effectiveView,
+        startViewAs,
+        stopViewAs,
         loading,
         signInWithIdentifier,
         signUp,

@@ -66,6 +66,7 @@ interface AppContextType {
   tenantAccess: (tenant: Tenant | null | undefined) => TenantAccess;
   activeAccess: TenantAccess;
   isReadOnly: boolean;
+  refreshBookings: () => Promise<void>;
   systemKey: string;
   renewSubscription: (tenantId: string, months: number, amountPaid?: number | null, amountDue?: number | null, extra?: { method?: string; reference?: string; paidAt?: string; sender?: string; note?: string }) => Promise<string | null>;
   paymentInfo: PaymentInfo;
@@ -110,6 +111,8 @@ interface AppContextType {
   announcement: { title: string; titleAr: string; message: string; messageAr: string };
   updateAnnouncement: (a: { title: string; titleAr: string; message: string; messageAr: string }) => Promise<boolean>;
   announcementActive: boolean;
+  announcementTarget: { systems: string[]; tenants: string[] };
+  updateAnnouncementTarget: (target: { systems: string[]; tenants: string[] }) => Promise<boolean>;
   setAnnouncementActive: (active: boolean) => Promise<void>;
   defaultDiscount: string;
   setDefaultDiscount: (discount: string) => void;
@@ -283,7 +286,7 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { profile, activeTenantId, setActiveTenantId, tenantMemberships, updatePreferredTheme, updatePreferredLanguage } = useAuth();
+  const { profile, activeTenantId, setActiveTenantId, tenantMemberships, updatePreferredTheme, updatePreferredLanguage, viewAs } = useAuth();
 
   const [screen, setScreen] = useState<ScreenId>('founder');
   const [language, setLanguageState] = useState<Language>(() => {
@@ -328,6 +331,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     messageAr: 'ترقية البنية السحابية في ١٥ أكتوبر، الساعة ٠٢:٠٠ ص بتوقيت UTC. دون أي انقطاع للخدمة.',
   });
   const [announcementActive, setAnnouncementActiveState] = useState(false);
+  const [announcementTarget, setAnnouncementTargetState] = useState<{ systems: string[]; tenants: string[] }>({ systems: [], tenants: [] });
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({ phone: '', link: '', qr: '', note: '' });
   const [defaultDiscount, setDefaultDiscountState] = useState<string>('15%');
   const [freePeriodDays, setFreePeriodDaysState] = useState<number>(0);
@@ -512,7 +516,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!activeTenantId) return;
     const { data } = await supabase
       .from('bookings')
-      .select('*, patients(full_name)')
+      .select('*, patients(full_name, phone)')
       .eq('tenant_id', activeTenantId)
       .order('scheduled_at', { ascending: false });
     if (data) setBookings(data.map(mapBookingRow));
@@ -664,7 +668,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [refreshAssistants]);
 
   const refreshFounderChat = useCallback(async () => {
-    if (!profile || profile.roleCode !== 'founder' || !activeTenantId) {
+    if (!profile || profile.roleCode !== 'founder' || !activeTenantId || viewAs) {
       setFounderChatMessages([]);
       setFounderConversationId(null);
       return;
@@ -892,7 +896,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [founderUnreadCount, screen, profile, markFounderChatSeen]);
 
   useEffect(() => {
-    if (!profile || (profile.roleCode !== 'super_admin' && profile.roleCode !== 'founder')) return;
+    if (!profile || viewAs || (profile.roleCode !== 'super_admin' && profile.roleCode !== 'founder')) return;
 
     const handleIncoming = async (row: any) => {
       const me = profileRef.current;
@@ -943,12 +947,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clearInterval(poll);
       supabase.removeChannel(channel);
     };
-  }, [profile?.id, profile?.roleCode, refreshChats, refreshFounderChat, language]);
+  }, [profile?.id, profile?.roleCode, !!viewAs, refreshChats, refreshFounderChat, language]);
 
   useEffect(() => {
-    if (!profile || !isPushSupported() || Notification.permission !== 'granted') return;
+    if (!profile || viewAs || !isPushSupported() || Notification.permission !== 'granted') return;
     subscribeToPush();
-  }, [profile?.id]);
+  }, [profile?.id, !!viewAs]);
 
   useEffect(() => {
     if (!profile || typeof Notification === 'undefined' || Notification.permission !== 'default') return;
@@ -1060,6 +1064,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (map.default_discount_percent) setDefaultDiscountState(map.default_discount_percent);
     setFreePeriodDaysState(Math.max(0, parseInt(map.free_period_days || '0', 10) || 0));
     setAnnouncementActiveState(map.announcement_active === 'true');
+    try {
+      const tg = JSON.parse(map.announcement_target || '{}');
+      setAnnouncementTargetState({ systems: Array.isArray(tg.systems) ? tg.systems : [], tenants: Array.isArray(tg.tenants) ? tg.tenants : [] });
+    } catch {
+      setAnnouncementTargetState({ systems: [], tenants: [] });
+    }
     setPaymentInfo({
       phone: map.payment_instapay_phone || '',
       link: map.payment_instapay_link || '',
@@ -1141,7 +1151,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const refreshReferral = useCallback(async () => {
-    if (!profile || profile.roleCode !== 'founder') {
+    if (!profile || profile.roleCode !== 'founder' || viewAs) {
       setReferral(null);
       setReferralLoaded(true);
       return;
@@ -1164,7 +1174,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       defaultPercent: Number(d.default_percent) || 0,
     });
     setReferralLoaded(true);
-  }, [profile?.id, profile?.roleCode]);
+  }, [profile?.id, profile?.roleCode, !!viewAs]);
 
   useEffect(() => {
     setReferralLoaded(false);
@@ -1193,6 +1203,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const skipReferralPrompt = async () => {
     setReferral((r) => (r ? { ...r, promptDone: true } : r));
     await supabase.rpc('fn_skip_referral_prompt');
+  };
+
+  const updateAnnouncementTarget = async (target: { systems: string[]; tenants: string[] }) => {
+    const { error } = await supabase
+      .from('platform_settings')
+      .upsert({ key: 'announcement_target', value: JSON.stringify(target), updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    if (error) {
+      showToast(error.message);
+      return false;
+    }
+    setAnnouncementTargetState(target);
+    showToast(isRTL ? 'تم حفظ استهداف الإعلان' : 'Announcement targeting saved');
+    return true;
   };
 
   const setAnnouncementActive = async (active: boolean) => {
@@ -1239,7 +1262,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const activeAccess = tenantAccess(activeTenant);
   const isReadOnly =
-    !!profile && (profile.roleCode === 'founder' || profile.roleCode === 'assistant') && !!activeTenant && !activeAccess.writable;
+    !!viewAs || (!!profile && (profile.roleCode === 'founder' || profile.roleCode === 'assistant') && !!activeTenant && !activeAccess.writable);
 
   const guardOpen = (setter: (open: boolean) => void) => (open: boolean) => {
     if (open && isReadOnly) {
@@ -1794,6 +1817,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         tenantAccess,
         activeAccess,
         isReadOnly,
+        refreshBookings,
         renewSubscription,
         setDefaultDiscount,
         inventory,
@@ -1819,6 +1843,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addSystemTemplate,
         updateSystemTemplate,
         announcementActive,
+        announcementTarget,
+        updateAnnouncementTarget,
         setAnnouncementActive,
         deleteSystemTemplate,
         addSystemFeature,
