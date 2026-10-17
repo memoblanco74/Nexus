@@ -236,7 +236,7 @@ export const useNurseryCore = (tenantId: string | undefined) => {
       supabase.from('nursery_children').select('*').eq('tenant_id', tenantId).order('full_name'),
       supabase.from('nursery_fee_items').select('*').eq('tenant_id', tenantId).order('created_at'),
       supabase.from('nursery_child_fees').select('id, child_id, fee_item_id, price_override').eq('tenant_id', tenantId),
-      supabase.from('nursery_vaccinations').select('id, child_id, vaccine_name, given_on, note, due_date').eq('tenant_id', tenantId),
+      supabase.from('nursery_vaccinations').select('*').eq('tenant_id', tenantId),
       supabase.from('nursery_payments').select('id, child_id, period, amount, paid_on, method, note').eq('tenant_id', tenantId),
     ]);
     const failed = [c, f, cf, v, p].find((r) => r.error);
