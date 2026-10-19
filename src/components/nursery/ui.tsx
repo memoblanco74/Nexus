@@ -51,3 +51,38 @@ export const Badge: React.FC<{ tone: 'ok' | 'warn' | 'bad' | 'muted'; children: 
   };
   return <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${map[tone]}`}>{children}</span>;
 };
+
+export const BirthDateField: React.FC<{ value: string; onChange: (v: string) => void; isRTL: boolean }> = ({ value, onChange, isRTL }) => {
+  const [y0, m0, d0] = (value || '').split('-');
+  const [y, setY] = React.useState(y0 || '');
+  const [m, setM] = React.useState(m0 || '');
+  const [d, setD] = React.useState(d0 || '');
+  const thisYear = new Date().getFullYear();
+  const years: number[] = [];
+  for (let k = thisYear; k >= thisYear - 100; k--) years.push(k);
+  const monthNames = isRTL
+    ? ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const maxDay = y && m ? new Date(Number(y), Number(m), 0).getDate() : 31;
+  const emit = (ny: string, nm: string, nd: string) => {
+    const dd = nd && Number(nd) > new Date(Number(ny || 2000), Number(nm || 1), 0).getDate() ? '' : nd;
+    setY(ny); setM(nm); setD(dd);
+    onChange(ny && nm && dd ? `${ny}-${nm.padStart(2, '0')}-${dd.padStart(2, '0')}` : '');
+  };
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      <select className={inputClass} value={d} onChange={(e) => emit(y, m, e.target.value)}>
+        <option value="">{isRTL ? 'اليوم' : 'Day'}</option>
+        {Array.from({ length: maxDay }, (_, k) => k + 1).map((k) => <option key={k} value={String(k)}>{k}</option>)}
+      </select>
+      <select className={inputClass} value={m} onChange={(e) => emit(y, e.target.value, d)}>
+        <option value="">{isRTL ? 'الشهر' : 'Month'}</option>
+        {monthNames.map((n, k) => <option key={k} value={String(k + 1)}>{n}</option>)}
+      </select>
+      <select className={inputClass} value={y} onChange={(e) => emit(e.target.value, m, d)}>
+        <option value="">{isRTL ? 'السنة' : 'Year'}</option>
+        {years.map((k) => <option key={k} value={String(k)}>{k}</option>)}
+      </select>
+    </div>
+  );
+};

@@ -8,7 +8,7 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { SaveButton } from '../ui/SaveButton';
-import { Badge, Field, Modal, cardClass, inputClass } from './ui';
+import { BirthDateField, Badge, Field, Modal, cardClass, inputClass } from './ui';
 import {
   Child,
   ageLabel,
@@ -101,7 +101,7 @@ const ChildFormModal: React.FC<{ child: Child | null; onClose: () => void; onSav
           <input className={inputClass} value={form.full_name} onChange={(e) => set('full_name', e.target.value)} />
         </Field>
         <Field label={tx('تاريخ الميلاد', 'Date of birth')}>
-          <input type="date" className={inputClass} value={form.birth_date || ''} onChange={(e) => set('birth_date', e.target.value)} />
+          <BirthDateField isRTL={isRTL} value={form.birth_date || ''} onChange={(v) => set('birth_date', v)} />
         </Field>
         <Field label={tx('النوع', 'Gender')}>
           <select className={inputClass} value={form.gender || ''} onChange={(e) => set('gender', e.target.value)}>
