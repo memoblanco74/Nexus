@@ -1,9 +1,31 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { UserPlus, Trash2, ShieldCheck } from 'lucide-react';
+import { UserPlus, Trash2, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient';
+import { assistantOptions } from '../../lib/screenAccess';
+import { Modal } from '../nursery/ui';
 
 export const AssistantsView: React.FC = () => {
-  const { isRTL, assistants, createAssistant, removeAssistant, showToast } = useApp();
+  const { isRTL, assistants, createAssistant, removeAssistant, showToast, systemKey, activeTenant, refreshAssistants, t } = useApp();
+  const [permFor, setPermFor] = useState<(typeof assistants)[number] | null>(null);
+  const [permSel, setPermSel] = useState<string[]>([]);
+  const [permBusy, setPermBusy] = useState(false);
+  const options = assistantOptions(systemKey);
+  const openPerms = (a: (typeof assistants)[number]) => {
+    setPermFor(a);
+    setPermSel(a.allowedScreens ?? options);
+  };
+  const savePerms = async () => {
+    if (!permFor || !activeTenant) return;
+    setPermBusy(true);
+    const allSelected = options.every((o) => permSel.includes(o));
+    const { error } = await supabase.rpc('fn_set_assistant_screens', { p_tenant_id: activeTenant.id, p_user_id: permFor.id, p_screens: allSelected ? null : permSel });
+    setPermBusy(false);
+    if (error) { showToast(error.message); return; }
+    await refreshAssistants();
+    showToast(isRTL ? 'تم حفظ الصلاحيات' : 'Permissions saved');
+    setPermFor(null);
+  };
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [username, setUsername] = useState('');
   const [fullName, setFullName] = useState('');
@@ -77,7 +99,14 @@ export const AssistantsView: React.FC = () => {
                   <td className="px-4 py-3 font-semibold text-white">{a.fullName}</td>
                   <td className="px-4 py-3 text-slate-400">{a.username}</td>
                   <td className="px-4 py-3 text-slate-400">{a.createdAt}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <button
+                      onClick={() => openPerms(a)} data-write="1"
+                      className="mx-1 inline-flex items-center gap-1 rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-blue-300 hover:bg-blue-500/20"
+                    >
+                      <SlidersHorizontal className="h-3 w-3" />
+                      {isRTL ? 'الصلاحيات' : 'Permissions'}
+                    </button>
                     <button
                       onClick={() => removeAssistant(a.id)} data-write="1"
                       className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-red-400 hover:bg-red-500/20"
@@ -143,6 +172,24 @@ export const AssistantsView: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+      {permFor && (
+        <Modal
+          title={`${isRTL ? 'صلاحيات' : 'Permissions'} — ${permFor.fullName || permFor.username}`}
+          onClose={() => setPermFor(null)}
+          footer={<button disabled={permBusy} onClick={savePerms} className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 disabled:opacity-50">{isRTL ? 'حفظ' : 'Save'}</button>}
+        >
+          <p className="text-[11px] text-slate-400">{isRTL ? 'اختار الشاشات اللي المساعد يقدر يفتحها. الصفحة الرئيسية والإعدادات الشخصية متاحة دايماً.' : 'Choose the screens this assistant can open. Home and personal settings are always available.'}</p>
+          <div className="space-y-2">
+            {options.map((o) => (
+              <label key={o} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-800 px-3 py-2.5 text-xs text-white">
+                <input type="checkbox" className="h-4 w-4 accent-blue-500" checked={permSel.includes(o)} onChange={() => setPermSel(permSel.includes(o) ? permSel.filter((x) => x !== o) : [...permSel, o])} />
+                {t(`nav.${o}`)}
+              </label>
+            ))}
+          </div>
+          <p className="text-[10px] text-slate-500">{isRTL ? 'التحكم هنا في ظهور الشاشات للمساعد داخل التطبيق.' : 'This controls which screens the assistant sees in the app.'}</p>
+        </Modal>
       )}
     </div>
   );

@@ -32,6 +32,13 @@ const localizeNotification = (n: { title: string; body: string; code?: string | 
     case 'sub_expiring': return { title: ar ? 'اشتراكك قارب على الانتهاء' : 'Subscription expiring soon', body: ar ? `متبقي ${p.days} يوم على انتهاء الاشتراك (${p.date})` : `${p.days} day(s) left until your subscription ends (${p.date})` };
     case 'expiring_summary': return { title: ar ? 'اشتراكات قاربت على الانتهاء' : 'Subscriptions expiring soon', body: ar ? `${p.count} مشترك ينتهي اشتراكهم خلال 7 أيام` : `${p.count} subscriber(s) expire within 7 days` };
     case 'vaccine_due': return { title: ar ? 'موعد تطعيم' : 'Vaccine due', body: ar ? `تطعيم ${p.vaccine} للطفل ${p.child} ${p.days === 0 ? 'اليوم' : `بعد ${p.days} أيام`}` : `${p.vaccine} for ${p.child} ${p.days === 0 ? 'today' : `in ${p.days} days`}` };
+    case 'daily_summary': return {
+      title: ar ? 'ملخص اليوم' : "Today's summary",
+      body: p.kind === 'nursery'
+        ? (ar ? `حضور ${p.present} • غياب ${p.absent} • إيراد اليوم ${p.revenue} ج.م • متأخرين عن الدفع ${p.overdue}` : `Present ${p.present} • Absent ${p.absent} • Revenue ${p.revenue} EGP • Overdue ${p.overdue}`)
+        : (ar ? `حجوزات اليوم ${p.today} • حجوزات بكرة ${p.tomorrow} • إيراد اليوم ${p.revenue} ج.م • فواتير معلقة ${p.pending}` : `Today ${p.today} • Tomorrow ${p.tomorrow} • Revenue ${p.revenue} EGP • Unpaid invoices ${p.pending}`),
+    };
+    case 'online_booking': return { title: ar ? 'حجز أونلاين جديد' : 'New online booking', body: ar ? `${p.name} — ${p.doctor} — ${p.day} ${p.time}` : `${p.name} — ${p.doctor} — ${p.day} ${p.time}` };
     case 'admin_view': return { title: ar ? 'معاينة من الدعم الفني' : 'Support viewed your project', body: ar ? 'دخل الدعم الفني لمعاينة مشروعك (قراءة فقط) لمساعدتك في حل مشكلة' : 'Support viewed your project (read-only) to help with an issue' };
     case 'new_subscriber': return { title: ar ? 'مشترك جديد' : 'New subscriber', body: ar ? `اشترك مشروع جديد: ${p.name}` : `New project subscribed: ${p.name}` };
     case 'chat_from_admin': return { title: ar ? 'الدعم الفني' : 'Support', body: p.preview || n.body };
@@ -49,6 +56,7 @@ const notificationTarget = (code: string | null | undefined, role: string | unde
   if (code === 'nursery_child_added') return 'patients';
   if (code === 'nursery_payment') return 'accounting';
   if (code === 'vaccine_due') return 'patients';
+  if (code === 'online_booking') return 'bookings';
   return null;
 };
 
@@ -71,7 +79,7 @@ export const Header: React.FC = () => {
     unreadNotificationCount,
     markNotificationRead,
   } = useApp();
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, allowedScreens } = useAuth();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -195,7 +203,7 @@ export const Header: React.FC = () => {
                       onClick={() => {
                         markNotificationRead(n.id);
                         const go = notificationTarget(n.code, profile?.roleCode);
-                        if (go && screensFor(profile?.roleCode, systemKey).includes(go)) { setScreen(go); setShowNotifications(false); }
+                        if (go && screensFor(profile?.roleCode, systemKey, allowedScreens).includes(go)) { setScreen(go); setShowNotifications(false); }
                       }}
                       className="w-full text-start py-2.5 flex flex-col gap-0.5 hover:bg-slate-800/40 rounded px-1.5 transition"
                     >

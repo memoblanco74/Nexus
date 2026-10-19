@@ -30,7 +30,7 @@ type Tab = { id: ScreenId; label: string; icon: React.ReactNode };
 export const MobileBottomNav: React.FC = () => {
   const { screen, setScreen, setIsQrScannerOpen, isRTL, systemKey, t, language, activeTenant, setIsTenantModalOpen, founderUnreadCount, describeTenant } = useApp();
   const [moreOpen, setMoreOpen] = useState(false);
-  const { profile } = useAuth();
+  const { profile, allowedScreens } = useAuth();
 
   const role = profile?.roleCode;
 
@@ -72,6 +72,11 @@ export const MobileBottomNav: React.FC = () => {
     showScanFab = false;
   }
 
+  if (role === 'assistant' && allowedScreens) {
+    const okTabs = screensFor(role, systemKey, allowedScreens);
+    tabs = tabs.filter((tab) => okTabs.includes(tab.id));
+  }
+
   const ICONS: Partial<Record<ScreenId, React.ReactNode>> = {
     founder: <LayoutDashboard className="h-5 w-5" />, assistant: <UserCheck className="h-5 w-5" />, projects: <FolderKanban className="h-5 w-5" />,
     patients: <Users className="h-5 w-5" />, bookings: <CalendarCheck className="h-5 w-5" />, inventory: <Package className="h-5 w-5" />,
@@ -80,7 +85,7 @@ export const MobileBottomNav: React.FC = () => {
   };
   const isMember = role === 'founder' || role === 'assistant';
   const tabIds = tabs.map((x) => x.id);
-  const moreItems = isMember ? screensFor(role, systemKey).filter((id) => !tabIds.includes(id) && ICONS[id]) : [];
+  const moreItems = isMember ? screensFor(role, systemKey, allowedScreens).filter((id) => !tabIds.includes(id) && ICONS[id]) : [];
   const moreActive = moreItems.includes(screen);
   const tenantInfo = activeTenant ? describeTenant(activeTenant) : null;
 

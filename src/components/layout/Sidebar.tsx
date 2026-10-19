@@ -43,12 +43,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
     unrepliedChatCount,
     systemKey,
   } = useApp();
-  const { profile } = useAuth();
+  const { profile, allowedScreens: myAllowed } = useAuth();
   const tenantInfo = activeTenant
     ? describeTenant(activeTenant)
     : { system: '', status: '', tone: 'ok' as const };
 
-  const allowedScreens = screensFor(profile?.roleCode, systemKey);
+  const allowedScreens = screensFor(profile?.roleCode, systemKey, myAllowed);
 
   const navItems: Array<{
     id: ScreenId;

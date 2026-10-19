@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { onPending, takePending } from '../../lib/pendingOpen';
-import { Baby, MessageCircle, Pencil, Plus, Search, Truck } from 'lucide-react';
+import { Baby, FileSpreadsheet, MessageCircle, Pencil, Plus, Search, Truck } from 'lucide-react';
+import { ImportModal } from '../ui/ImportModal';
+import { childrenEntity } from '../../lib/importEntities';
 import { AllergyAlert, BulkMessageModal, PortalCard, VaccineSchedule } from './NurseryExtras';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
@@ -276,8 +278,9 @@ const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () 
 };
 
 export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) => {
-  const { isRTL, money } = useApp();
+  const { isRTL, money, activeTenant } = useApp();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
+  const [importing, setImporting] = useState(false);
   const [q, setQ] = useState('');
   const [editing, setEditing] = useState<Child | null | 'new'>(null);
   const [viewing, setViewing] = useState<string | null>(null);
@@ -312,6 +315,10 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
           <p className="mt-1 text-xs text-slate-400">{tx('بيانات الأطفال وأولياء الأمور والتطعيمات والاشتراكات', 'Children, parents, vaccinations and subscriptions')}</p>
         </div>
         <div className="flex gap-2">
+          <button data-write="1" onClick={() => setImporting(true)} className="flex items-center justify-center gap-2 rounded-xl border border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800">
+            <FileSpreadsheet className="h-4 w-4" />
+            {tx('استيراد Excel', 'Import Excel')}
+          </button>
           <button onClick={() => setBulkMsg(true)} className="flex items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20">
             <MessageCircle className="h-4 w-4" />
             {tx('رسالة لأولياء الأمور', 'Message parents')}
@@ -373,6 +380,7 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
         </div>
       )}
 
+      {importing && activeTenant && <ImportModal entity={childrenEntity(activeTenant.id, core.children.map((c) => c.full_name))} onClose={() => setImporting(false)} onDone={core.reload} />}
       {bulkMsg && <BulkMessageModal children={core.children} onClose={() => setBulkMsg(false)} />}
 
       {editing && (

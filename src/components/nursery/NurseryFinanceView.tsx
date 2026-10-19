@@ -8,6 +8,8 @@ import { SaveButton } from '../ui/SaveButton';
 import { Badge, Field, Modal, cardClass, inputClass } from './ui';
 import { Child, FeeItem, NurseryCore, cairoToday, childDue, feeName, monthOf, phoneForWhatsApp } from './nurseryApi';
 import { renderReportPdf } from './reportPdf';
+import { NurseryStaffTab } from './NurseryStaffTab';
+import { PnlCard } from '../clinic/PnlCard';
 
 type Category = FeeItem['category'];
 
@@ -373,7 +375,7 @@ export const NurseryFinanceView: React.FC<{ core: NurseryCore }> = ({ core }) =>
   const { isRTL } = useApp();
   const { profile } = useAuth();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
-  const [tab, setTab] = useState<'payments' | 'fees'>('payments');
+  const [tab, setTab] = useState<'payments' | 'fees' | 'staff' | 'pnl'>('payments');
   const canEdit = profile?.roleCode === 'founder';
 
   return (
@@ -386,13 +388,13 @@ export const NurseryFinanceView: React.FC<{ core: NurseryCore }> = ({ core }) =>
         <p className="mt-1 text-xs text-slate-400">{tx('متابعة دفع الاشتراك الشهري لكل طفل وإدارة أنواع الاشتراكات وأسعارها', 'Monthly payments and subscription prices')}</p>
       </div>
       <div className="flex gap-2">
-        {(['payments', 'fees'] as const).map((k) => (
+        {((canEdit ? ['payments', 'fees', 'staff', 'pnl'] : ['payments', 'fees']) as Array<'payments' | 'fees' | 'staff' | 'pnl'>).map((k) => (
           <button key={k} onClick={() => setTab(k)} className={`rounded-xl border px-4 py-2 text-xs font-bold ${tab === k ? 'border-blue-500 bg-blue-500/20 text-blue-300' : 'border-slate-700 text-slate-400'}`}>
-            {k === 'payments' ? tx('المدفوعات الشهرية', 'Monthly payments') : tx('أنواع الاشتراكات والأسعار', 'Subscription types & prices')}
+            {k === 'payments' ? tx('المدفوعات الشهرية', 'Monthly payments') : k === 'fees' ? tx('أنواع الاشتراكات والأسعار', 'Subscription types & prices') : k === 'staff' ? tx('الموظفين والمرتبات', 'Staff & payroll') : tx('الأرباح والمصروفات', 'Profit & expenses')}
           </button>
         ))}
       </div>
-      {tab === 'payments' ? <PaymentsTab core={core} /> : <FeesTab core={core} canEdit={canEdit} />}
+      {tab === 'payments' ? <PaymentsTab core={core} /> : tab === 'fees' ? <FeesTab core={core} canEdit={canEdit} /> : tab === 'staff' ? <NurseryStaffTab /> : <PnlCard />}
     </div>
   );
 };

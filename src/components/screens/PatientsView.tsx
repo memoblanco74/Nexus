@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { PatientRecordsModal } from '../clinic/PatientRecordsModal';
+import { ImportModal } from '../ui/ImportModal';
+import { patientsEntity } from '../../lib/importEntities';
+import { toPhone } from '../../lib/importSheet';
 import { Patient } from '../../types';
 import {
   Users,
@@ -24,8 +27,11 @@ export const PatientsView: React.FC = () => {
     patients,
     setIsAddPatientOpen,
     setIsNewBookingOpen,
+    activeTenant,
+    refreshPatients,
     t,
   } = useApp();
+  const [importing, setImporting] = useState(false);
 
   const [search, setSearch] = useState('');
   const [recordsFor, setRecordsFor] = useState<Patient | null>(null);
@@ -57,6 +63,13 @@ export const PatientsView: React.FC = () => {
           </p>
         </div>
 
+        <div className="flex gap-2">
+        <button
+          onClick={() => setImporting(true)} data-write="1"
+          className="flex items-center gap-2 rounded-xl border border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition"
+        >
+          <span>{isRTL ? 'استيراد Excel' : 'Import Excel'}</span>
+        </button>
         <button
           onClick={() => setIsAddPatientOpen(true)} data-write="1"
           className="flex items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition active:scale-95"
@@ -64,6 +77,7 @@ export const PatientsView: React.FC = () => {
           <UserPlus className="h-4 w-4" />
           <span>{t('founder.add_patient')}</span>
         </button>
+        </div>
       </div>
 
       {/* Patient Search & Directory Table */}
@@ -153,6 +167,7 @@ export const PatientsView: React.FC = () => {
           </table>
         </div>
       </div>
+      {importing && activeTenant && <ImportModal entity={patientsEntity(activeTenant.id, patients.map((p) => toPhone(p.phone)).filter(Boolean))} onClose={() => setImporting(false)} onDone={() => { refreshPatients(); }} />}
       {recordsFor && <PatientRecordsModal patient={recordsFor} onClose={() => setRecordsFor(null)} />}
     </div>
   );

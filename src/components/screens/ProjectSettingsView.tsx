@@ -7,6 +7,8 @@ import { PaymentInfoCard } from './PaymentInfoParts';
 import { UserManagementCard } from './AccountSecurityCards';
 import { AssistantsView } from './AssistantsView';
 import { ProjectDataCard } from './MyDataCard';
+import { DemoDataCard } from './DemoDataCard';
+import { ClinicOnlineCard } from '../clinic/ClinicOnlineCard';
 import { SubscriptionHistoryList } from '../modals/SubscriptionHistory';
 
 const inputClass =
@@ -137,7 +139,7 @@ const SubscriptionCard: React.FC = () => {
 };
 
 export const ProjectSettingsView: React.FC = () => {
-  const { isRTL } = useApp();
+  const { isRTL, systemKey } = useApp();
   return (
     <div className="max-w-4xl space-y-6 pb-12">
       <div>
@@ -153,8 +155,10 @@ export const ProjectSettingsView: React.FC = () => {
       <SubscriptionCard />
       <PaymentHistoryCard />
       <ReferralCard />
+      {systemKey === 'clinic' && <ClinicOnlineCard />}
       <AssistantsView />
       <UserManagementCard />
+      <DemoDataCard />
       <ProjectDataCard />
     </div>
   );

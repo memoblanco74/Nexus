@@ -35,6 +35,7 @@ interface UserProfile {
 interface TenantMembership {
   tenantId: string;
   isFounder: boolean;
+  allowedScreens?: string[] | null;
 }
 
 interface AuthContextType {
@@ -43,6 +44,7 @@ interface AuthContextType {
   tenantMemberships: TenantMembership[];
   activeTenantId: string | null;
   setActiveTenantId: (id: string) => void;
+  allowedScreens: string[] | null;
   viewAs: { tenantId: string; name: string } | null;
   startViewAs: (tenantId: string, name: string) => Promise<string | null>;
   stopViewAs: () => Promise<void>;
@@ -78,6 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const profile = useMemo(() => (effectiveView && realProfile ? { ...realProfile, roleCode: 'founder' as RoleCode } : realProfile), [realProfile, effectiveView]);
   const tenantMemberships = useMemo(() => (effectiveView ? [{ tenantId: effectiveView.tenantId, isFounder: true }] : realMemberships), [realMemberships, effectiveView]);
   const activeTenantId = effectiveView ? effectiveView.tenantId : realActiveTenantId;
+  const allowedScreens = profile?.roleCode === 'assistant' ? tenantMemberships.find((m) => m.tenantId === activeTenantId)?.allowedScreens ?? null : null;
   const profileIdRef = React.useRef<string | null>(null);
   const setActiveTenantId = (id: string | null) => {
     setActiveTenantIdState(id);
@@ -135,14 +138,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (roleRow.code !== 'super_admin') {
-      const { data: memberships } = await supabase
+      let membershipsRes: any = await supabase
         .from('tenant_users')
-        .select('tenant_id, is_founder')
+        .select('tenant_id, is_founder, allowed_screens')
         .eq('user_id', userRow.id);
+      if (membershipsRes.error) {
+        membershipsRes = await supabase.from('tenant_users').select('tenant_id, is_founder').eq('user_id', userRow.id);
+      }
+      const memberships = membershipsRes.data as any[] | null;
 
       const list = (memberships || []).map((m) => ({
         tenantId: m.tenant_id,
         isFounder: m.is_founder,
+        allowedScreens: Array.isArray(m.allowed_screens) ? (m.allowed_screens as string[]) : null,
       }));
       setTenantMemberships(list);
       if (list.length > 0) {
@@ -385,6 +393,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         tenantMemberships,
         activeTenantId,
         setActiveTenantId,
+        allowedScreens,
         viewAs: effectiveView,
         startViewAs,
         stopViewAs,

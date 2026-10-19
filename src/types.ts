@@ -34,6 +34,8 @@ export interface Tenant {
   systemId?: string;
   subscriptionPaused: boolean;
   startDate: string;
+  publicToken?: string;
+  onlineBookingEnabled?: boolean;
 }
 
 export interface Subscription {
@@ -121,6 +123,7 @@ export interface Invoice {
   date: string;
   dueDate: string;
   items: InvoiceItem[];
+  doctorName?: string;
 }
 
 export interface Patient {
@@ -200,4 +203,5 @@ export interface AssistantAccount {
   username: string;
   fullName: string;
   createdAt: string;
+  allowedScreens?: string[] | null;
 }

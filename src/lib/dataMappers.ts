@@ -18,6 +18,8 @@ export function mapTenantRow(row: any): Tenant {
     systemId: row.system_id || undefined,
     subscriptionPaused: row.subscription_paused === true,
     startDate: row.subscription_started_at || (row.created_at ? String(row.created_at).slice(0, 10) : ''),
+    publicToken: row.public_token || undefined,
+    onlineBookingEnabled: row.online_booking_enabled === true,
   };
 }
 
@@ -71,7 +73,7 @@ export function mapBookingRow(row: any): Booking {
     status: (row.status || 'confirmed') as Booking['status'],
     type: (row.booking_type || 'Consultation') as Booking['type'],
     scheduledAt: row.scheduled_at || undefined,
-    patientPhone: row.patients?.phone || '',
+    patientPhone: row.patients?.phone || row.patient_phone || '',
     reminderSentAt: row.reminder_sent_at || null,
   };
 }

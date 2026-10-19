@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabaseClient';
 import { useApp } from '../../context/AppContext';
 import { X, Plus, Trash2, FileText, Check } from 'lucide-react';
 import { InvoiceItem } from '../../types';
 
 export const CreateInvoiceModal: React.FC = () => {
-  const { isCreateInvoiceOpen, setIsCreateInvoiceOpen, addInvoice, isRTL, t, money
+  const { isCreateInvoiceOpen, setIsCreateInvoiceOpen, addInvoice, isRTL, t, money, activeTenant
   } = useApp();
 
   const [clientName, setClientName] = useState('');
   const [clientNameAr, setClientNameAr] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [doctorName, setDoctorName] = useState('');
+  const [doctorNames, setDoctorNames] = useState<string[]>([]);
+  useEffect(() => {
+    if (!isCreateInvoiceOpen || !activeTenant?.id) return;
+    supabase.from('clinic_doctors').select('name').eq('tenant_id', activeTenant.id).eq('active', true).then(({ data, error }) => { if (!error) setDoctorNames(((data as { name: string }[]) || []).map((d) => d.name)); });
+  }, [isCreateInvoiceOpen, activeTenant?.id]);
   const [items, setItems] = useState<InvoiceItem[]>([
     { description: '', quantity: 1, unitPrice: 0, total: 0 },
   ]);
@@ -59,7 +66,9 @@ export const CreateInvoiceModal: React.FC = () => {
       date: new Date().toISOString().split('T')[0],
       dueDate,
       items,
+      doctorName: doctorName.trim() || undefined,
     });
+    setDoctorName('');
 
     setIsCreateInvoiceOpen(false);
   };
@@ -85,6 +94,13 @@ export const CreateInvoiceModal: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          {doctorNames.length > 0 && (
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">{isRTL ? 'الطبيب (للعمولة)' : 'Doctor (for commission)'}</label>
+              <input list="inv-doctors" value={doctorName} onChange={(e) => setDoctorName(e.target.value)} className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white outline-none focus:border-blue-500" />
+              <datalist id="inv-doctors">{doctorNames.map((n) => <option key={n} value={n} />)}</datalist>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-slate-400 mb-1">

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { InventoryItem } from '../../types';
+import { ImportModal } from '../ui/ImportModal';
+import { inventoryEntity } from '../../lib/importEntities';
 import {
   Package,
   AlertTriangle,
@@ -32,9 +34,12 @@ export const InventoryView: React.FC = () => {
     setIsAdjustStockOpen,
     setIsQrScannerOpen,
     showToast,
+    activeTenant,
+    refreshInventory,
     t,
     money,
   } = useApp();
+  const [importing, setImporting] = useState(false);
 
   const avgUnitCost = inventory.length > 0 ? inventory.reduce((sum, i) => sum + i.unitCost, 0) / inventory.length : 0;
   const lowCriticalNames = inventory
@@ -89,6 +94,13 @@ export const InventoryView: React.FC = () => {
 
         {/* Top Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            data-write="1"
+            onClick={() => setImporting(true)}
+            className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition"
+          >
+            <span>{isRTL ? 'استيراد Excel' : 'Import Excel'}</span>
+          </button>
           <button
             onClick={() => setIsQrScannerOpen(true)}
             className="flex items-center gap-2 rounded-xl border border-blue-500/40 bg-blue-600/20 px-3.5 py-2 text-xs font-semibold text-blue-300 hover:bg-blue-600/30 transition shadow-sm"
@@ -515,6 +527,7 @@ export const InventoryView: React.FC = () => {
           </table>
         </div>
       </div>
+      {importing && activeTenant && <ImportModal entity={inventoryEntity(activeTenant.id, inventory.map((i) => (i.sku || '').toLowerCase()).filter(Boolean))} onClose={() => setImporting(false)} onDone={() => { refreshInventory(); }} />}
     </div>
   );
 };

@@ -14,6 +14,7 @@ import { ReferralPromptStep } from './components/screens/ReferralParts';
 import { SubscriptionBanner } from './components/layout/SubscriptionBanner';
 import { AnnouncementBanner } from './components/layout/AnnouncementBanner';
 import { OfflineBanner } from './components/layout/OfflineBanner';
+import { OnboardingTour } from './components/layout/OnboardingTour';
 import { ViewAsBanner } from './components/layout/ViewAsBanner';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 
@@ -49,9 +50,9 @@ import { NURSERY_SCREENS, screensFor } from './lib/screenAccess';
 
 const DashboardContent: React.FC = () => {
   const { screen, toastMessage, tenants, tenantsLoaded, referral, referralLoaded, systemKey } = useApp();
-  const { profile } = useAuth();
+  const { profile, allowedScreens } = useAuth();
   const canSee = (id: string) => allowed.includes(id as ScreenId);
-  const allowed = screensFor(profile?.roleCode, systemKey);
+  const allowed = screensFor(profile?.roleCode, systemKey, allowedScreens);
   const isNursery = systemKey === 'nursery' && profile?.roleCode !== 'super_admin';
   const nurseryActive = isNursery && NURSERY_SCREENS.includes(screen) && canSee(screen);
 
@@ -114,6 +115,7 @@ const DashboardContent: React.FC = () => {
 
       {/* Interactive Global Modals */}
       <CreateInvoiceModal />
+      <OnboardingTour />
       <AddPatientModal />
       <NewBookingModal />
       <AdjustStockModal />

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/supabaseClient';
 import { phoneForWhatsApp } from '../nursery/nurseryApi';
+import { QueuePanel } from '../clinic/QueuePanel';
+import { FollowUpsPanel } from '../clinic/FollowUpsPanel';
 import {
   CalendarCheck,
   CalendarPlus,
@@ -78,6 +80,9 @@ export const BookingsView: React.FC = () => {
           <span>{t('founder.new_booking')}</span>
         </button>
       </div>
+
+      <QueuePanel />
+      <FollowUpsPanel />
 
       {tomorrow.length > 0 && (
         <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4">

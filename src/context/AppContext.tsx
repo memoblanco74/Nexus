@@ -67,6 +67,9 @@ interface AppContextType {
   activeAccess: TenantAccess;
   isReadOnly: boolean;
   refreshBookings: () => Promise<void>;
+  refreshTenants: () => Promise<void>;
+  refreshPatients: () => Promise<void>;
+  refreshInventory: () => Promise<void>;
   systemKey: string;
   renewSubscription: (tenantId: string, months: number, amountPaid?: number | null, amountDue?: number | null, extra?: { method?: string; reference?: string; paidAt?: string; sender?: string; note?: string }) => Promise<string | null>;
   paymentInfo: PaymentInfo;
@@ -151,6 +154,7 @@ interface AppContextType {
   deleteSystemFeature: (id: string) => Promise<void>;
 
   assistants: AssistantAccount[];
+  refreshAssistants: () => Promise<void>;
   createAssistant: (params: { username: string; password: string; fullName: string }) => Promise<{ error: string | null }>;
   removeAssistant: (userId: string) => Promise<void>;
 
@@ -639,11 +643,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAssistants([]);
       return;
     }
-    const { data: links } = await supabase
+    let linksRes: any = await supabase
       .from('tenant_users')
-      .select('user_id')
+      .select('user_id, allowed_screens')
       .eq('tenant_id', activeTenantId)
       .eq('is_founder', false);
+    if (linksRes.error) {
+      linksRes = await supabase.from('tenant_users').select('user_id').eq('tenant_id', activeTenantId).eq('is_founder', false);
+    }
+    const links = linksRes.data as any[] | null;
+    const screensById = new Map<string, string[] | null>((links || []).map((l: any) => [l.user_id, Array.isArray(l.allowed_screens) ? l.allowed_screens : null]));
     const ids = new Set((links || []).map((l: any) => l.user_id));
     if (ids.size === 0) {
       setAssistants([]);
@@ -659,6 +668,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           username: r.user_name || '',
           fullName: r.display_name || '',
           createdAt: '',
+          allowedScreens: screensById.get(r.user_id) ?? null,
         }))
     );
   }, [activeTenantId, profile]);
@@ -1423,6 +1433,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         total_amount: invoice.amount,
         status: invoice.status,
         due_date: invoice.dueDate || null,
+        ...(invoice.doctorName ? { doctor_name: invoice.doctorName } : {}),
       })
       .select()
       .single();
@@ -1818,6 +1829,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activeAccess,
         isReadOnly,
         refreshBookings,
+        refreshTenants,
+        refreshPatients,
+        refreshInventory,
         renewSubscription,
         setDefaultDiscount,
         inventory,
@@ -1850,6 +1864,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addSystemFeature,
         deleteSystemFeature,
         assistants,
+        refreshAssistants,
         createAssistant,
         removeAssistant,
         isCreateInvoiceOpen,

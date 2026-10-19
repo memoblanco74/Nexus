@@ -11,10 +11,16 @@ const NURSERY: Record<string, ScreenId[]> = {
   assistant: ['assistant', 'patients', 'bookings', 'accounting', 'settings'],
 };
 
-export const screensFor = (role: string | undefined, systemKey: string): ScreenId[] => {
+export const ASSISTANT_ALWAYS: ScreenId[] = ['assistant', 'settings'];
+
+export const assistantOptions = (systemKey: string): ScreenId[] =>
+  (systemKey === 'nursery' ? NURSERY.assistant : BASE.assistant).filter((s) => !ASSISTANT_ALWAYS.includes(s));
+
+export const screensFor = (role: string | undefined, systemKey: string, allowed?: string[] | null): ScreenId[] => {
   if (!role) return [];
-  if (systemKey === 'nursery' && NURSERY[role]) return NURSERY[role];
-  return BASE[role] || [];
+  const list = systemKey === 'nursery' && NURSERY[role] ? NURSERY[role] : BASE[role] || [];
+  if (role === 'assistant' && allowed) return list.filter((s) => ASSISTANT_ALWAYS.includes(s) || allowed.includes(s));
+  return list;
 };
 
 export const NURSERY_SCREENS: ScreenId[] = ['founder', 'assistant', 'patients', 'bookings', 'accounting'];

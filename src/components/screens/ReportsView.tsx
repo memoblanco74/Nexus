@@ -1,5 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
+import { PnlCard } from '../clinic/PnlCard';
+import { DoctorRevenueCard } from '../clinic/DoctorRevenueCard';
 import { BarChart3, TrendingUp, PieChart, Activity, Download, ShieldCheck } from 'lucide-react';
 
 export const ReportsView: React.FC = () => {
@@ -94,6 +96,9 @@ export const ReportsView: React.FC = () => {
           </p>
         </div>
       </div>
+
+      <DoctorRevenueCard />
+      <PnlCard />
     </div>
   );
 };

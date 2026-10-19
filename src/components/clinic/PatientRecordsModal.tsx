@@ -18,6 +18,8 @@ interface RecordRow {
   file_path: string | null;
   file_name: string | null;
   record_date: string;
+  follow_up_date: string | null;
+  follow_up_done: boolean;
 }
 
 const emptyItem = (): RxItem => ({ drug: '', dose: '', frequency: '', duration: '' });
@@ -31,6 +33,7 @@ export const PatientRecordsModal: React.FC<{ patient: Patient; onClose: () => vo
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [items, setItems] = useState<RxItem[]>([emptyItem()]);
+  const [followUp, setFollowUp] = useState('');
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const tenantId = activeTenant?.id;
@@ -45,7 +48,7 @@ export const PatientRecordsModal: React.FC<{ patient: Patient; onClose: () => vo
 
   useEffect(() => { load(); }, [load]);
 
-  const reset = () => { setAdding(null); setTitle(''); setBody(''); setItems([emptyItem()]); };
+  const reset = () => { setAdding(null); setTitle(''); setBody(''); setFollowUp(''); setItems([emptyItem()]); };
 
   const save = async () => {
     if (!tenantId || !adding) return;
@@ -60,6 +63,7 @@ export const PatientRecordsModal: React.FC<{ patient: Patient; onClose: () => vo
       title: title.trim(),
       body: body.trim() || null,
       items: adding === 'prescription' ? cleanItems : [],
+      ...(followUp ? { follow_up_date: followUp } : {}),
     });
     setBusy(false);
     if (error) { showToast(error.message); return; }
@@ -139,6 +143,11 @@ export const PatientRecordsModal: React.FC<{ patient: Patient; onClose: () => vo
           <Field label={adding === 'prescription' ? tx('ملاحظات للمريض', 'Patient notes') : tx('التفاصيل', 'Details')}>
             <textarea rows={3} className={inputClass} value={body} onChange={(e) => setBody(e.target.value)} />
           </Field>
+          {adding !== 'file' && (
+            <Field label={tx('موعد المتابعة (اختياري) — هيظهر في تذكيرات المتابعة', 'Follow-up date (optional)')}>
+              <input type="date" className={inputClass} value={followUp} onChange={(e) => setFollowUp(e.target.value)} />
+            </Field>
+          )}
           <div className="flex justify-end gap-2">
             <button onClick={reset} className="rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-800">{tx('إلغاء', 'Cancel')}</button>
             <button disabled={busy} onClick={save} className="rounded-lg bg-blue-600 px-4 py-1.5 text-[11px] font-bold text-white hover:bg-blue-500 disabled:opacity-50">{tx('حفظ', 'Save')}</button>
@@ -173,6 +182,7 @@ export const PatientRecordsModal: React.FC<{ patient: Patient; onClose: () => vo
                   {r.items.map((i, n) => <li key={n}>• {i.drug} {i.dose && `— ${i.dose}`} {i.frequency && `— ${i.frequency}`} {i.duration && `— ${i.duration}`}</li>)}
                 </ul>
               )}
+              {r.follow_up_date && <p className="mt-1 text-[10px] text-amber-300">{tx('متابعة', 'Follow-up')}: {r.follow_up_date}{r.follow_up_done ? ` ✓` : ''}</p>}
               {r.body && <p className="mt-2 whitespace-pre-wrap text-[11px] text-slate-400">{r.body}</p>}
             </div>
           ))}
