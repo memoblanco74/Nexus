@@ -14,6 +14,7 @@ import { ReferralPromptStep } from './components/screens/ReferralParts';
 import { SubscriptionBanner } from './components/layout/SubscriptionBanner';
 import { AnnouncementBanner } from './components/layout/AnnouncementBanner';
 import { OfflineBanner } from './components/layout/OfflineBanner';
+import { Skeleton, SkeletonList } from './components/ui/Skeleton';
 import { OnboardingTour } from './components/layout/OnboardingTour';
 import { ViewAsBanner } from './components/layout/ViewAsBanner';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
@@ -64,8 +65,11 @@ const DashboardContent: React.FC = () => {
 
   if (profile?.roleCode === 'founder' && !tenantsLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0b0f17] text-slate-400 text-xs">
-        Loading...
+      <div className="min-h-screen bg-[#0b0f17] p-6">
+        <div className="mx-auto max-w-3xl space-y-3 pt-10">
+          <Skeleton className="h-8 w-40" />
+          <SkeletonList rows={5} />
+        </div>
       </div>
     );
   }

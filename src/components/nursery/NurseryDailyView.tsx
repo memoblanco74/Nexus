@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { SkeletonList } from '../ui/Skeleton';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { CalendarCheck, Check, FileText, Loader2, Plus, Search, Send, Trash2, X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -420,7 +421,7 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
       </div>
 
       {core.loading ? (
-        <p className="py-8 text-center text-xs text-slate-500">...</p>
+        <SkeletonList />
       ) : list.length === 0 ? (
         <div className={`${cardClass} py-10 text-center text-xs text-slate-500`}>{tx('أضف أطفال أولًا من صفحة الأطفال', 'Add children first')}</div>
       ) : (

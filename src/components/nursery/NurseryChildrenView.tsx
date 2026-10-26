@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { SkeletonList } from '../ui/Skeleton';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { onPending, takePending } from '../../lib/pendingOpen';
 import { Baby, FileSpreadsheet, MessageCircle, Pencil, Plus, Search, Truck } from 'lucide-react';
@@ -338,7 +339,7 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
       </div>
 
       {core.loading ? (
-        <p className="py-8 text-center text-xs text-slate-500">...</p>
+        <SkeletonList grid />
       ) : list.length === 0 ? (
         <div className={`${cardClass} py-10 text-center text-xs text-slate-500`}>{tx('لا يوجد أطفال بعد', 'No children yet')}</div>
       ) : (

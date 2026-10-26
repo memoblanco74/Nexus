@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { SkeletonList } from '../ui/Skeleton';
 import { FileText, Paperclip, Pill, Plus, Printer, Stethoscope, StickyNote, Trash2 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/supabaseClient';
@@ -156,7 +157,7 @@ export const PatientRecordsModal: React.FC<{ patient: Patient; onClose: () => vo
       )}
 
       {loading ? (
-        <p className="py-6 text-center text-xs text-slate-500">...</p>
+        <SkeletonList rows={3} />
       ) : rows.length === 0 ? (
         <p className="py-6 text-center text-xs text-slate-500">{tx('مفيش سجلات للمريض ده لسه', 'No records yet')}</p>
       ) : (

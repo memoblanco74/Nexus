@@ -1,3 +1,4 @@
+import { SkeletonTableRows } from '../ui/Skeleton';
 import React, { useState } from 'react';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { useApp } from '../../context/AppContext';
@@ -30,6 +31,7 @@ export const PatientsView: React.FC = () => {
     setIsNewBookingOpen,
     activeTenant,
     refreshPatients,
+    dataLoading,
     t,
   } = useApp();
   const [importing, setImporting] = useState(false);
@@ -114,7 +116,8 @@ export const PatientsView: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
-              {filteredPatients.map((p) => (
+              {dataLoading && <SkeletonTableRows cols={8} />}
+              {!dataLoading && filteredPatients.map((p) => (
                 <tr key={p.id} className="hover:bg-slate-900/40 transition">
                   <td className="py-3 px-3 font-semibold text-white">
                     <div>

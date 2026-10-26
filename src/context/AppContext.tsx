@@ -88,6 +88,7 @@ interface AppContextType {
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: (e?: React.MouseEvent) => void;
+  dataLoading: boolean;
   isRTL: boolean;
 
   activeTenant: Tenant | null;
@@ -309,6 +310,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     updatePreferredLanguage(lang);
   };
   const [theme, setTheme] = useState<ThemeMode>('dark');
+  const [dataLoading, setDataLoading] = useState(true);
 
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [tenantsLoaded, setTenantsLoaded] = useState(false);
@@ -996,12 +998,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [profile?.id]);
 
   useEffect(() => {
-    refreshPatients();
-    refreshBookings();
-    refreshInventory();
-    refreshInvoices();
-    refreshProjects();
-    refreshExpenses();
+    setDataLoading(true);
+    Promise.all([refreshPatients(), refreshBookings(), refreshInventory(), refreshInvoices(), refreshProjects(), refreshExpenses()])
+      .catch(() => {})
+      .finally(() => setDataLoading(false));
   }, [refreshPatients, refreshBookings, refreshInventory, refreshInvoices, refreshProjects, refreshExpenses]);
 
   useEffect(() => {
@@ -1815,6 +1815,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         theme,
         setTheme,
         toggleTheme,
+        dataLoading,
         isRTL,
         activeTenant: activeTenant as Tenant,
         setActiveTenant,
