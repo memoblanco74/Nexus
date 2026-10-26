@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { onPending, takePending } from '../../lib/pendingOpen';
 import { Baby, FileSpreadsheet, MessageCircle, Pencil, Plus, Search, Truck } from 'lucide-react';
 import { ImportModal } from '../ui/ImportModal';
@@ -282,6 +283,7 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const [importing, setImporting] = useState(false);
   const [q, setQ] = useState('');
+  const debouncedQ = useDebouncedValue(q);
   const [editing, setEditing] = useState<Child | null | 'new'>(null);
   const [viewing, setViewing] = useState<string | null>(null);
   const [bulkMsg, setBulkMsg] = useState(false);
@@ -296,7 +298,7 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
     return onPending(check);
   }, []);
 
-  const needle = q.trim().toLowerCase();
+  const needle = debouncedQ.trim().toLowerCase();
   const list = core.children.filter((c) =>
     !needle ||
     [c.full_name, c.father_name, c.mother_name, c.guardian_name, c.father_phone, c.mother_phone, c.guardian_phone].some((v) => (v || '').toLowerCase().includes(needle))

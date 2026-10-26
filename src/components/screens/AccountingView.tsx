@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { useApp } from '../../context/AppContext';
 import { buildInvoiceHtml, printHtml } from '../../lib/printDoc';
 import {
@@ -55,13 +56,14 @@ export const AccountingView: React.FC = () => {
   };
 
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search);
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending' | 'overdue'>('all');
 
   const filteredInvoices = invoices.filter((inv) => {
     const matchesSearch =
-      inv.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
-      inv.clientName.toLowerCase().includes(search.toLowerCase()) ||
-      (inv.clientNameAr && inv.clientNameAr.toLowerCase().includes(search.toLowerCase()));
+      inv.invoiceNumber.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      inv.clientName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      (inv.clientNameAr && inv.clientNameAr.toLowerCase().includes(debouncedSearch.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || inv.status === statusFilter;
     return matchesSearch && matchesStatus;
   });

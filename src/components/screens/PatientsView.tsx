@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { useApp } from '../../context/AppContext';
 import { PatientRecordsModal } from '../clinic/PatientRecordsModal';
 import { ImportModal } from '../ui/ImportModal';
@@ -34,14 +35,15 @@ export const PatientsView: React.FC = () => {
   const [importing, setImporting] = useState(false);
 
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search);
   const [recordsFor, setRecordsFor] = useState<Patient | null>(null);
 
   const filteredPatients = patients.filter((p) => {
     return (
-      p.nameEn.toLowerCase().includes(search.toLowerCase()) ||
-      p.nameAr.toLowerCase().includes(search.toLowerCase()) ||
-      p.nationalId.includes(search) ||
-      p.phone.includes(search)
+      p.nameEn.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      p.nameAr.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      p.nationalId.includes(debouncedSearch) ||
+      p.phone.includes(debouncedSearch)
     );
   });
 

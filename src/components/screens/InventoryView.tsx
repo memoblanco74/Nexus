@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { useApp } from '../../context/AppContext';
 import { InventoryItem } from '../../types';
 import { ImportModal } from '../ui/ImportModal';
@@ -48,6 +49,7 @@ export const InventoryView: React.FC = () => {
     .map((i) => (isRTL ? i.nameAr || i.nameEn : i.nameEn));
 
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [selectedChartItem, setSelectedChartItem] = useState<InventoryItem>(
     inventory[0] || {}
@@ -57,9 +59,9 @@ export const InventoryView: React.FC = () => {
 
   const filteredInventory = inventory.filter((item) => {
     const matchesSearch =
-      item.nameEn.toLowerCase().includes(search.toLowerCase()) ||
-      item.nameAr.toLowerCase().includes(search.toLowerCase()) ||
-      item.sku.toLowerCase().includes(search.toLowerCase());
+      item.nameEn.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      item.nameAr.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      item.sku.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchesCategory =
       categoryFilter === 'All' || item.category === categoryFilter;
     return matchesSearch && matchesCategory;

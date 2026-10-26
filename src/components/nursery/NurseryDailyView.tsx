@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { CalendarCheck, Check, FileText, Loader2, Plus, Search, Send, Trash2, X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/supabaseClient';
@@ -331,6 +332,7 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const [day, setDay] = useState(cairoToday());
   const [logs, setLogs] = useState<Record<string, DailyLog>>({});
   const [q, setQ] = useState('');
+  const debouncedQ = useDebouncedValue(q);
   const [editing, setEditing] = useState<Child | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
@@ -359,7 +361,7 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
   useEffect(() => onOutboxChange(() => { loadLogs(); }), [loadLogs]);
 
   const active = core.children.filter((c) => c.status === 'active');
-  const needle = q.trim().toLowerCase();
+  const needle = debouncedQ.trim().toLowerCase();
   const list = active.filter((c) => !needle || c.full_name.toLowerCase().includes(needle));
   const present = active.filter((c) => logs[c.id]?.status === 'present').length;
   const absent = active.filter((c) => logs[c.id]?.status === 'absent').length;
