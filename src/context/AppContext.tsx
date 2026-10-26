@@ -1,5 +1,6 @@
 import { isPushSupported, subscribeToPush } from '../lib/webPush';
 import { SYSTEM_VOCAB, DEFAULT_SYSTEM_KEY } from '../lib/systemVocab';
+import { flushSync } from 'react-dom';
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   ScreenId,
@@ -86,7 +87,7 @@ interface AppContextType {
   toggleLanguage: () => void;
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
-  toggleTheme: () => void;
+  toggleTheme: (e?: React.MouseEvent) => void;
   isRTL: boolean;
 
   activeTenant: Tenant | null;
@@ -420,12 +421,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const toggleLanguage = () => setLanguage(language === 'en' ? 'ar' : 'en');
-  const toggleTheme = () => {
-    setTheme((prev) => {
-      const next = prev === 'dark' ? 'light' : 'dark';
+  const toggleTheme = (e?: React.MouseEvent) => {
+    const next: ThemeMode = theme === 'dark' ? 'light' : 'dark';
+    const apply = () => {
+      const root = document.documentElement;
+      root.classList.toggle('dark', next === 'dark');
+      root.classList.toggle('light', next === 'light');
+      flushSync(() => setTheme(next));
       updatePreferredTheme(next);
-      return next;
-    });
+    };
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void> } };
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!doc.startViewTransition || reduce) {
+      apply();
+      return;
+    }
+    const x = e?.clientX ?? window.innerWidth / 2;
+    const y = e?.clientY ?? window.innerHeight / 2;
+    const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+    const transition = doc.startViewTransition(apply);
+    transition.ready
+      .then(() => {
+        document.documentElement.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+          { duration: 600, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', pseudoElement: '::view-transition-new(root)' }
+        );
+      })
+      .catch(() => {});
   };
 
   const systemKey =
