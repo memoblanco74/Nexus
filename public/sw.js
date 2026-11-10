@@ -1,4 +1,4 @@
-const CACHE_NAME = "nexus-app-v9";
+const CACHE_NAME = "nexus-app-v10";
 const STATIC_ASSETS = ["/Nexus/manifest.json"];
 
 self.addEventListener("install", function (event) {
@@ -25,7 +25,7 @@ self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
-  const isApiCall = url.hostname.indexOf("supabase.co") !== -1;
+  const isApiCall = url.hostname.indexOf("supabase.co") !== -1 || url.pathname.endsWith("/version.json");
 
   if (isApiCall) {
     event.respondWith(fetch(event.request));

@@ -64,10 +64,24 @@ function aistudioMediaPlugin(): Plugin {
 }
 // LINT.ThenChange(//depot/google3/java/com/google/alkali/boq/makersuite/applet_dev_service/templates/initializers/react_theme/vite.config.ts:aistudio_media_plugin)
 
+const BUILD_ID = (process.env.GITHUB_SHA ? process.env.GITHUB_SHA.slice(0, 12) + '-' : '') + Date.now().toString(36);
+
+function versionFilePlugin(): Plugin {
+  return {
+    name: 'nexus-version-file',
+    apply: 'build',
+    writeBundle(options) {
+      const dir = options.dir || path.resolve(__dirname, 'dist');
+      fs.writeFileSync(path.join(dir, 'version.json'), JSON.stringify({ id: BUILD_ID }));
+    },
+  };
+}
+
 export default defineConfig(() => {
   return {
+    define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
     base: '/Nexus/',
-    plugins: [react(), tailwindcss(), aistudioMediaPlugin()],
+    plugins: [react(), tailwindcss(), aistudioMediaPlugin(), versionFilePlugin()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

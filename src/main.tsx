@@ -1,4 +1,5 @@
 import {StrictMode} from 'react';
+import { UpdateBanner } from './components/layout/UpdateBanner';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import { ParentPortal } from './components/parent/ParentPortal';
@@ -13,6 +14,7 @@ const queueMatch = window.location.hash.match(/^#\/queue\/([0-9a-fA-F-]{36})$/);
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {portalMatch ? <ParentPortal token={portalMatch[1]} /> : bookMatch ? <PublicBooking token={bookMatch[1]} /> : queueMatch ? <QueueDisplay token={queueMatch[1]} /> : <App />}
+    <UpdateBanner />
   </StrictMode>,
 );
 
