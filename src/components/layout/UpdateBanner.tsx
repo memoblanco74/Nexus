@@ -41,14 +41,14 @@ export const UpdateBanner: React.FC = () => {
   return (
     <div className="fixed inset-x-3 bottom-20 z-[90] flex justify-center md:bottom-4" role="status">
       <div className="flex w-full max-w-md items-center justify-between gap-3 rounded-2xl border border-blue-500/40 bg-slate-950/95 px-4 py-3 shadow-2xl backdrop-blur">
-        <span className="min-w-0 text-xs font-semibold text-slate-100">{isAr ? 'في تحديث جديد للتطبيق' : 'A new version is available'}</span>
+        <span className="min-w-0 text-xs font-semibold text-slate-100">{isAr ? 'يتوفر إصدار جديد من التطبيق. يرجى إعادة التشغيل للاستفادة من آخر التحديثات.' : 'A new version is available. Please restart to get the latest updates.'}</span>
         <button
           disabled={busy}
           onClick={() => { setBusy(true); applyUpdate(); }}
           className="flex shrink-0 items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 disabled:opacity-60"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${busy ? 'animate-spin' : ''}`} />
-          {isAr ? 'إعادة التشغيل' : 'Restart'}
+          {isAr ? 'إعادة التشغيل الآن' : 'Restart'}
         </button>
       </div>
     </div>
