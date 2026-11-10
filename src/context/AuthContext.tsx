@@ -90,14 +90,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   const [loading, setLoading] = useState(true);
 
-  const loadProfile = async (currentSession: Session) => {
-    const { data: userRow, error } = await supabase
-      .from('users')
-      .select('*, roles(code)')
-      .eq('auth_uid', currentSession.user.id)
-      .single();
+  const loadedAuthUidRef = React.useRef<string | null>(null);
 
-    if (error || !userRow) {
+  const fetchUserRow = async (authUid: string) => {
+    let last: { data: any; error: any } = { data: null, error: null };
+    for (let attempt = 0; attempt < 3; attempt++) {
+      last = await supabase.from('users').select('*, roles(code)').eq('auth_uid', authUid).maybeSingle();
+      if (!last.error) return last;
+      await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+    }
+    return last;
+  };
+
+  const loadProfile = async (currentSession: Session) => {
+    const { data: userRow, error } = await fetchUserRow(currentSession.user.id);
+
+    if (error) {
+      console.error('Profile load failed, keeping current state:', error.message);
+      return;
+    }
+
+    if (!userRow && loadedAuthUidRef.current === currentSession.user.id) return;
+
+    if (!userRow) {
+      loadedAuthUidRef.current = null;
       setProfile(null);
       setTenantMemberships([]);
       setActiveTenantIdState(null);
@@ -105,6 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const roleRow = (userRow as any).roles;
+    if ((!roleRow || !roleRow.code) && loadedAuthUidRef.current === currentSession.user.id) return;
     if (!roleRow || !roleRow.code) {
       console.error('User row has no matching role (orphaned role_id):', userRow.id);
       setProfile(null);
@@ -114,6 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     profileIdRef.current = userRow.id;
+    loadedAuthUidRef.current = currentSession.user.id;
     setProfile({
       id: userRow.id,
       username: userRow.username,
@@ -187,12 +205,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (event === 'INITIAL_SESSION') return;
       setSession(newSession);
+      if (newSession && (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') && loadedAuthUidRef.current === newSession.user.id) return;
       setTimeout(async () => {
         if (!active) return;
         try {
           if (newSession) {
             await loadProfile(newSession);
           } else {
+            loadedAuthUidRef.current = null;
             setProfile(null);
             setTenantMemberships([]);
             setActiveTenantIdState(null);
