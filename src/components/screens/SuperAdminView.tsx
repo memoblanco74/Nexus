@@ -283,20 +283,20 @@ export const SuperAdminView: React.FC = () => {
       </div>
 
       {/* Revenue summary */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="glass-card rounded-2xl p-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <div className="glass-card col-span-2 rounded-2xl p-4 sm:col-span-1">
           <span className="text-xs font-medium text-slate-400">{isRTL ? 'المحصّل فعلياً (الإجمالي)' : 'Actually collected (all time)'}</span>
-          <h3 className="mt-2 text-2xl font-bold text-emerald-400">{(rev?.total_paid ?? 0).toLocaleString()} EGP</h3>
+          <h3 className="mt-2 text-xl font-bold sm:text-2xl text-emerald-400">{(rev?.total_paid ?? 0).toLocaleString()} EGP</h3>
           <p className="mt-1 text-[11px] text-slate-500">{isRTL ? `هذا الشهر: ${(rev?.month_paid ?? 0).toLocaleString()} EGP (${rev?.month_renewals ?? 0} تجديد)` : `This month: ${(rev?.month_paid ?? 0).toLocaleString()} EGP (${rev?.month_renewals ?? 0} renewals)`}</p>
         </div>
         <div className="glass-card rounded-2xl p-4">
           <span className="text-xs font-medium text-slate-400">{isRTL ? 'المتوقع شهرياً' : 'Expected monthly'}</span>
-          <h3 className="mt-2 text-2xl font-bold text-blue-400">{totalMrr.toLocaleString()} EGP</h3>
+          <h3 className="mt-2 text-xl font-bold sm:text-2xl text-blue-400">{totalMrr.toLocaleString()} EGP</h3>
           <p className="mt-1 text-[11px] text-slate-500">{isRTL ? 'من الاشتراكات النشطة المدفوعة' : 'From active paid subscriptions'}</p>
         </div>
         <div className="glass-card rounded-2xl p-4">
           <span className="text-xs font-medium text-slate-400">{isRTL ? 'مشتركون دفعوا' : 'Subscribers who paid'}</span>
-          <h3 className="mt-2 text-2xl font-bold text-white dark:text-white light:text-[#0f172a]">{rev?.paying_tenants ?? 0}</h3>
+          <h3 className="mt-2 text-xl font-bold sm:text-2xl text-white dark:text-white light:text-[#0f172a]">{rev?.paying_tenants ?? 0}</h3>
           <p className="mt-1 text-[11px] text-slate-500">{isRTL ? `هذا الشهر: ${rev?.paying_tenants_month ?? 0}` : `This month: ${rev?.paying_tenants_month ?? 0}`}</p>
         </div>
       </div>
@@ -304,11 +304,11 @@ export const SuperAdminView: React.FC = () => {
       <AdminReports onRenew={(id, name) => setRenewTarget({ id, name })} />
 
       {/* KPI Cards Grid (4 Top Cards) */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {/* Total MRR */}
         <button
           onClick={() => openKpiDetail('mrr')}
-          className="glass-card rounded-2xl p-4 text-left transition-all hover:border-blue-500/40 active:scale-[0.98]"
+          className="glass-card rounded-2xl p-3 text-left sm:p-4 transition-all hover:border-blue-500/40 active:scale-[0.98]"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">
@@ -318,8 +318,8 @@ export const SuperAdminView: React.FC = () => {
               <TrendingUp className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl font-bold tracking-tight text-white dark:text-white light:text-[#0f172a]">
+          <div className="mt-2 flex items-baseline justify-between">
+            <h3 className="text-xl font-bold tracking-tight sm:text-2xl text-white dark:text-white light:text-[#0f172a]">
               {totalMrr.toLocaleString()} EGP
             </h3>
           </div>
@@ -333,7 +333,7 @@ export const SuperAdminView: React.FC = () => {
         {/* Active Tenants */}
         <button
           onClick={() => openKpiDetail('tenants')}
-          className="glass-card rounded-2xl p-4 text-left transition-all hover:border-blue-500/40 active:scale-[0.98]"
+          className="glass-card rounded-2xl p-3 text-left sm:p-4 transition-all hover:border-blue-500/40 active:scale-[0.98]"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">
@@ -343,8 +343,8 @@ export const SuperAdminView: React.FC = () => {
               <Building className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl font-bold tracking-tight text-white dark:text-white light:text-[#0f172a]">
+          <div className="mt-2 flex items-baseline justify-between">
+            <h3 className="text-xl font-bold tracking-tight sm:text-2xl text-white dark:text-white light:text-[#0f172a]">
               {subscriptions.length}
             </h3>
           </div>
@@ -356,7 +356,7 @@ export const SuperAdminView: React.FC = () => {
         {/* Active Subscriptions */}
         <button
           onClick={() => openKpiDetail('active_subs')}
-          className="glass-card rounded-2xl p-4 text-left transition-all hover:border-blue-500/40 active:scale-[0.98]"
+          className="glass-card rounded-2xl p-3 text-left sm:p-4 transition-all hover:border-blue-500/40 active:scale-[0.98]"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">
@@ -366,8 +366,8 @@ export const SuperAdminView: React.FC = () => {
               <CreditCard className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl font-bold tracking-tight text-white dark:text-white light:text-[#0f172a]">
+          <div className="mt-2 flex items-baseline justify-between">
+            <h3 className="text-xl font-bold tracking-tight sm:text-2xl text-white dark:text-white light:text-[#0f172a]">
               {activeCount}
             </h3>
             <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-400">
@@ -382,7 +382,7 @@ export const SuperAdminView: React.FC = () => {
         {/* Pending Replies */}
         <button
           onClick={() => openKpiDetail('pending_replies')}
-          className="glass-card rounded-2xl p-4 text-left transition-all hover:border-amber-500/40 active:scale-[0.98]"
+          className="glass-card rounded-2xl p-3 text-left sm:p-4 transition-all hover:border-amber-500/40 active:scale-[0.98]"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">
@@ -392,8 +392,8 @@ export const SuperAdminView: React.FC = () => {
               <AlertCircle className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <h3 className="text-2xl font-bold tracking-tight text-amber-400">
+          <div className="mt-2 flex items-baseline justify-between">
+            <h3 className="text-xl font-bold tracking-tight sm:text-2xl text-amber-400">
               {pendingReplyChats.length}
             </h3>
           </div>
@@ -542,7 +542,7 @@ export const SuperAdminView: React.FC = () => {
       {/* Main Bottom Section: Live Chat & Subscriptions Table */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Live Support & Projects Chat (5 Cols) */}
-        <div className="lg:col-span-5 glass-panel rounded-2xl border border-slate-800 flex flex-col overflow-hidden h-[540px]">
+        <div className="lg:col-span-5 glass-panel rounded-2xl border border-slate-800 flex flex-col overflow-hidden h-[440px] sm:h-[540px]">
           {/* Chat Header */}
           <div className="flex items-center justify-between border-b border-slate-800/80 p-4">
             <div className="flex items-center gap-2.5">
@@ -687,7 +687,7 @@ export const SuperAdminView: React.FC = () => {
         </div>
 
         {/* Subscriptions Table (7 Cols) */}
-        <div className="lg:col-span-7 glass-panel rounded-2xl border border-slate-800 flex flex-col overflow-hidden h-[540px]">
+        <div className="lg:col-span-7 glass-panel rounded-2xl border border-slate-800 flex flex-col overflow-hidden h-[440px] sm:h-[540px]">
           {/* Table Header & Search Filter */}
           <div className="p-4 border-b border-slate-800/80 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-xs font-bold text-white dark:text-white light:text-[#0f172a]">

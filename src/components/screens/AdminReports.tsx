@@ -15,7 +15,7 @@ interface Reports {
 const Bars: React.FC<{ items: { label: string; value: number }[]; color: string; unit?: string }> = ({ items, color, unit }) => {
   const max = Math.max(1, ...items.map((i) => i.value));
   return (
-    <div className="flex h-40 items-end gap-1.5" dir="ltr">
+    <div className="flex h-32 items-end gap-1.5 sm:h-40" dir="ltr">
       {items.map((i) => (
         <div key={i.label} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1">
           <span className="text-[9px] font-semibold text-slate-300">{i.value > 0 ? Math.round(i.value).toLocaleString() : ''}{i.value > 0 ? unit || '' : ''}</span>
@@ -76,7 +76,7 @@ export const AdminReports: React.FC<{ onRenew: (id: string, name: string) => voi
       {data.expiring.length > 0 && (
         <div className={`${card} border-amber-500/30`}>
           <h3 className="mb-3 flex items-center gap-2 text-xs font-bold text-amber-300"><AlertTriangle className="h-4 w-4" />{isRTL ? 'اشتراكات قاربت على الانتهاء' : 'Subscriptions expiring soon'}</h3>
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {data.expiring.map((e) => (
               <div key={e.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs">
                 <div className="min-w-0">
@@ -92,8 +92,8 @@ export const AdminReports: React.FC<{ onRenew: (id: string, name: string) => voi
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className={`${card} lg:col-span-2`}>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        <div className={`${card} col-span-2`}>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h3 className="flex items-center gap-2 text-xs font-bold text-slate-300"><BarChart3 className="h-4 w-4 text-blue-400" />{isRTL ? 'الإيرادات الشهرية (آخر 12 شهر)' : 'Monthly revenue (last 12 months)'}</h3>
             <div className="flex gap-1.5">
@@ -112,23 +112,23 @@ export const AdminReports: React.FC<{ onRenew: (id: string, name: string) => voi
         </div>
 
         <div className={card}>
-          <h3 className={title}>{isRTL ? 'التجديدات والمشتركون الجدد شهرياً' : 'Renewals & new subscribers per month'}</h3>
-          <Bars items={data.monthly.map((m) => ({ label: monthLabel(m.month), value: Number(m.renewals) }))} color="#10b981" />
-          <p className="mt-2 text-[10px] text-slate-500">{isRTL ? 'عدد التجديدات' : 'Renewals'} · {isRTL ? 'جدد هذا الشهر' : 'New this month'}: {data.monthly[data.monthly.length - 1]?.new_tenants ?? 0}</p>
-        </div>
-
-        <div className={card}>
-          <h3 className={title}>{isRTL ? 'المشتركون حسب النظام' : 'Subscribers by system'}</h3>
-          <Split rows={data.by_system.map((s, i) => ({ label: isRTL ? s.name_ar : s.name_en, value: Number(s.count), color: ['#3b82f6', '#10b981', '#f59e0b', '#a855f7'][i % 4] }))} />
-        </div>
-
-        <div className={card}>
           <h3 className={title}>{isRTL ? 'مصدر الاشتراكات' : 'Subscription source'}</h3>
           <Split rows={[
             { label: isRTL ? 'عن طريق كود دعوة' : 'Via referral code', value: Number(data.source.referral), color: '#a855f7' },
             { label: isRTL ? 'مباشر' : 'Direct', value: Number(data.source.direct), color: '#3b82f6' },
           ]} />
         </div>
+        <div className={`${card} col-span-2 lg:col-span-1`}>
+          <h3 className={title}>{isRTL ? 'التجديدات والمشتركون الجدد شهرياً' : 'Renewals & new subscribers per month'}</h3>
+          <Bars items={data.monthly.map((m) => ({ label: monthLabel(m.month), value: Number(m.renewals) }))} color="#10b981" />
+          <p className="mt-2 text-[10px] text-slate-500">{isRTL ? 'عدد التجديدات' : 'Renewals'} · {isRTL ? 'جدد هذا الشهر' : 'New this month'}: {data.monthly[data.monthly.length - 1]?.new_tenants ?? 0}</p>
+        </div>
+
+        <div className={`${card} col-span-2 lg:col-span-1`}>
+          <h3 className={title}>{isRTL ? 'المشتركون حسب النظام' : 'Subscribers by system'}</h3>
+          <Split rows={data.by_system.map((s, i) => ({ label: isRTL ? s.name_ar : s.name_en, value: Number(s.count), color: ['#3b82f6', '#10b981', '#f59e0b', '#a855f7'][i % 4] }))} />
+        </div>
+
       </div>
     </div>
   );
