@@ -2,6 +2,7 @@ import { askConfirm, askPrompt } from '../../lib/dialog';
 import { supabase } from '../../lib/supabaseClient';
 import { RenewSubscriptionModal } from '../modals/RenewSubscriptionModal';
 import { AdminReports } from './AdminReports';
+import { fetchPayments } from '../../lib/paymentsExport';
 import { SubscriptionHistoryModal } from '../modals/SubscriptionHistory';
 import { SaveButton } from '../ui/SaveButton';
 import React, { useState, useEffect } from 'react';
@@ -75,7 +76,7 @@ export const SuperAdminView: React.FC = () => {
   const tgSig = JSON.stringify(tgPayload);
   const tgBase = JSON.stringify({ systems: announcementTarget.systems, tenants: announcementTarget.tenants });
   const toggleIn = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
-  const [kpiDetail, setKpiDetail] = useState<{ title: string; rows: { name: string; sub?: string; value: string }[] } | null>(null);
+  const [kpiDetail, setKpiDetail] = useState<{ title: string; note?: string; rows: { name: string; sub?: string; value: string }[] } | null>(null);
 
   const payingSubscriptions = subscriptions.filter((s) => s.status === 'Active' && !freeInfoFromStart(s.startDate).active);
   const totalMrr = payingSubscriptions.reduce((sum, s) => sum + s.mrr, 0);
@@ -86,10 +87,33 @@ export const SuperAdminView: React.FC = () => {
     return last && last.sender === 'user';
   });
 
-  const openKpiDetail = (kind: 'mrr' | 'tenants' | 'active_subs' | 'pending_replies') => {
+  const openKpiDetail = (kind: 'mrr' | 'tenants' | 'active_subs' | 'pending_replies' | 'collected' | 'paying') => {
+    if (kind === 'collected' || kind === 'paying') {
+      setKpiDetail({ title: isRTL ? 'جاري التحميل...' : 'Loading...', rows: [] });
+      fetchPayments(null).then((pays) => {
+        if (kind === 'collected') {
+          const total = pays.reduce((a, r) => a + Number(r.amount_paid || 0), 0);
+          setKpiDetail({
+            title: isRTL ? 'تفاصيل المبلغ المحصّل' : 'Collected amount breakdown',
+            note: isRTL ? `الإجمالي ${total.toLocaleString()} EGP = مجموع "المبلغ المحصّل" في سجل مدفوعات المشتركين (كل دفعة سجّلتها عند التجديد).` : `Total ${total.toLocaleString()} EGP = sum of "amount paid" in the subscriber payments log (every payment recorded at renewal).`,
+            rows: pays.map((r) => ({ name: r.tenant_name, sub: `${new Date(r.paid_at).toLocaleDateString('en-GB', { timeZone: 'Africa/Cairo' })} • ${r.months} ${isRTL ? 'شهر' : 'mo'}${r.payment_method ? ` • ${r.payment_method}` : ''}`, value: `${Number(r.amount_paid || 0).toLocaleString()} EGP` })),
+          });
+        } else {
+          const map = new Map<string, { n: number; sum: number }>();
+          pays.filter((r) => Number(r.amount_paid || 0) > 0).forEach((r) => { const c = map.get(r.tenant_name) || { n: 0, sum: 0 }; c.n += 1; c.sum += Number(r.amount_paid || 0); map.set(r.tenant_name, c); });
+          setKpiDetail({
+            title: isRTL ? 'المشتركون اللي دفعوا' : 'Subscribers who paid',
+            note: isRTL ? 'المشتركون اللي ليهم دفعة واحدة على الأقل بمبلغ أكبر من صفر في سجل المدفوعات.' : 'Subscribers with at least one payment above zero in the payments log.',
+            rows: Array.from(map.entries()).sort((a, b) => b[1].sum - a[1].sum).map(([name, c]) => ({ name, sub: isRTL ? `${c.n} دفعة` : `${c.n} payment(s)`, value: `${c.sum.toLocaleString()} EGP` })),
+          });
+        }
+      }).catch((e) => setKpiDetail({ title: isRTL ? 'تعذر التحميل' : 'Failed to load', note: e?.message, rows: [] }));
+      return;
+    }
     if (kind === 'mrr') {
       setKpiDetail({
         title: isRTL ? 'تفاصيل الإيرادات الشهرية' : 'Monthly Revenue Breakdown',
+        note: isRTL ? 'مجموع قيمة الاشتراك الشهري (بعد الخصم) للمشاريع النشطة اللي خلصت فترتها المجانية. المشاريع في الفترة المجانية مش محسوبة.' : 'Sum of the monthly subscription price (after discount) of active projects past their free period. Projects still in the free period are excluded.',
         rows: subscriptions
           .filter((s) => s.status === 'Active')
           .sort((a, b) => b.mrr - a.mrr)
@@ -102,6 +126,7 @@ export const SuperAdminView: React.FC = () => {
     } else if (kind === 'tenants') {
       setKpiDetail({
         title: isRTL ? 'كل المشاريع المسجلة' : 'All Provisioned Projects',
+        note: isRTL ? 'عدد كل المشاريع (tenants) المسجلة على المنصة بأي حالة اشتراك.' : 'Every project (tenant) registered on the platform, whatever its subscription status.',
         rows: subscriptions.map((s) => ({
           name: language === 'ar' ? s.tenantNameAr : s.tenantName,
           sub: s.planType,
@@ -111,6 +136,7 @@ export const SuperAdminView: React.FC = () => {
     } else if (kind === 'active_subs') {
       setKpiDetail({
         title: isRTL ? 'الاشتراكات النشطة' : 'Active Subscriptions',
+        note: isRTL ? 'المشاريع اللي حالة اشتراكها نشطة. النسبة = النشطة ÷ إجمالي المشاريع.' : 'Projects whose subscription status is Active. Percentage = active ÷ all projects.',
         rows: subscriptions
           .filter((s) => s.status === 'Active')
           .map((s) => ({
@@ -122,6 +148,7 @@ export const SuperAdminView: React.FC = () => {
     } else {
       setKpiDetail({
         title: isRTL ? 'محادثات تنتظر ردك' : 'Conversations Awaiting Reply',
+        note: isRTL ? 'المحادثات اللي آخر رسالة فيها من المشترك ولسه ماردتش عليها.' : 'Chats whose last message is from the subscriber and has not been answered yet.',
         rows: pendingReplyChats.map((c) => ({
           name: c.senderName,
           sub: c.tenant,
@@ -284,24 +311,24 @@ export const SuperAdminView: React.FC = () => {
 
       {/* Revenue summary */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-        <div className="glass-card col-span-2 rounded-2xl p-4 sm:col-span-1">
+        <button onClick={() => openKpiDetail('collected')} className="glass-card text-start transition-all hover:border-blue-500/40 active:scale-[0.98] col-span-2 rounded-2xl p-4 sm:col-span-1">
           <span className="text-xs font-medium text-slate-400">{isRTL ? 'المحصّل فعلياً (الإجمالي)' : 'Actually collected (all time)'}</span>
           <h3 className="mt-2 text-xl font-bold sm:text-2xl text-emerald-400">{(rev?.total_paid ?? 0).toLocaleString()} EGP</h3>
           <p className="mt-1 text-[11px] text-slate-500">{isRTL ? `هذا الشهر: ${(rev?.month_paid ?? 0).toLocaleString()} EGP (${rev?.month_renewals ?? 0} تجديد)` : `This month: ${(rev?.month_paid ?? 0).toLocaleString()} EGP (${rev?.month_renewals ?? 0} renewals)`}</p>
-        </div>
-        <div className="glass-card rounded-2xl p-4">
+        </button>
+        <button onClick={() => openKpiDetail('mrr')} className="glass-card text-start transition-all hover:border-blue-500/40 active:scale-[0.98] rounded-2xl p-4">
           <span className="text-xs font-medium text-slate-400">{isRTL ? 'المتوقع شهرياً' : 'Expected monthly'}</span>
           <h3 className="mt-2 text-xl font-bold sm:text-2xl text-blue-400">{totalMrr.toLocaleString()} EGP</h3>
           <p className="mt-1 text-[11px] text-slate-500">{isRTL ? 'من الاشتراكات النشطة المدفوعة' : 'From active paid subscriptions'}</p>
-        </div>
-        <div className="glass-card rounded-2xl p-4">
+        </button>
+        <button onClick={() => openKpiDetail('paying')} className="glass-card text-start transition-all hover:border-blue-500/40 active:scale-[0.98] rounded-2xl p-4">
           <span className="text-xs font-medium text-slate-400">{isRTL ? 'مشتركون دفعوا' : 'Subscribers who paid'}</span>
           <h3 className="mt-2 text-xl font-bold sm:text-2xl text-white dark:text-white light:text-[#0f172a]">{rev?.paying_tenants ?? 0}</h3>
           <p className="mt-1 text-[11px] text-slate-500">{isRTL ? `هذا الشهر: ${rev?.paying_tenants_month ?? 0}` : `This month: ${rev?.paying_tenants_month ?? 0}`}</p>
-        </div>
+        </button>
       </div>
 
-      <AdminReports onRenew={(id, name) => setRenewTarget({ id, name })} />
+      <AdminReports onRenew={(id, name) => setRenewTarget({ id, name })} onDetail={(d) => setKpiDetail(d)} />
 
       {/* KPI Cards Grid (4 Top Cards) */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -412,6 +439,7 @@ export const SuperAdminView: React.FC = () => {
                 ✕
               </button>
             </div>
+            {kpiDetail.note && <p className="mb-3 rounded-xl border border-blue-500/20 bg-blue-500/5 px-3 py-2 text-[11px] leading-relaxed text-slate-300">{kpiDetail.note}</p>}
             <div className="space-y-2">
               {kpiDetail.rows.map((row, i) => (
                 <div key={i} className="flex items-center justify-between rounded-xl bg-slate-900/60 px-3 py-2.5">
