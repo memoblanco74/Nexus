@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { SkeletonList } from '../ui/Skeleton';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { onPending, takePending } from '../../lib/pendingOpen';
-import { Baby, FileSpreadsheet, MessageCircle, Pencil, Plus, Search, Truck } from 'lucide-react';
+import { ClassFilter, ClassesManager, matchesClass } from './NurseryClasses';
+import { Baby, FileSpreadsheet, Layers, MessageCircle, Pencil, Plus, Search, Truck } from 'lucide-react';
 import { ImportModal } from '../ui/ImportModal';
 import { childrenEntity } from '../../lib/importEntities';
 import { AllergyAlert, BulkMessageModal, PortalCard, VaccineSchedule } from './NurseryExtras';
@@ -19,6 +20,7 @@ import {
   feeName,
   monthOf,
   NurseryCore,
+  NurseryClass,
 } from './nurseryApi';
 
 type ChildForm = Omit<Child, 'id' | 'tenant_id'>;
@@ -38,6 +40,7 @@ const blankForm: ChildForm = {
   notes: '',
   allergies: '',
   health_notes: '',
+  class_id: '',
   status: 'active',
 };
 
@@ -56,10 +59,11 @@ const toForm = (c: Child): ChildForm => ({
   notes: c.notes || '',
   allergies: c.allergies || '',
   health_notes: c.health_notes || '',
+  class_id: c.class_id || '',
   status: c.status,
 });
 
-const ChildFormModal: React.FC<{ child: Child | null; onClose: () => void; onSaved: () => void }> = ({ child, onClose, onSaved }) => {
+const ChildFormModal: React.FC<{ child: Child | null; classes: NurseryClass[]; onClose: () => void; onSaved: () => void }> = ({ child, classes, onClose, onSaved }) => {
   const { isRTL, activeTenant, showToast } = useApp();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const initial = useMemo(() => (child ? toForm(child) : blankForm), [child]);
@@ -77,7 +81,9 @@ const ChildFormModal: React.FC<{ child: Child | null; onClose: () => void; onSav
       full_name: form.full_name.trim(),
       birth_date: form.birth_date || null,
       gender: form.gender || null,
+      class_id: form.class_id || null,
     };
+    if (!payload.class_id && !child?.class_id) delete payload.class_id;
     const res = child
       ? await supabase.from('nursery_children').update(payload).eq('id', child.id)
       : await supabase.from('nursery_children').insert({ ...payload, tenant_id: activeTenant!.id });
@@ -136,6 +142,14 @@ const ChildFormModal: React.FC<{ child: Child | null; onClose: () => void; onSav
         <Field label={tx('موبايل ولي الأمر', 'Guardian phone')}>
           <input className={inputClass} inputMode="tel" value={form.guardian_phone || ''} onChange={(e) => set('guardian_phone', e.target.value)} />
         </Field>
+        {classes.length > 0 && (
+          <Field label={tx('الفصل', 'Class')}>
+            <select className={inputClass} value={form.class_id || ''} onChange={(e) => set('class_id', e.target.value)}>
+              <option value="">{tx('بدون فصل', 'No class')}</option>
+              {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </Field>
+        )}
         <Field label={tx('الحالة', 'Status')}>
           <select className={inputClass} value={form.status} onChange={(e) => set('status', e.target.value)}>
             <option value="active">{tx('مقيّد', 'Active')}</option>
@@ -288,6 +302,8 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
   const [editing, setEditing] = useState<Child | null | 'new'>(null);
   const [viewing, setViewing] = useState<string | null>(null);
   const [bulkMsg, setBulkMsg] = useState(false);
+  const [classesOpen, setClassesOpen] = useState(false);
+  const [classFilter, setClassFilter] = useState('all');
   const period = monthOf(cairoToday());
 
   useEffect(() => {
@@ -300,10 +316,10 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
   }, []);
 
   const needle = debouncedQ.trim().toLowerCase();
-  const list = core.children.filter((c) =>
+  const list = core.children.filter((c) => matchesClass(c, classFilter) && (
     !needle ||
     [c.full_name, c.father_name, c.mother_name, c.guardian_name, c.father_phone, c.mother_phone, c.guardian_phone].some((v) => (v || '').toLowerCase().includes(needle))
-  );
+  ));
   const viewingChild = core.children.find((c) => c.id === viewing) || null;
 
   return (
@@ -318,6 +334,10 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
           <p className="mt-1 text-xs text-slate-400">{tx('بيانات الأطفال وأولياء الأمور والتطعيمات والاشتراكات', 'Children, parents, vaccinations and subscriptions')}</p>
         </div>
         <div className="flex gap-2">
+          <button onClick={() => setClassesOpen(true)} className="flex items-center justify-center gap-2 rounded-xl border border-indigo-500/40 bg-indigo-500/10 px-3.5 py-2 text-xs font-semibold text-indigo-300 hover:bg-indigo-500/20">
+            <Layers className="h-4 w-4" />
+            {tx('الفصول', 'Classes')}
+          </button>
           <button data-write="1" onClick={() => setImporting(true)} className="flex items-center justify-center gap-2 rounded-xl border border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800">
             <FileSpreadsheet className="h-4 w-4" />
             {tx('استيراد Excel', 'Import Excel')}
@@ -338,6 +358,8 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tx('بحث بالاسم أو الموبايل...', 'Search name or phone...')} className={`${inputClass} ${isRTL ? 'pr-9' : 'pl-9'}`} />
       </div>
 
+      <ClassFilter core={core} value={classFilter} onChange={setClassFilter} />
+
       {core.loading ? (
         <SkeletonList grid />
       ) : list.length === 0 ? (
@@ -356,6 +378,7 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold text-white">{c.full_name}</p>
                     <p className="text-[11px] text-slate-400">{[ageLabel(c.birth_date, isRTL), c.status === 'inactive' ? tx('غير مقيّد', 'Inactive') : ''].filter(Boolean).join(' • ')}</p>
+                    {c.class_id && <p className="mt-0.5 text-[10px] font-semibold text-indigo-300">{core.classes.find((k) => k.id === c.class_id)?.name}</p>}
                     {c.allergies && <p className="mt-1 text-[10px] font-semibold text-red-400">⚠ {c.allergies}</p>}
                   </div>
                   <button
@@ -384,11 +407,13 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
       )}
 
       {importing && activeTenant && <ImportModal entity={childrenEntity(activeTenant.id, core.children.map((c) => c.full_name))} onClose={() => setImporting(false)} onDone={core.reload} />}
+      {classesOpen && <ClassesManager core={core} onClose={() => setClassesOpen(false)} />}
       {bulkMsg && <BulkMessageModal children={core.children} onClose={() => setBulkMsg(false)} />}
 
       {editing && (
         <ChildFormModal
           child={editing === 'new' ? null : editing}
+          classes={core.classes}
           onClose={() => setEditing(null)}
           onSaved={() => core.reload()}
         />

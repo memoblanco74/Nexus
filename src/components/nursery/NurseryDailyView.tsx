@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ClassFilter, matchesClass } from './NurseryClasses';
 import { SkeletonList } from '../ui/Skeleton';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { CalendarCheck, Check, FileText, Loader2, Plus, Search, Send, Trash2, X } from 'lucide-react';
@@ -337,6 +338,7 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const [editing, setEditing] = useState<Child | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [classFilter, setClassFilter] = useState('all');
 
   const loadLogs = useCallback(async () => {
     if (!activeTenant) return;
@@ -361,7 +363,7 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
 
   useEffect(() => onOutboxChange(() => { loadLogs(); }), [loadLogs]);
 
-  const active = core.children.filter((c) => c.status === 'active');
+  const active = core.children.filter((c) => c.status === 'active' && matchesClass(c, classFilter));
   const needle = debouncedQ.trim().toLowerCase();
   const list = active.filter((c) => !needle || c.full_name.toLowerCase().includes(needle));
   const present = active.filter((c) => logs[c.id]?.status === 'present').length;
@@ -419,6 +421,8 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
         <Search className={`absolute top-2.5 h-4 w-4 text-slate-500 ${isRTL ? 'right-3' : 'left-3'}`} />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tx('بحث باسم الطفل...', 'Search child...')} className={`${inputClass} ${isRTL ? 'pr-9' : 'pl-9'}`} />
       </div>
+
+      <ClassFilter core={core} value={classFilter} onChange={setClassFilter} />
 
       {core.loading ? (
         <SkeletonList />

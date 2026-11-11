@@ -21,7 +21,15 @@ export interface Child {
   health_notes?: string | null;
   portal_token?: string;
   portal_enabled?: boolean;
+  class_id?: string | null;
   status: 'active' | 'inactive';
+}
+
+export interface NurseryClass {
+  id: string;
+  tenant_id: string;
+  name: string;
+  teacher_name: string | null;
 }
 
 export interface FeeItem {
@@ -228,6 +236,7 @@ export const useNurseryCore = (tenantId: string | undefined) => {
   const [childFees, setChildFees] = useState<ChildFee[]>([]);
   const [vaccinations, setVaccinations] = useState<Vaccination[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [classes, setClasses] = useState<NurseryClass[]>([]);
   const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
@@ -253,6 +262,8 @@ export const useNurseryCore = (tenantId: string | undefined) => {
     setChildFees(((raw.cf as any[]) || []).map((x) => ({ ...x, price_override: x.price_override === null ? null : Number(x.price_override) })));
     setVaccinations((raw.v as Vaccination[]) || []);
     setPayments(((raw.p as any[]) || []).map((x) => ({ ...x, amount: Number(x.amount) })));
+    const cl = await supabase.from('nursery_classes').select('id, tenant_id, name, teacher_name').eq('tenant_id', tenantId).order('name');
+    setClasses(cl.error ? [] : ((cl.data as NurseryClass[]) || []));
     setLoading(false);
   }, [tenantId]);
 
@@ -261,7 +272,7 @@ export const useNurseryCore = (tenantId: string | undefined) => {
     reload();
   }, [reload]);
 
-  return { children, feeItems, childFees, vaccinations, payments, loading, reload };
+  return { children, classes, feeItems, childFees, vaccinations, payments, loading, reload };
 };
 
 export type NurseryCore = ReturnType<typeof useNurseryCore>;
