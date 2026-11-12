@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ClassFilter, matchesClass } from './NurseryClasses';
 import { SkeletonList } from '../ui/Skeleton';
+import { takePending } from '../../lib/pendingOpen';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { CalendarCheck, Check, FileText, Loader2, Plus, Search, Send, Trash2, X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { cacheGet, cacheSet, onOutboxChange, pendingLogs, upsertLogOfflineAware } from '../../lib/offlineQueue';
 import { SaveButton } from '../ui/SaveButton';
@@ -330,6 +332,9 @@ const ReportEditor: React.FC<{
 
 export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const { isRTL, activeTenant, showToast } = useApp();
+  const { can } = useAuth();
+  const canMark = can('daily.mark');
+  const canSend = can('messages.send');
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const [day, setDay] = useState(cairoToday());
   const [logs, setLogs] = useState<Record<string, DailyLog>>({});
@@ -339,6 +344,11 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [classFilter, setClassFilter] = useState('all');
+
+  useEffect(() => {
+    const id = takePending('daily_class');
+    if (id) setClassFilter(id);
+  }, []);
 
   const loadLogs = useCallback(async () => {
     if (!activeTenant) return;
@@ -394,10 +404,10 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
           <p className="mt-1 text-xs text-slate-400">{tx('حضور وغياب كل طفل وتقرير يومه', 'Attendance and daily report per child')}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setBulkOpen(true)} className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20">
+          {canSend && <button onClick={() => setBulkOpen(true)} className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20">
             <Send className="h-4 w-4" />
             {tx('إرسال تقارير الكل', 'Send all reports')}
-          </button>
+          </button>}
           <input type="date" value={day} onChange={(e) => e.target.value && setDay(e.target.value)} className={`${inputClass} max-w-[11rem]`} />
         </div>
       </div>
@@ -445,16 +455,16 @@ export const NurseryDailyView: React.FC<{ core: NurseryCore }> = ({ core }) => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button data-write="1" disabled={busyId === c.id} onClick={() => mark(c, 'present')} className={`rounded-lg border p-2 ${l?.status === 'present' ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300' : 'border-slate-700 text-slate-300 hover:bg-slate-800'}`} title={tx('حاضر', 'Present')}>
+                  {canMark && <><button data-write="1" disabled={busyId === c.id} onClick={() => mark(c, 'present')} className={`rounded-lg border p-2 ${l?.status === 'present' ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300' : 'border-slate-700 text-slate-300 hover:bg-slate-800'}`} title={tx('حاضر', 'Present')}>
                     <Check className="h-4 w-4" />
                   </button>
                   <button data-write="1" disabled={busyId === c.id} onClick={() => mark(c, 'absent')} className={`rounded-lg border p-2 ${l?.status === 'absent' ? 'border-red-500 bg-red-500/20 text-red-300' : 'border-slate-700 text-slate-300 hover:bg-slate-800'}`} title={tx('غائب', 'Absent')}>
                     <X className="h-4 w-4" />
-                  </button>
-                  <button onClick={() => setEditing(c)} className="flex items-center gap-1.5 rounded-lg border border-blue-500/40 bg-blue-500/10 px-3 py-2 text-xs font-semibold text-blue-300 hover:bg-blue-500/20">
+                  </button></>}
+                  {canMark && <button onClick={() => setEditing(c)} className="flex items-center gap-1.5 rounded-lg border border-blue-500/40 bg-blue-500/10 px-3 py-2 text-xs font-semibold text-blue-300 hover:bg-blue-500/20">
                     <FileText className="h-4 w-4" />
                     {tx('التقرير', 'Report')}
-                  </button>
+                  </button>}
                 </div>
               </div>
             );

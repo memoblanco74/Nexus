@@ -670,9 +670,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     let linksRes: any = await supabase
       .from('tenant_users')
-      .select('user_id, allowed_screens, allowed_class_ids')
+      .select('user_id, allowed_screens, allowed_class_ids, allowed_actions')
       .eq('tenant_id', activeTenantId)
       .eq('is_founder', false);
+    if (linksRes.error) {
+      linksRes = await supabase.from('tenant_users').select('user_id, allowed_screens, allowed_class_ids').eq('tenant_id', activeTenantId).eq('is_founder', false);
+    }
     if (linksRes.error) {
       linksRes = await supabase.from('tenant_users').select('user_id, allowed_screens').eq('tenant_id', activeTenantId).eq('is_founder', false);
     }
@@ -682,6 +685,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const links = linksRes.data as any[] | null;
     const screensById = new Map<string, string[] | null>((links || []).map((l: any) => [l.user_id, Array.isArray(l.allowed_screens) ? l.allowed_screens : null]));
     const classesById = new Map<string, string[] | null>((links || []).map((l: any) => [l.user_id, Array.isArray(l.allowed_class_ids) ? l.allowed_class_ids : null]));
+    const actionsById = new Map<string, string[] | null>((links || []).map((l: any) => [l.user_id, Array.isArray(l.allowed_actions) ? l.allowed_actions : null]));
     const ids = new Set((links || []).map((l: any) => l.user_id));
     if (ids.size === 0) {
       setAssistants([]);
@@ -699,6 +703,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           createdAt: '',
           allowedScreens: screensById.get(r.user_id) ?? null,
           allowedClassIds: classesById.get(r.user_id) ?? null,
+          allowedActions: actionsById.get(r.user_id) ?? null,
         }))
     );
   }, [activeTenantId, profile]);

@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { UserPlus, Trash2, ShieldCheck, SlidersHorizontal } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { assistantOptions } from '../../lib/screenAccess';
+import { DEFAULT_ACTIONS, PERMISSIONS, PERM_GROUPS, deriveScreens } from '../../lib/permissions';
 import { Modal } from '../nursery/ui';
 
 export const AssistantsView: React.FC = () => {
@@ -20,14 +21,18 @@ export const AssistantsView: React.FC = () => {
   }, [isNurseryTenant, activeTenant?.id]);
   const openPerms = (a: (typeof assistants)[number]) => {
     setPermFor(a);
-    setPermSel(a.allowedScreens ?? options);
+    setPermSel(isNurseryTenant ? a.allowedActions ?? DEFAULT_ACTIONS : a.allowedScreens ?? options);
     setClassSel(a.allowedClassIds ?? null);
   };
   const savePerms = async () => {
     if (!permFor || !activeTenant) return;
     setPermBusy(true);
-    const allSelected = options.every((o) => permSel.includes(o));
-    const { error } = await supabase.rpc('fn_set_assistant_screens', { p_tenant_id: activeTenant.id, p_user_id: permFor.id, p_screens: allSelected ? null : permSel });
+    if (isNurseryTenant) {
+      const r1 = await supabase.rpc('fn_set_assistant_actions', { p_tenant_id: activeTenant.id, p_user_id: permFor.id, p_actions: permSel });
+      if (r1.error) { setPermBusy(false); showToast(r1.error.message); return; }
+    }
+    const allSelected = !isNurseryTenant && options.every((o) => permSel.includes(o));
+    const { error } = await supabase.rpc('fn_set_assistant_screens', { p_tenant_id: activeTenant.id, p_user_id: permFor.id, p_screens: isNurseryTenant ? deriveScreens(permSel) : allSelected ? null : permSel });
     setPermBusy(false);
     if (error) { showToast(error.message); return; }
     if (isNurseryTenant) {
@@ -194,6 +199,36 @@ export const AssistantsView: React.FC = () => {
           onClose={() => setPermFor(null)}
           footer={<button disabled={permBusy} onClick={savePerms} className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 disabled:opacity-50">{isRTL ? 'حفظ' : 'Save'}</button>}
         >
+          {isNurseryTenant ? (
+            <div className="space-y-4">
+              <p className="text-[11px] text-slate-400">{isRTL ? 'حدد بالظبط إيه اللي المستخدم يقدر يشوفه ويعمله. الصفحات بتظهر له حسب الصلاحيات، والإعدادات الشخصية متاحة دايماً.' : 'Choose exactly what this user can see and do. Pages appear based on the permissions; personal settings are always available.'}</p>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => setPermSel(DEFAULT_ACTIONS)} className="rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] text-slate-300 hover:bg-slate-800">{isRTL ? 'الافتراضي' : 'Default'}</button>
+                <button onClick={() => setPermSel(PERMISSIONS.map((x) => x.key))} className="rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] text-slate-300 hover:bg-slate-800">{isRTL ? 'كل الصلاحيات' : 'Everything'}</button>
+                <button onClick={() => setPermSel(['daily.view', 'daily.mark'])} className="rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] text-slate-300 hover:bg-slate-800">{isRTL ? 'اليومية فقط' : 'Daily log only'}</button>
+                <button onClick={() => setPermSel([])} className="rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] text-slate-300 hover:bg-slate-800">{isRTL ? 'لا شيء' : 'Nothing'}</button>
+              </div>
+              {PERM_GROUPS.map((g) => {
+                const defs = PERMISSIONS.filter((x) => x.group === g.id);
+                const all = defs.every((x) => permSel.includes(x.key));
+                return (
+                  <div key={g.id} className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-white">{isRTL ? g.ar : g.en}</p>
+                      <button onClick={() => setPermSel(all ? permSel.filter((k) => !defs.some((x) => x.key === k)) : Array.from(new Set([...permSel, ...defs.map((x) => x.key)])))} className="text-[10px] text-blue-400 hover:text-blue-300">{all ? (isRTL ? 'إلغاء الكل' : 'Clear') : (isRTL ? 'تحديد الكل' : 'Select all')}</button>
+                    </div>
+                    {defs.map((d) => (
+                      <label key={d.key} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-800 px-3 py-2 text-xs text-white">
+                        <input type="checkbox" className="h-4 w-4 shrink-0 accent-blue-500" checked={permSel.includes(d.key)} onChange={() => setPermSel(permSel.includes(d.key) ? permSel.filter((x) => x !== d.key) : [...permSel, d.key])} />
+                        {isRTL ? d.ar : d.en}
+                      </label>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <>
           <p className="text-[11px] text-slate-400">{isRTL ? 'اختار الشاشات اللي المساعد يقدر يفتحها. الصفحة الرئيسية والإعدادات الشخصية متاحة دايماً.' : 'Choose the screens this assistant can open. Home and personal settings are always available.'}</p>
           <div className="space-y-2">
             {options.map((o) => (
@@ -203,6 +238,8 @@ export const AssistantsView: React.FC = () => {
               </label>
             ))}
           </div>
+            </>
+          )}
           {isNurseryTenant && (
             <div className="space-y-2 border-t border-slate-800 pt-3">
               <p className="text-xs font-bold text-white">{isRTL ? 'الفصول اللي يشوفها' : 'Classes this user can see'}</p>

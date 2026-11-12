@@ -65,7 +65,7 @@ export const PortalCard: React.FC<{ child: Child; core: NurseryCore }> = ({ chil
   );
 };
 
-export const VaccineSchedule: React.FC<{ child: Child; vaccinations: Vaccination[]; reload: () => Promise<void> | void }> = ({ child, vaccinations, reload }) => {
+export const VaccineSchedule: React.FC<{ child: Child; vaccinations: Vaccination[]; reload: () => Promise<void> | void; canEdit?: boolean; canMessage?: boolean }> = ({ child, vaccinations, reload, canEdit = true, canMessage = true }) => {
   const { isRTL, showToast, activeTenant, language } = useApp();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const [busy, setBusy] = useState(false);
@@ -112,7 +112,7 @@ export const VaccineSchedule: React.FC<{ child: Child; vaccinations: Vaccination
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h4 className="flex items-center gap-2 text-xs font-bold text-white"><Syringe className="h-4 w-4 text-emerald-400" />{tx('جدول التطعيمات', 'Vaccination schedule')}</h4>
-        <button data-write="1" disabled={busy} onClick={generate} className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20">{tx('إنشاء الجدول المقترح', 'Generate suggested')}</button>
+        {canEdit && <button data-write="1" disabled={busy} onClick={generate} className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20">{tx('إنشاء الجدول المقترح', 'Generate suggested')}</button>}
       </div>
       <p className="text-[10px] text-slate-500">{tx('الجدول مقترح حسب سن الطفل، راجعه مع طبيب الأطفال. تقدر تعدّل أو تحذف أي بند.', 'Suggested by age — confirm with the pediatrician. You can delete any item.')}</p>
       {rows.map((v) => {
@@ -126,11 +126,11 @@ export const VaccineSchedule: React.FC<{ child: Child; vaccinations: Vaccination
             </div>
             <Badge tone={st.tone}>{st.text}</Badge>
             <div className="flex items-center gap-1.5" data-write="1">
-              {!v.given_on && phone && v.due_date && (
+              {canMessage && !v.given_on && phone && v.due_date && (
                 <button title={tx('تذكير ولي الأمر', 'Remind parent')} onClick={() => openWhatsApp(phone, tx(`تذكير من ${nursery}: موعد تطعيم ${child.full_name} (${v.vaccine_name}) يوم ${v.due_date}.`, `Reminder from ${nursery}: ${child.full_name}'s vaccine (${v.vaccine_name}) is due on ${v.due_date}.`))} className="rounded-lg border border-emerald-500/40 p-1.5 text-emerald-300 hover:bg-emerald-500/10"><MessageCircle className="h-3.5 w-3.5" /></button>
               )}
-              <button title={v.given_on ? tx('إلغاء', 'Undo') : tx('تم', 'Mark given')} onClick={() => markDone(v, !v.given_on)} className={`rounded-lg border p-1.5 ${v.given_on ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300' : 'border-slate-700 text-slate-300 hover:bg-slate-800'}`}><Check className="h-3.5 w-3.5" /></button>
-              <button onClick={() => remove(v)} className="rounded-lg p-1.5 text-red-400 hover:bg-red-500/10"><Trash2 className="h-3.5 w-3.5" /></button>
+              {canEdit && <button title={v.given_on ? tx('إلغاء', 'Undo') : tx('تم', 'Mark given')} onClick={() => markDone(v, !v.given_on)} className={`rounded-lg border p-1.5 ${v.given_on ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300' : 'border-slate-700 text-slate-300 hover:bg-slate-800'}`}><Check className="h-3.5 w-3.5" /></button>}
+              {canEdit && <button onClick={() => remove(v)} className="rounded-lg p-1.5 text-red-400 hover:bg-red-500/10"><Trash2 className="h-3.5 w-3.5" /></button>}
             </div>
           </div>
         );

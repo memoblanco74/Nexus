@@ -16,7 +16,8 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export const NurseryExpensesTab: React.FC = () => {
   const { isRTL, activeTenant, showToast, money, isReadOnly } = useApp();
-  const { profile } = useAuth();
+  const { profile, can } = useAuth();
+  const canAdd = can('expenses.add');
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const tenantId = activeTenant?.id || '';
   const [period, setPeriod] = useState(monthOf(cairoToday()));
@@ -100,7 +101,7 @@ export const NurseryExpensesTab: React.FC = () => {
         <div className={`${cardClass} text-center`}><p className="text-[10px] text-slate-500">{tx('إجمالي الشهر', 'Month total')}</p><p className="text-sm font-extrabold text-white">{money(grand)}</p></div>
       </div>
 
-      {!isReadOnly && (
+      {!isReadOnly && canAdd && (
         <div className={`${cardClass} space-y-3`} data-write="1">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <input type="date" className={inputClass} value={date} onChange={(e) => e.target.value && setDate(e.target.value)} />
@@ -142,7 +143,7 @@ export const NurseryExpensesTab: React.FC = () => {
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <b className="text-amber-300">{money(r.total_amount)}</b>
-              <button data-write="1" onClick={() => remove(r)} className="rounded-lg border border-red-500/40 p-1.5 text-red-300 hover:bg-red-500/10"><Trash2 className="h-3.5 w-3.5" /></button>
+              {canAdd && <button data-write="1" onClick={() => remove(r)} className="rounded-lg border border-red-500/40 p-1.5 text-red-300 hover:bg-red-500/10"><Trash2 className="h-3.5 w-3.5" /></button>}
             </div>
           </div>
         ))}

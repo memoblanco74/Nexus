@@ -206,4 +206,5 @@ export interface AssistantAccount {
   createdAt: string;
   allowedScreens?: string[] | null;
   allowedClassIds?: string[] | null;
+  allowedActions?: string[] | null;
 }

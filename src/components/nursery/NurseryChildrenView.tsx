@@ -66,7 +66,7 @@ const toForm = (c: Child): ChildForm => ({
 const ChildFormModal: React.FC<{ child: Child | null; classes: NurseryClass[]; onClose: () => void; onSaved: () => void }> = ({ child, classes, onClose, onSaved }) => {
   const { isRTL, activeTenant, showToast } = useApp();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
-  const { allowedClassIds } = useAuth();
+  const { allowedClassIds, can } = useAuth();
   const initial = useMemo(() => (child ? toForm(child) : { ...blankForm, class_id: allowedClassIds && classes[0] ? classes[0].id : '' }), [child, allowedClassIds, classes]);
   const [form, setForm] = useState<ChildForm>(initial);
   const [baseline, setBaseline] = useState(JSON.stringify(initial));
@@ -119,30 +119,46 @@ const ChildFormModal: React.FC<{ child: Child | null; classes: NurseryClass[]; o
             <option value="female">{tx('بنت', 'Girl')}</option>
           </select>
         </Field>
+        {can('children.contacts') && (
         <Field label={tx('العنوان', 'Address')} className="sm:col-span-2">
           <input className={inputClass} value={form.address || ''} onChange={(e) => set('address', e.target.value)} />
         </Field>
+        )}
+        {can('children.contacts') && (
         <Field label={tx('اسم الأب', 'Father name')}>
           <input className={inputClass} value={form.father_name || ''} onChange={(e) => set('father_name', e.target.value)} />
         </Field>
+        )}
+        {can('children.contacts') && (
         <Field label={tx('موبايل الأب', 'Father phone')}>
           <input className={inputClass} inputMode="tel" value={form.father_phone || ''} onChange={(e) => set('father_phone', e.target.value)} />
         </Field>
+        )}
+        {can('children.contacts') && (
         <Field label={tx('اسم الأم', 'Mother name')}>
           <input className={inputClass} value={form.mother_name || ''} onChange={(e) => set('mother_name', e.target.value)} />
         </Field>
+        )}
+        {can('children.contacts') && (
         <Field label={tx('موبايل الأم', 'Mother phone')}>
           <input className={inputClass} inputMode="tel" value={form.mother_phone || ''} onChange={(e) => set('mother_phone', e.target.value)} />
         </Field>
+        )}
+        {can('children.contacts') && (
         <Field label={tx('اسم ولي الأمر', 'Guardian name')}>
           <input className={inputClass} value={form.guardian_name || ''} onChange={(e) => set('guardian_name', e.target.value)} />
         </Field>
+        )}
+        {can('children.contacts') && (
         <Field label={tx('صلة القرابة', 'Relation')}>
           <input className={inputClass} value={form.guardian_relation || ''} onChange={(e) => set('guardian_relation', e.target.value)} />
         </Field>
+        )}
+        {can('children.contacts') && (
         <Field label={tx('موبايل ولي الأمر', 'Guardian phone')}>
           <input className={inputClass} inputMode="tel" value={form.guardian_phone || ''} onChange={(e) => set('guardian_phone', e.target.value)} />
         </Field>
+        )}
         {classes.length > 0 && (
           <Field label={tx('الفصل', 'Class')}>
             <select className={inputClass} value={form.class_id || ''} onChange={(e) => set('class_id', e.target.value)}>
@@ -157,12 +173,16 @@ const ChildFormModal: React.FC<{ child: Child | null; classes: NurseryClass[]; o
             <option value="inactive">{tx('غير مقيّد', 'Inactive')}</option>
           </select>
         </Field>
+        {can('children.health') && (
         <Field label={tx('حساسية الأكل أو الأدوية', 'Food / medicine allergies')} className="sm:col-span-2">
           <input className={inputClass} value={form.allergies || ''} onChange={(e) => set('allergies', e.target.value)} placeholder={tx('مثال: حساسية بيض، لاكتوز', 'e.g. eggs, lactose')} />
         </Field>
+        )}
+        {can('children.health') && (
         <Field label={tx('ملاحظات صحية (ربو، أنيميا، ...)', 'Health notes')} className="sm:col-span-2">
           <input className={inputClass} value={form.health_notes || ''} onChange={(e) => set('health_notes', e.target.value)} />
         </Field>
+        )}
         <Field label={tx('ملاحظات عامة', 'General notes')} className="sm:col-span-2">
           <textarea rows={2} className={inputClass} value={form.notes || ''} onChange={(e) => set('notes', e.target.value)} />
         </Field>
@@ -173,7 +193,7 @@ const ChildFormModal: React.FC<{ child: Child | null; classes: NurseryClass[]; o
 
 const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () => void }> = ({ child, core, onClose }) => {
   const { isRTL, showToast, money } = useApp();
-  const { profile } = useAuth();
+  const { profile, can } = useAuth();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const [vName, setVName] = useState('');
   const [vDate, setVDate] = useState(cairoToday());
@@ -234,10 +254,10 @@ const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () 
           {due === 0 ? tx('لا اشتراكات', 'No fees') : paid >= due ? tx('دافع هذا الشهر', 'Paid this month') : tx('لم يدفع هذا الشهر', 'Unpaid this month')}
         </Badge>
       </div>
-      <AllergyAlert child={child} />
+      {can('children.health') && <AllergyAlert child={child} />}
       {child.notes && <p className="rounded-xl bg-amber-500/10 p-3 text-[11px] text-amber-300">{child.notes}</p>}
 
-      <div className="space-y-1">
+      {can('children.contacts') && <div className="space-y-1">
         {parents.map((r, i) => (
           <div key={i} className="flex items-center justify-between rounded-xl border border-slate-800 px-3 py-2 text-xs">
             <span className="text-slate-400">{r[0]}</span>
@@ -245,14 +265,14 @@ const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () 
             <span dir="ltr" className="text-slate-300">{r[2] || ''}</span>
           </div>
         ))}
-      </div>
+      </div>}
 
-      <VaccineSchedule child={child} vaccinations={vacc} reload={core.reload} />
-      <div data-write="1" className="flex gap-2">
+      {can('children.health') && <VaccineSchedule child={child} vaccinations={vacc} reload={core.reload} canEdit={can('vaccines.edit')} canMessage={can('messages.send') && can('children.contacts')} />}
+      {can('children.health') && can('vaccines.edit') && <div data-write="1" className="flex gap-2">
         <input className={inputClass} placeholder={tx('إضافة تطعيم يدوي (الاسم)', 'Add a vaccine manually')} value={vName} onChange={(e) => setVName(e.target.value)} />
         <input type="date" className={`${inputClass} max-w-[9rem]`} value={vDate} onChange={(e) => setVDate(e.target.value)} />
         <button onClick={addVaccine} disabled={busy || !vName.trim()} className="shrink-0 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white disabled:opacity-40">{tx('إضافة', 'Add')}</button>
-      </div>
+      </div>}
 
       <div className="space-y-2">
         <h4 className="flex items-center gap-2 text-xs font-bold text-white">
@@ -264,10 +284,11 @@ const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () 
           const a = assigned.find((x) => x.fee_item_id === item.id);
           return (
             <div key={item.id} className="flex items-center gap-3 rounded-xl border border-slate-800 px-3 py-2 text-xs">
-              <input type="checkbox" data-write="1" checked={!!a} onChange={() => toggleFee(item.id)} className="h-4 w-4 accent-blue-500" />
+              <input type="checkbox" data-write="1" disabled={!can('children.edit')} checked={!!a} onChange={() => toggleFee(item.id)} className="h-4 w-4 accent-blue-500" />
               <span className="flex-1 text-white">{feeName(item, isRTL)}</span>
               {a ? (
                 <input
+                  disabled={!can('children.edit')}
                   key={a.id + String(a.price_override)}
                   defaultValue={a.price_override ?? ''}
                   placeholder={String(item.price)}
@@ -289,14 +310,14 @@ const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () 
         </div>
         {profile?.roleCode && <p className="text-[10px] text-slate-500">{tx('اكتب سعر خاص في الخانة لو الطفل له خصم، أو سيبها فاضية لسعر الاشتراك العام.', 'Type a custom price to override the default.')}</p>}
       </div>
-      <PortalCard child={child} core={core} />
+      {can('portal.manage') && <PortalCard child={child} core={core} />}
     </Modal>
   );
 };
 
 export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const { isRTL, money, activeTenant } = useApp();
-  const { allowedClassIds } = useAuth();
+  const { allowedClassIds, can } = useAuth();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const [importing, setImporting] = useState(false);
   const [q, setQ] = useState('');
@@ -312,6 +333,7 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
     const check = () => {
       const id = takePending('child');
       if (id) setViewing(id);
+      if (takePending('add_child') && can('children.add')) setEditing('new');
     };
     check();
     return onPending(check);
@@ -320,7 +342,7 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
   const needle = debouncedQ.trim().toLowerCase();
   const list = core.children.filter((c) => matchesClass(c, classFilter) && (
     !needle ||
-    [c.full_name, c.father_name, c.mother_name, c.guardian_name, c.father_phone, c.mother_phone, c.guardian_phone].some((v) => (v || '').toLowerCase().includes(needle))
+    [c.full_name, c.father_name, c.mother_name, c.guardian_name, c.father_phone, c.mother_phone, c.guardian_phone].filter((_, i) => can('children.contacts') || i === 0).some((v) => (v || '').toLowerCase().includes(needle))
   ));
   const viewingChild = core.children.find((c) => c.id === viewing) || null;
 
@@ -336,22 +358,22 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
           <p className="mt-1 text-xs text-slate-400">{tx('بيانات الأطفال وأولياء الأمور والتطعيمات والاشتراكات', 'Children, parents, vaccinations and subscriptions')}</p>
         </div>
         <div className="flex gap-2">
-          {!allowedClassIds && <button onClick={() => setClassesOpen(true)} className="flex items-center justify-center gap-2 rounded-xl border border-indigo-500/40 bg-indigo-500/10 px-3.5 py-2 text-xs font-semibold text-indigo-300 hover:bg-indigo-500/20">
+          {!allowedClassIds && can('classes.manage') && <button onClick={() => setClassesOpen(true)} className="flex items-center justify-center gap-2 rounded-xl border border-indigo-500/40 bg-indigo-500/10 px-3.5 py-2 text-xs font-semibold text-indigo-300 hover:bg-indigo-500/20">
             <Layers className="h-4 w-4" />
             {tx('الفصول', 'Classes')}
           </button>}
-          {!allowedClassIds && <button data-write="1" onClick={() => setImporting(true)} className="flex items-center justify-center gap-2 rounded-xl border border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800">
+          {!allowedClassIds && can('children.import') && <button data-write="1" onClick={() => setImporting(true)} className="flex items-center justify-center gap-2 rounded-xl border border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800">
             <FileSpreadsheet className="h-4 w-4" />
             {tx('استيراد Excel', 'Import Excel')}
           </button>}
-          <button onClick={() => setBulkMsg(true)} className="flex items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20">
+          {can('messages.send') && can('children.contacts') && <button onClick={() => setBulkMsg(true)} className="flex items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20">
             <MessageCircle className="h-4 w-4" />
             {tx('رسالة لأولياء الأمور', 'Message parents')}
-          </button>
-          <button data-write="1" onClick={() => setEditing('new')} className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-blue-500">
+          </button>}
+          {can('children.add') && <button data-write="1" onClick={() => setEditing('new')} className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-blue-500">
             <Plus className="h-4 w-4" />
             {tx('إضافة طفل', 'Add child')}
-          </button>
+          </button>}
         </div>
       </div>
 
@@ -381,9 +403,9 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
                     <p className="truncate text-sm font-bold text-white">{c.full_name}</p>
                     <p className="text-[11px] text-slate-400">{[ageLabel(c.birth_date, isRTL), c.status === 'inactive' ? tx('غير مقيّد', 'Inactive') : ''].filter(Boolean).join(' • ')}</p>
                     {c.class_id && <p className="mt-0.5 text-[10px] font-semibold text-indigo-300">{core.classes.find((k) => k.id === c.class_id)?.name}</p>}
-                    {c.allergies && <p className="mt-1 text-[10px] font-semibold text-red-400">⚠ {c.allergies}</p>}
+                    {can('children.health') && c.allergies && <p className="mt-1 text-[10px] font-semibold text-red-400">⚠ {c.allergies}</p>}
                   </div>
-                  <button
+                  {can('children.edit') && <button
                     data-write="1"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -392,7 +414,7 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
                     className="rounded-lg border border-slate-700 p-1.5 text-slate-300 hover:bg-slate-800"
                   >
                     <Pencil className="h-3.5 w-3.5" />
-                  </button>
+                  </button>}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   <Badge tone={vacc ? 'ok' : 'warn'}>{vacc ? tx('اتطعّم', 'Vaccinated') : tx('بدون تطعيم', 'No vaccine')}</Badge>
@@ -401,7 +423,7 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
                   </Badge>
                   {usesTransport && <Badge tone="muted">{tx('مواصلات', 'Transport')}</Badge>}
                 </div>
-                <p dir="ltr" className="text-[11px] text-slate-400">{c.father_phone || c.mother_phone || c.guardian_phone || ''}</p>
+                {can('children.contacts') && <p dir="ltr" className="text-[11px] text-slate-400">{c.father_phone || c.mother_phone || c.guardian_phone || ''}</p>}
               </div>
             );
           })}

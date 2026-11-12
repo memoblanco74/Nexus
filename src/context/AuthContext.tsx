@@ -1,4 +1,5 @@
 import { unsubscribePush } from '../lib/webPush';
+import { canDo } from '../lib/permissions';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
@@ -37,6 +38,7 @@ interface TenantMembership {
   isFounder: boolean;
   allowedScreens?: string[] | null;
   allowedClassIds?: string[] | null;
+  allowedActions?: string[] | null;
 }
 
 interface AuthContextType {
@@ -47,6 +49,7 @@ interface AuthContextType {
   setActiveTenantId: (id: string) => void;
   allowedScreens: string[] | null;
   allowedClassIds: string[] | null;
+  can: (key: string) => boolean;
   viewAs: { tenantId: string; name: string } | null;
   startViewAs: (tenantId: string, name: string) => Promise<string | null>;
   stopViewAs: () => Promise<void>;
@@ -84,6 +87,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const activeTenantId = effectiveView ? effectiveView.tenantId : realActiveTenantId;
   const allowedScreens = profile?.roleCode === 'assistant' ? tenantMemberships.find((m) => m.tenantId === activeTenantId)?.allowedScreens ?? null : null;
   const allowedClassIds = profile?.roleCode === 'assistant' ? tenantMemberships.find((m) => m.tenantId === activeTenantId)?.allowedClassIds ?? null : null;
+  const allowedActions = profile?.roleCode === 'assistant' ? tenantMemberships.find((m) => m.tenantId === activeTenantId)?.allowedActions ?? null : null;
+  const can = (key: string) => canDo(profile?.roleCode, allowedActions, key);
   const profileIdRef = React.useRef<string | null>(null);
   const setActiveTenantId = (id: string | null) => {
     setActiveTenantIdState(id);
@@ -161,8 +166,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (roleRow.code !== 'super_admin') {
       let membershipsRes: any = await supabase
         .from('tenant_users')
-        .select('tenant_id, is_founder, allowed_screens, allowed_class_ids')
+        .select('tenant_id, is_founder, allowed_screens, allowed_class_ids, allowed_actions')
         .eq('user_id', userRow.id);
+      if (membershipsRes.error) {
+        membershipsRes = await supabase.from('tenant_users').select('tenant_id, is_founder, allowed_screens, allowed_class_ids').eq('user_id', userRow.id);
+      }
       if (membershipsRes.error) {
         membershipsRes = await supabase.from('tenant_users').select('tenant_id, is_founder, allowed_screens').eq('user_id', userRow.id);
       }
@@ -176,6 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isFounder: m.is_founder,
         allowedScreens: Array.isArray(m.allowed_screens) ? (m.allowed_screens as string[]) : null,
         allowedClassIds: Array.isArray(m.allowed_class_ids) ? (m.allowed_class_ids as string[]) : null,
+        allowedActions: Array.isArray(m.allowed_actions) ? (m.allowed_actions as string[]) : null,
       }));
       setTenantMemberships(list);
       if (list.length > 0) {
@@ -422,6 +431,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setActiveTenantId,
         allowedScreens,
         allowedClassIds,
+        can,
         viewAs: effectiveView,
         startViewAs,
         stopViewAs,

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Pencil, TrendingUp, Wallet } from 'lucide-react';
 import { askConfirm } from '../../lib/dialog';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { Badge, Field, Modal, cardClass, inputClass } from './ui';
 import { cairoToday, monthOf } from './nurseryApi';
@@ -112,7 +113,13 @@ export const NurseryStaffTab: React.FC = () => {
   const [period, setPeriod] = useState(monthOf(cairoToday()));
   const [editing, setEditing] = useState<Staff | null | 'new'>(null);
   const [paying, setPaying] = useState<Staff | null>(null);
-  const [view, setView] = useState<'attendance' | 'payroll' | 'raises'>('attendance');
+  const { can, profile } = useAuth();
+  const isFounder = profile?.roleCode === 'founder';
+  const canAtt = can('staff.attendance');
+  const canPay = can('staff.payroll');
+  const views = (['attendance', 'payroll', 'raises'] as const).filter((k) => (k === 'attendance' ? canAtt : k === 'payroll' ? canPay : isFounder && canPay));
+  const [viewSel, setView] = useState<'attendance' | 'payroll' | 'raises'>('attendance');
+  const view = views.includes(viewSel) ? viewSel : views[0] || 'attendance';
   const [hist, setHist] = useState<Hist[]>([]);
   const [bulkPct, setBulkPct] = useState('');
   const [busyRaise, setBusyRaise] = useState(false);
@@ -173,13 +180,13 @@ export const NurseryStaffTab: React.FC = () => {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-2">
-          {(['attendance', 'payroll', 'raises'] as const).map((k) => (
+          {views.map((k) => (
             <button key={k} onClick={() => setView(k)} className={`rounded-xl border px-3 py-1.5 text-xs font-bold ${view === k ? 'border-blue-500 bg-blue-500/20 text-blue-300' : 'border-slate-700 text-slate-400'}`}>{k === 'attendance' ? tx('الحضور اليومي', 'Daily attendance') : k === 'payroll' ? tx('المرتبات', 'Payroll') : tx('الزيادة السنوية', 'Annual raises')}</button>
           ))}
         </div>
         <div className="flex items-center gap-2">
           {view === 'raises' ? null : view === 'attendance' ? <input type="date" value={day} onChange={(e) => { if (e.target.value) { setDay(e.target.value); setPeriod(monthOf(e.target.value)); } }} className={`${inputClass} max-w-[11rem]`} /> : <input type="month" value={period} onChange={(e) => e.target.value && setPeriod(e.target.value)} className={`${inputClass} max-w-[11rem]`} />}
-          <button data-write="1" onClick={() => setEditing('new')} className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-500"><Plus className="h-4 w-4" />{tx('موظف', 'Staff')}</button>
+          {isFounder && <button data-write="1" onClick={() => setEditing('new')} className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-500"><Plus className="h-4 w-4" />{tx('موظف', 'Staff')}</button>}
         </div>
       </div>
 
@@ -197,7 +204,7 @@ export const NurseryStaffTab: React.FC = () => {
               {STATUS.map((st) => (
                 <button key={st.key} onClick={() => mark(s, st.key)} className={`rounded-lg border px-2.5 py-1 text-[11px] font-bold ${cur === st.key ? st.cls : 'border-slate-700 text-slate-400 hover:bg-slate-800'}`}>{isRTL ? st.ar : st.en}</button>
               ))}
-              <button onClick={() => setEditing(s)} className="rounded-lg border border-slate-700 p-1.5 text-slate-400 hover:bg-slate-800"><Pencil className="h-3.5 w-3.5" /></button>
+              {isFounder && <button onClick={() => setEditing(s)} className="rounded-lg border border-slate-700 p-1.5 text-slate-400 hover:bg-slate-800"><Pencil className="h-3.5 w-3.5" /></button>}
             </div>
           </div>
         );

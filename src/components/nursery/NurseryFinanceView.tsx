@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { takePending } from '../../lib/pendingOpen';
 import { askConfirm } from '../../lib/dialog';
 import { Plus, Trash2, Wallet } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -129,7 +130,7 @@ export const FeesTab: React.FC<{ core: NurseryCore; canEdit: boolean }> = ({ cor
 
   return (
     <div className="space-y-4">
-      {!canEdit && <p className="text-[11px] text-slate-400">{tx('تعديل الأسعار للمؤسس فقط.', 'Only the founder can edit prices.')}</p>}
+      {!canEdit && <p className="text-[11px] text-slate-400">{tx('ليس لديك صلاحية تعديل الأسعار.', 'You do not have permission to edit prices.')}</p>}
       {core.feeItems.length === 0 && (
         <div className={`${cardClass} space-y-3 text-center`}>
           <p className="text-xs text-slate-400">{tx('لا توجد اشتراكات بعد.', 'No subscriptions yet.')}</p>
@@ -172,6 +173,8 @@ export const FeesTab: React.FC<{ core: NurseryCore; canEdit: boolean }> = ({ cor
 
 const PaymentModal: React.FC<{ child: Child; period: string; due: number; paid: number; core: NurseryCore; onClose: () => void }> = ({ child, period, due, paid, core, onClose }) => {
   const { isRTL, activeTenant, showToast, money } = useApp();
+  const { can } = useAuth();
+  const canCollect = can('payments.collect');
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const [amount, setAmount] = useState(String(Math.max(due - paid, 0) || ''));
   const [date, setDate] = useState(cairoToday());
@@ -223,10 +226,10 @@ const PaymentModal: React.FC<{ child: Child; period: string; due: number; paid: 
         <div key={p.id} className="flex items-center justify-between rounded-xl border border-slate-800 px-3 py-2 text-xs">
           <span className="font-bold text-white">{money(p.amount)}</span>
           <span className="text-slate-400">{p.paid_on}{p.method ? ` • ${p.method}` : ''}</span>
-          <button data-write="1" onClick={() => remove(p.id)} className="text-red-400"><Trash2 className="h-3.5 w-3.5" /></button>
+          {canCollect && <button data-write="1" onClick={() => remove(p.id)} className="text-red-400"><Trash2 className="h-3.5 w-3.5" /></button>}
         </div>
       ))}
-      <div data-write="1" className="space-y-3">
+      {canCollect && <div data-write="1" className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <Field label={tx('المبلغ', 'Amount')}><input className={inputClass} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} /></Field>
           <Field label={tx('تاريخ الدفع', 'Date')}><input type="date" className={inputClass} value={date} onChange={(e) => setDate(e.target.value)} /></Field>
@@ -236,7 +239,7 @@ const PaymentModal: React.FC<{ child: Child; period: string; due: number; paid: 
         <button onClick={add} disabled={busy} className="w-full rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white hover:bg-emerald-500 disabled:opacity-50">
           {tx('تسجيل الدفعة', 'Record payment')}
         </button>
-      </div>
+      </div>}
     </Modal>
   );
 };
@@ -284,6 +287,7 @@ const RemindersModal: React.FC<{ rows: { child: Child; remaining: number }[]; pe
 
 export const PaymentsTab: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const { isRTL, money } = useApp();
+  const { can } = useAuth();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const [period, setPeriod] = useState(monthOf(cairoToday()));
   const [filter, setFilter] = useState<'all' | 'unpaid' | 'paid'>('all');
@@ -339,7 +343,7 @@ export const PaymentsTab: React.FC<{ core: NurseryCore }> = ({ core }) => {
         </div>
         {overdue.length > 0 && (
           <div className="flex gap-1.5">
-            <button onClick={() => setRemindOpen(true)} className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20">{tx('تذكير المتأخرين واتساب', 'Remind overdue')} ({overdue.length})</button>
+            {can('messages.send') && <button onClick={() => setRemindOpen(true)} className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20">{tx('تذكير المتأخرين واتساب', 'Remind overdue')} ({overdue.length})</button>}
             <button onClick={exportOverdue} className="rounded-lg border border-blue-500/40 bg-blue-500/10 px-3 py-1.5 text-[11px] font-bold text-blue-300 hover:bg-blue-500/20">{tx('كشف PDF', 'PDF statement')}</button>
           </div>
         )}
@@ -382,7 +386,7 @@ const PageTabs: React.FC<{ tabs: Array<[string, string]>; value: string; onChang
 
 export const NurserySubscriptionsView: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const { isRTL } = useApp();
-  const { profile } = useAuth();
+  const { can } = useAuth();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   return (
     <div className="space-y-5 pb-12">
@@ -393,17 +397,25 @@ export const NurserySubscriptionsView: React.FC<{ core: NurseryCore }> = ({ core
         </h1>
         <p className="mt-1 text-xs text-slate-400">{tx('سجّل أنواع الاشتراكات والخدمات اللي بتقدمها الحضانة (مصاريف شهرية، مواصلات، وجبات...) وأسعارها', 'Define the subscription types and services your nursery offers, with their prices')}</p>
       </div>
-      <FeesTab core={core} canEdit={profile?.roleCode === 'founder'} />
+      <FeesTab core={core} canEdit={can('fees.edit')} />
     </div>
   );
 };
 
 export const NurseryMoneyView: React.FC = () => {
   const { isRTL } = useApp();
-  const { profile } = useAuth();
+  const { can } = useAuth();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
-  const [tab, setTab] = useState('expenses');
-  if (profile?.roleCode !== 'founder') return <p className="py-10 text-center text-xs text-slate-500">{tx('هذه الصفحة للمؤسس فقط', 'This page is for the founder only')}</p>;
+  const all: Array<[string, string, boolean]> = [
+    ['expenses', tx('المصروفات', 'Expenses'), can('expenses.view') || can('expenses.add')],
+    ['staff', tx('الموظفين والمرتبات', 'Staff & payroll'), can('staff.attendance') || can('staff.payroll')],
+    ['pnl', tx('الأرباح والمصروفات', 'Profit & expenses'), can('reports.view')],
+  ];
+  const tabs = all.filter((t) => t[2]).map((t) => [t[0], t[1]] as [string, string]);
+  const [tab, setTab] = useState('');
+  useEffect(() => { takePending('add_expense'); }, []);
+  if (tabs.length === 0) return <p className="py-10 text-center text-xs text-slate-500">{tx('ليس لديك صلاحية على هذه الصفحة', 'You do not have access to this page')}</p>;
+  const cur = tabs.some((t) => t[0] === tab) ? tab : tabs[0][0];
   return (
     <div className="space-y-5 pb-12">
       <div>
@@ -413,8 +425,8 @@ export const NurseryMoneyView: React.FC = () => {
         </h1>
         <p className="mt-1 text-xs text-slate-400">{tx('المصروفات اليومية بالضرائب، حضور الموظفين والمرتبات والزيادة السنوية، والأرباح', 'Daily expenses with tax, staff attendance, payroll, annual raises and profit')}</p>
       </div>
-      <PageTabs value={tab} onChange={setTab} tabs={[['expenses', tx('المصروفات', 'Expenses')], ['staff', tx('الموظفين والمرتبات', 'Staff & payroll')], ['pnl', tx('الأرباح والمصروفات', 'Profit & expenses')]]} />
-      {tab === 'expenses' ? <NurseryExpensesTab /> : tab === 'staff' ? <NurseryStaffTab /> : <PnlCard />}
+      <PageTabs value={cur} onChange={setTab} tabs={tabs} />
+      {cur === 'expenses' ? <NurseryExpensesTab /> : cur === 'staff' ? <NurseryStaffTab /> : <PnlCard />}
     </div>
   );
 };
