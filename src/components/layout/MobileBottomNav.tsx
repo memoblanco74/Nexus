@@ -160,10 +160,16 @@ export const MobileBottomNav: React.FC = () => {
                 <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
               </button>
             )}
-            <div className="grid grid-cols-3 gap-2">
-              {moreItems.map((id) => (
+            <div className="grid grid-cols-6 gap-2">
+              {moreItems.map((id, idx) => {
+                const n = moreItems.length;
+                const tail = n % 3 === 1 && n > 1 ? 4 : n % 3;
+                const inTail = tail > 0 && idx >= n - tail;
+                const span = !inTail ? 2 : tail === 1 ? 6 : tail === 2 || tail === 4 ? 3 : 2;
+                return (
                 <button
                   key={id}
+                  style={{ gridColumn: `span ${span} / span ${span}` }}
                   onClick={() => { setScreen(id); setMoreOpen(false); }}
                   className={`relative flex flex-col items-center gap-1.5 rounded-xl border p-3 text-[11px] font-semibold transition ${screen === id ? 'border-blue-500/50 bg-blue-600/15 text-blue-400' : 'border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800 light:bg-[#f8fafc] light:text-[#334155]'}`}
                 >
@@ -171,7 +177,8 @@ export const MobileBottomNav: React.FC = () => {
                   <span className="text-center leading-tight">{t(`nav.${id}`)}</span>
                   {id === 'support' && founderUnreadCount > 0 && <span className="absolute end-2 top-2 rounded-full bg-red-500 px-1.5 text-[9px] font-bold text-white">{founderUnreadCount}</span>}
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>,
