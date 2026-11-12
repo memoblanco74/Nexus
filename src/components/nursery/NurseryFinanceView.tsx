@@ -91,7 +91,7 @@ const FeeRow: React.FC<{ item: FeeItem; canEdit: boolean; onChanged: () => void 
   );
 };
 
-const FeesTab: React.FC<{ core: NurseryCore; canEdit: boolean }> = ({ core, canEdit }) => {
+export const FeesTab: React.FC<{ core: NurseryCore; canEdit: boolean }> = ({ core, canEdit }) => {
   const { isRTL, activeTenant, showToast } = useApp();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const [name, setName] = useState('');
@@ -282,7 +282,7 @@ const RemindersModal: React.FC<{ rows: { child: Child; remaining: number }[]; pe
   );
 };
 
-const PaymentsTab: React.FC<{ core: NurseryCore }> = ({ core }) => {
+export const PaymentsTab: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const { isRTL, money } = useApp();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const [period, setPeriod] = useState(monthOf(cairoToday()));
@@ -372,30 +372,49 @@ const PaymentsTab: React.FC<{ core: NurseryCore }> = ({ core }) => {
   );
 };
 
-export const NurseryFinanceView: React.FC<{ core: NurseryCore }> = ({ core }) => {
+const PageTabs: React.FC<{ tabs: Array<[string, string]>; value: string; onChange: (k: string) => void }> = ({ tabs, value, onChange }) => (
+  <div className="flex gap-2 overflow-x-auto pb-1">
+    {tabs.map(([k, label]) => (
+      <button key={k} onClick={() => onChange(k)} className={`shrink-0 rounded-xl border px-4 py-2 text-xs font-bold ${value === k ? 'border-blue-500 bg-blue-500/20 text-blue-300' : 'border-slate-700 text-slate-400'}`}>{label}</button>
+    ))}
+  </div>
+);
+
+export const NurserySubscriptionsView: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const { isRTL } = useApp();
   const { profile } = useAuth();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
-  const [tab, setTab] = useState<'payments' | 'fees' | 'staff' | 'expenses' | 'pnl'>('payments');
-  const canEdit = profile?.roleCode === 'founder';
-
   return (
     <div className="space-y-5 pb-12">
       <div>
         <h1 className="flex items-center gap-2 text-xl font-extrabold text-white">
           <Wallet className="h-5 w-5 text-amber-400" />
-          {tx('الاشتراكات والمدفوعات', 'Fees & Payments')}
+          {tx('الاشتراكات', 'Subscriptions')}
         </h1>
-        <p className="mt-1 text-xs text-slate-400">{tx('متابعة دفع الاشتراك الشهري لكل طفل وإدارة أنواع الاشتراكات وأسعارها', 'Monthly payments and subscription prices')}</p>
+        <p className="mt-1 text-xs text-slate-400">{tx('سجّل أنواع الاشتراكات والخدمات اللي بتقدمها الحضانة (مصاريف شهرية، مواصلات، وجبات...) وأسعارها', 'Define the subscription types and services your nursery offers, with their prices')}</p>
       </div>
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {((canEdit ? ['payments', 'fees', 'staff', 'expenses', 'pnl'] : ['payments', 'fees']) as Array<'payments' | 'fees' | 'staff' | 'expenses' | 'pnl'>).map((k) => (
-          <button key={k} onClick={() => setTab(k)} className={`shrink-0 rounded-xl border px-4 py-2 text-xs font-bold ${tab === k ? 'border-blue-500 bg-blue-500/20 text-blue-300' : 'border-slate-700 text-slate-400'}`}>
-            {k === 'payments' ? tx('المدفوعات الشهرية', 'Monthly payments') : k === 'fees' ? tx('أنواع الاشتراكات والأسعار', 'Subscription types & prices') : k === 'staff' ? tx('الموظفين والمرتبات', 'Staff & payroll') : k === 'expenses' ? tx('المصروفات', 'Expenses') : tx('الأرباح والمصروفات', 'Profit & expenses')}
-          </button>
-        ))}
+      <FeesTab core={core} canEdit={profile?.roleCode === 'founder'} />
+    </div>
+  );
+};
+
+export const NurseryMoneyView: React.FC = () => {
+  const { isRTL } = useApp();
+  const { profile } = useAuth();
+  const tx = (ar: string, en: string) => (isRTL ? ar : en);
+  const [tab, setTab] = useState('expenses');
+  if (profile?.roleCode !== 'founder') return <p className="py-10 text-center text-xs text-slate-500">{tx('هذه الصفحة للمؤسس فقط', 'This page is for the founder only')}</p>;
+  return (
+    <div className="space-y-5 pb-12">
+      <div>
+        <h1 className="flex items-center gap-2 text-xl font-extrabold text-white">
+          <Wallet className="h-5 w-5 text-amber-400" />
+          {tx('المصاريف والمرتبات', 'Expenses & Payroll')}
+        </h1>
+        <p className="mt-1 text-xs text-slate-400">{tx('المصروفات اليومية بالضرائب، حضور الموظفين والمرتبات والزيادة السنوية، والأرباح', 'Daily expenses with tax, staff attendance, payroll, annual raises and profit')}</p>
       </div>
-      {tab === 'payments' ? <PaymentsTab core={core} /> : tab === 'fees' ? <FeesTab core={core} canEdit={canEdit} /> : tab === 'staff' ? <NurseryStaffTab /> : tab === 'expenses' ? <NurseryExpensesTab /> : <PnlCard />}
+      <PageTabs value={tab} onChange={setTab} tabs={[['expenses', tx('المصروفات', 'Expenses')], ['staff', tx('الموظفين والمرتبات', 'Staff & payroll')], ['pnl', tx('الأرباح والمصروفات', 'Profit & expenses')]]} />
+      {tab === 'expenses' ? <NurseryExpensesTab /> : tab === 'staff' ? <NurseryStaffTab /> : <PnlCard />}
     </div>
   );
 };

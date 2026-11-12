@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { UserPlus, Trash2, ShieldCheck, SlidersHorizontal } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
@@ -11,9 +11,17 @@ export const AssistantsView: React.FC = () => {
   const [permSel, setPermSel] = useState<string[]>([]);
   const [permBusy, setPermBusy] = useState(false);
   const options = assistantOptions(systemKey);
+  const isNurseryTenant = systemKey === 'nursery';
+  const [classList, setClassList] = useState<Array<{ id: string; name: string }>>([]);
+  const [classSel, setClassSel] = useState<string[] | null>(null);
+  useEffect(() => {
+    if (!isNurseryTenant || !activeTenant) return;
+    supabase.from('nursery_classes').select('id, name').eq('tenant_id', activeTenant.id).order('name').then(({ data, error }) => setClassList(error ? [] : ((data as any[]) || [])));
+  }, [isNurseryTenant, activeTenant?.id]);
   const openPerms = (a: (typeof assistants)[number]) => {
     setPermFor(a);
     setPermSel(a.allowedScreens ?? options);
+    setClassSel(a.allowedClassIds ?? null);
   };
   const savePerms = async () => {
     if (!permFor || !activeTenant) return;
@@ -22,6 +30,13 @@ export const AssistantsView: React.FC = () => {
     const { error } = await supabase.rpc('fn_set_assistant_screens', { p_tenant_id: activeTenant.id, p_user_id: permFor.id, p_screens: allSelected ? null : permSel });
     setPermBusy(false);
     if (error) { showToast(error.message); return; }
+    if (isNurseryTenant) {
+      const unchanged = JSON.stringify(classSel) === JSON.stringify(permFor.allowedClassIds ?? null);
+      if (!unchanged) {
+        const r2 = await supabase.rpc('fn_set_assistant_classes', { p_tenant_id: activeTenant.id, p_user_id: permFor.id, p_class_ids: classSel });
+        if (r2.error) { setPermBusy(false); showToast(r2.error.message); return; }
+      }
+    }
     await refreshAssistants();
     showToast(isRTL ? 'تم حفظ الصلاحيات' : 'Permissions saved');
     setPermFor(null);
@@ -61,7 +76,7 @@ export const AssistantsView: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:text-white light:text-[#0f172a]">
-            {isRTL ? 'إدارة المساعدين' : 'Manage Assistants'}
+            {isNurseryTenant ? (isRTL ? 'الفريق والصلاحيات' : 'Team & permissions') : (isRTL ? 'إدارة المساعدين' : 'Manage Assistants')}
           </h1>
           <p className="mt-1 text-xs text-slate-400">
             {isRTL
@@ -188,7 +203,33 @@ export const AssistantsView: React.FC = () => {
               </label>
             ))}
           </div>
-          <p className="text-[10px] text-slate-500">{isRTL ? 'التحكم هنا في ظهور الشاشات للمساعد داخل التطبيق.' : 'This controls which screens the assistant sees in the app.'}</p>
+          {isNurseryTenant && (
+            <div className="space-y-2 border-t border-slate-800 pt-3">
+              <p className="text-xs font-bold text-white">{isRTL ? 'الفصول اللي يشوفها' : 'Classes this user can see'}</p>
+              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-800 px-3 py-2.5 text-xs text-white">
+                <input type="radio" className="h-4 w-4 accent-blue-500" checked={classSel === null} onChange={() => setClassSel(null)} />
+                {isRTL ? 'كل الفصول (وكل الأطفال)' : 'All classes (and all children)'}
+              </label>
+              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-800 px-3 py-2.5 text-xs text-white">
+                <input type="radio" className="h-4 w-4 accent-blue-500" checked={classSel !== null} onChange={() => setClassSel(classSel ?? [])} />
+                {isRTL ? 'فصول محددة فقط' : 'Selected classes only'}
+              </label>
+              {classSel !== null && (
+                classList.length === 0
+                  ? <p className="text-[11px] text-amber-300">{isRTL ? 'لسه مفيش فصول. أضف فصول من صفحة الأطفال أولاً.' : 'No classes yet. Add classes from the Children page first.'}</p>
+                  : <div className="grid grid-cols-2 gap-2">
+                      {classList.map((c) => (
+                        <label key={c.id} className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-800 px-3 py-2 text-xs text-white">
+                          <input type="checkbox" className="h-4 w-4 accent-blue-500" checked={classSel.includes(c.id)} onChange={() => setClassSel(classSel.includes(c.id) ? classSel.filter((x) => x !== c.id) : [...classSel, c.id])} />
+                          <span className="truncate">{c.name}</span>
+                        </label>
+                      ))}
+                    </div>
+              )}
+              {classSel !== null && classSel.length === 0 && classList.length > 0 && <p className="text-[11px] text-amber-300">{isRTL ? 'لو ماختارتش أي فصل، المستخدم مش هيشوف أي طفل.' : 'With no class selected, this user will see no children.'}</p>}
+            </div>
+          )}
+          <p className="text-[10px] text-slate-500">{isRTL ? 'التحكم هنا في ظهور الشاشات والأطفال للمساعد داخل التطبيق.' : 'This controls which screens and children the assistant sees in the app.'}</p>
         </Modal>
       )}
     </div>

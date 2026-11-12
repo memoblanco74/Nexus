@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Pencil, Plus, Trash2, Users } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
 import { askConfirm } from '../../lib/dialog';
 import { Child, NurseryClass, NurseryCore } from './nurseryApi';
@@ -130,6 +131,7 @@ export const ClassesManager: React.FC<{ core: NurseryCore; onClose: () => void }
 
 export const ClassFilter: React.FC<{ core: NurseryCore; value: string; onChange: (v: string) => void }> = ({ core, value, onChange }) => {
   const { isRTL } = useApp();
+  const { allowedClassIds } = useAuth();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   if (core.classes.length === 0) return null;
   const chip = (id: string, label: string, n: number) => (
@@ -141,7 +143,7 @@ export const ClassFilter: React.FC<{ core: NurseryCore; value: string; onChange:
     <div className="flex gap-2 overflow-x-auto pb-1">
       {chip('all', tx('الكل', 'All'), core.children.length)}
       {core.classes.map((c) => chip(c.id, c.name, core.children.filter((x) => x.class_id === c.id).length))}
-      {chip('none', tx('بدون فصل', 'No class'), core.children.filter((x) => !x.class_id).length)}
+      {!allowedClassIds && chip('none', tx('بدون فصل', 'No class'), core.children.filter((x) => !x.class_id).length)}
     </div>
   );
 };

@@ -1,16 +1,17 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { NurseryChildrenView } from './NurseryChildrenView';
-import { NurseryDailyView } from './NurseryDailyView';
-import { NurseryFinanceView } from './NurseryFinanceView';
+import { useAuth } from '../../context/AuthContext';
+import { NurseryChildrenHub } from './NurseryChildrenHub';
+import { NurseryMoneyView, NurserySubscriptionsView } from './NurseryFinanceView';
 import { NurseryHome } from './NurseryHome';
 import { useNurseryCore } from './nurseryApi';
 
 export const NurseryRoot: React.FC = () => {
   const { screen, activeTenant } = useApp();
-  const core = useNurseryCore(activeTenant?.id);
-  if (screen === 'patients') return <NurseryChildrenView core={core} />;
-  if (screen === 'bookings') return <NurseryDailyView core={core} />;
-  if (screen === 'accounting') return <NurseryFinanceView core={core} />;
+  const { allowedClassIds } = useAuth();
+  const core = useNurseryCore(activeTenant?.id, allowedClassIds);
+  if (screen === 'patients' || screen === 'bookings') return <NurseryChildrenHub core={core} />;
+  if (screen === 'subscriptions') return <NurserySubscriptionsView core={core} />;
+  if (screen === 'accounting') return <NurseryMoneyView />;
   return <NurseryHome core={core} />;
 };

@@ -23,6 +23,8 @@ import {
   Building,
   ChevronDown,
   X,
+  Tags,
+  UserCog,
 } from 'lucide-react';
 
 type Tab = { id: ScreenId; label: string; icon: React.ReactNode };
@@ -66,8 +68,8 @@ export const MobileBottomNav: React.FC = () => {
     tabs = [
       { id: role === 'founder' ? 'founder' : 'assistant', label: isRTL ? 'الرئيسية' : 'Home', icon: <LayoutDashboard className="h-5 w-5" /> },
       { id: 'patients', label: isRTL ? 'الأطفال' : 'Children', icon: <Users className="h-5 w-5" /> },
-      { id: 'bookings', label: isRTL ? 'اليومية' : 'Daily', icon: <CalendarCheck className="h-5 w-5" /> },
-      { id: 'accounting', label: isRTL ? 'الاشتراكات' : 'Fees', icon: <CircleDollarSign className="h-5 w-5" /> },
+      { id: 'subscriptions', label: isRTL ? 'الاشتراكات' : 'Plans', icon: <Tags className="h-5 w-5" /> },
+      { id: 'accounting', label: isRTL ? 'المصاريف' : 'Expenses', icon: <CircleDollarSign className="h-5 w-5" /> },
     ];
     showScanFab = false;
   }
@@ -81,7 +83,7 @@ export const MobileBottomNav: React.FC = () => {
     founder: <LayoutDashboard className="h-5 w-5" />, assistant: <UserCheck className="h-5 w-5" />, projects: <FolderKanban className="h-5 w-5" />,
     patients: <Users className="h-5 w-5" />, bookings: <CalendarCheck className="h-5 w-5" />, inventory: <Package className="h-5 w-5" />,
     accounting: <CircleDollarSign className="h-5 w-5" />, reports: <BarChart3 className="h-5 w-5" />, project_settings: <Settings2 className="h-5 w-5" />,
-    settings: <Settings className="h-5 w-5" />, support: <HelpCircle className="h-5 w-5" />,
+    settings: <Settings className="h-5 w-5" />, subscriptions: <Tags className="h-5 w-5" />, assistants: <UserCog className="h-5 w-5" />, support: <HelpCircle className="h-5 w-5" />,
   };
   const isMember = role === 'founder' || role === 'assistant';
   const tabIds = tabs.map((x) => x.id);

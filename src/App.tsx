@@ -55,7 +55,8 @@ const DashboardContent: React.FC = () => {
   const canSee = (id: string) => allowed.includes(id as ScreenId);
   const allowed = screensFor(profile?.roleCode, systemKey, allowedScreens);
   const isNursery = systemKey === 'nursery' && profile?.roleCode !== 'super_admin';
-  const nurseryActive = isNursery && NURSERY_SCREENS.includes(screen) && canSee(screen);
+  const nurseryScreen: ScreenId = isNursery && screen === 'bookings' ? 'patients' : screen;
+  const nurseryActive = isNursery && NURSERY_SCREENS.includes(screen) && canSee(nurseryScreen);
 
   if (profile?.roleCode === 'founder' && tenantsLoaded && tenants.length === 0) {
     if (!referralLoaded) return null;

@@ -66,7 +66,8 @@ const toForm = (c: Child): ChildForm => ({
 const ChildFormModal: React.FC<{ child: Child | null; classes: NurseryClass[]; onClose: () => void; onSaved: () => void }> = ({ child, classes, onClose, onSaved }) => {
   const { isRTL, activeTenant, showToast } = useApp();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
-  const initial = useMemo(() => (child ? toForm(child) : blankForm), [child]);
+  const { allowedClassIds } = useAuth();
+  const initial = useMemo(() => (child ? toForm(child) : { ...blankForm, class_id: allowedClassIds && classes[0] ? classes[0].id : '' }), [child, allowedClassIds, classes]);
   const [form, setForm] = useState<ChildForm>(initial);
   const [baseline, setBaseline] = useState(JSON.stringify(initial));
   const set = (k: keyof ChildForm, v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -145,7 +146,7 @@ const ChildFormModal: React.FC<{ child: Child | null; classes: NurseryClass[]; o
         {classes.length > 0 && (
           <Field label={tx('الفصل', 'Class')}>
             <select className={inputClass} value={form.class_id || ''} onChange={(e) => set('class_id', e.target.value)}>
-              <option value="">{tx('بدون فصل', 'No class')}</option>
+              {!allowedClassIds && <option value="">{tx('بدون فصل', 'No class')}</option>}
               {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </Field>
@@ -295,6 +296,7 @@ const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () 
 
 export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) => {
   const { isRTL, money, activeTenant } = useApp();
+  const { allowedClassIds } = useAuth();
   const tx = (ar: string, en: string) => (isRTL ? ar : en);
   const [importing, setImporting] = useState(false);
   const [q, setQ] = useState('');
@@ -334,14 +336,14 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
           <p className="mt-1 text-xs text-slate-400">{tx('بيانات الأطفال وأولياء الأمور والتطعيمات والاشتراكات', 'Children, parents, vaccinations and subscriptions')}</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setClassesOpen(true)} className="flex items-center justify-center gap-2 rounded-xl border border-indigo-500/40 bg-indigo-500/10 px-3.5 py-2 text-xs font-semibold text-indigo-300 hover:bg-indigo-500/20">
+          {!allowedClassIds && <button onClick={() => setClassesOpen(true)} className="flex items-center justify-center gap-2 rounded-xl border border-indigo-500/40 bg-indigo-500/10 px-3.5 py-2 text-xs font-semibold text-indigo-300 hover:bg-indigo-500/20">
             <Layers className="h-4 w-4" />
             {tx('الفصول', 'Classes')}
-          </button>
-          <button data-write="1" onClick={() => setImporting(true)} className="flex items-center justify-center gap-2 rounded-xl border border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800">
+          </button>}
+          {!allowedClassIds && <button data-write="1" onClick={() => setImporting(true)} className="flex items-center justify-center gap-2 rounded-xl border border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800">
             <FileSpreadsheet className="h-4 w-4" />
             {tx('استيراد Excel', 'Import Excel')}
-          </button>
+          </button>}
           <button onClick={() => setBulkMsg(true)} className="flex items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20">
             <MessageCircle className="h-4 w-4" />
             {tx('رسالة لأولياء الأمور', 'Message parents')}

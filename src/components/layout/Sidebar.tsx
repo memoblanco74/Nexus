@@ -22,6 +22,8 @@ import {
   LayoutGrid,
   UserPlus,
   Settings2,
+  Tags,
+  UserCog,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -85,6 +87,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       icon: <Users className="h-4 w-4" />,
     },
     {
+      id: 'subscriptions',
+      label: t('nav.subscriptions'),
+      icon: <Tags className="h-4 w-4" />,
+    },
+    {
       id: 'bookings',
       label: t('nav.bookings'),
       icon: <CalendarCheck className="h-4 w-4" />,
@@ -98,6 +105,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       id: 'accounting',
       label: t('nav.accounting'),
       icon: <CircleDollarSign className="h-4 w-4" />,
+    },
+    {
+      id: 'assistants',
+      label: t('nav.assistants'),
+      icon: <UserCog className="h-4 w-4" />,
     },
     {
       id: 'reports',

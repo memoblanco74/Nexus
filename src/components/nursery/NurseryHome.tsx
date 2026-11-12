@@ -49,7 +49,7 @@ export const NurseryHome: React.FC<{ core: NurseryCore }> = ({ core }) => {
     { icon: <UserCheck className="h-5 w-5 text-emerald-400" />, label: tx('حاضر اليوم', 'Present today'), value: String(counts.present), go: 'bookings' as const },
     { icon: <UserX className="h-5 w-5 text-red-400" />, label: tx('غائب اليوم', 'Absent today'), value: String(counts.absent), go: 'bookings' as const },
     { icon: <CalendarCheck className="h-5 w-5 text-amber-400" />, label: tx('لم يُسجَّل اليوم', 'Not marked today'), value: String(Math.max(active.length - counts.present - counts.absent, 0)), go: 'bookings' as const },
-    { icon: <Wallet className="h-5 w-5 text-blue-400" />, label: tx('لم يدفعوا هذا الشهر', 'Unpaid this month'), value: String(owing.length), go: 'accounting' as const },
+    { icon: <Wallet className="h-5 w-5 text-blue-400" />, label: tx('لم يدفعوا هذا الشهر', 'Unpaid this month'), value: String(owing.length), go: 'patients' as const },
     { icon: <CircleAlert className="h-5 w-5 text-orange-400" />, label: tx('بدون تطعيم مسجّل', 'No vaccination on file'), value: String(unvaccinated), go: 'patients' as const },
   ];
 

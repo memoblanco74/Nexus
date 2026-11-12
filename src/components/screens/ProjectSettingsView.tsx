@@ -156,7 +156,7 @@ export const ProjectSettingsView: React.FC = () => {
       <PaymentHistoryCard />
       <ReferralCard />
       {systemKey === 'clinic' && <ClinicOnlineCard />}
-      <AssistantsView />
+      {systemKey !== 'nursery' && <AssistantsView />}
       <UserManagementCard />
       <DemoDataCard />
       <ProjectDataCard />

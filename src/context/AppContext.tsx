@@ -209,6 +209,7 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
   'nav.support': { en: 'Support', ar: 'الدعم الفني' },
   'nav.catalog': { en: 'System Catalog', ar: 'كتالوج الأنظمة' },
   'nav.assistants': { en: 'Assistants', ar: 'المساعدين' },
+  'nav.subscriptions': { en: 'Subscriptions', ar: 'الاشتراكات' },
   'nav.platform': { en: 'Platform Settings', ar: 'إعدادات المنصة' },
   'nav.project_settings': { en: 'Project Settings', ar: 'إعدادات المشروع' },
   'nav.collapse': { en: 'Collapse', ar: 'طي القائمة' },
@@ -669,14 +670,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     let linksRes: any = await supabase
       .from('tenant_users')
-      .select('user_id, allowed_screens')
+      .select('user_id, allowed_screens, allowed_class_ids')
       .eq('tenant_id', activeTenantId)
       .eq('is_founder', false);
+    if (linksRes.error) {
+      linksRes = await supabase.from('tenant_users').select('user_id, allowed_screens').eq('tenant_id', activeTenantId).eq('is_founder', false);
+    }
     if (linksRes.error) {
       linksRes = await supabase.from('tenant_users').select('user_id').eq('tenant_id', activeTenantId).eq('is_founder', false);
     }
     const links = linksRes.data as any[] | null;
     const screensById = new Map<string, string[] | null>((links || []).map((l: any) => [l.user_id, Array.isArray(l.allowed_screens) ? l.allowed_screens : null]));
+    const classesById = new Map<string, string[] | null>((links || []).map((l: any) => [l.user_id, Array.isArray(l.allowed_class_ids) ? l.allowed_class_ids : null]));
     const ids = new Set((links || []).map((l: any) => l.user_id));
     if (ids.size === 0) {
       setAssistants([]);
@@ -693,6 +698,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           fullName: r.display_name || '',
           createdAt: '',
           allowedScreens: screensById.get(r.user_id) ?? null,
+          allowedClassIds: classesById.get(r.user_id) ?? null,
         }))
     );
   }, [activeTenantId, profile]);

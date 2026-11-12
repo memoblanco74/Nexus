@@ -52,7 +52,9 @@ SYSTEM_VOCAB.nursery = {
   'nav.assistant': { en: 'Nursery Overview', ar: 'نظرة عامة' },
   'nav.patients': { en: 'Children', ar: 'الأطفال' },
   'nav.bookings': { en: 'Daily Log', ar: 'اليومية' },
-  'nav.accounting': { en: 'Fees & Payments', ar: 'الاشتراكات والمدفوعات' },
+  'nav.accounting': { en: 'Expenses & Payroll', ar: 'المصاريف والمرتبات' },
+  'nav.subscriptions': { en: 'Subscriptions', ar: 'الاشتراكات' },
+  'nav.assistants': { en: 'Team & Permissions', ar: 'الفريق والصلاحيات' },
   'vocab.founder_badge': { en: 'Nursery Owner', ar: 'مالك الحضانة' },
   'vocab.switcher_title': { en: 'Switch Project', ar: 'تبديل المشروع' },
 };

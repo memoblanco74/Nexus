@@ -230,7 +230,7 @@ export const childDue = (childId: string, childFees: ChildFee[], items: FeeItem[
     }, 0);
 };
 
-export const useNurseryCore = (tenantId: string | undefined) => {
+export const useNurseryCore = (tenantId: string | undefined, allowedClassIds: string[] | null = null) => {
   const [children, setChildren] = useState<Child[]>([]);
   const [feeItems, setFeeItems] = useState<FeeItem[]>([]);
   const [childFees, setChildFees] = useState<ChildFee[]>([]);
@@ -257,15 +257,18 @@ export const useNurseryCore = (tenantId: string | undefined) => {
     } else {
       cacheSet(cacheKey, raw);
     }
-    setChildren((raw.c as Child[]) || []);
+    const restrict = allowedClassIds ? new Set(allowedClassIds) : null;
+    const kids = ((raw.c as Child[]) || []).filter((k) => !restrict || (k.class_id && restrict.has(k.class_id)));
+    const kidIds = new Set(kids.map((k) => k.id));
+    setChildren(kids);
     setFeeItems(((raw.f as any[]) || []).map((x) => ({ ...x, price: Number(x.price) })));
-    setChildFees(((raw.cf as any[]) || []).map((x) => ({ ...x, price_override: x.price_override === null ? null : Number(x.price_override) })));
-    setVaccinations((raw.v as Vaccination[]) || []);
-    setPayments(((raw.p as any[]) || []).map((x) => ({ ...x, amount: Number(x.amount) })));
+    setChildFees(((raw.cf as any[]) || []).filter((x) => kidIds.has(x.child_id)).map((x) => ({ ...x, price_override: x.price_override === null ? null : Number(x.price_override) })));
+    setVaccinations(((raw.v as Vaccination[]) || []).filter((x) => kidIds.has(x.child_id)));
+    setPayments(((raw.p as any[]) || []).filter((x) => kidIds.has(x.child_id)).map((x) => ({ ...x, amount: Number(x.amount) })));
     const cl = await supabase.from('nursery_classes').select('id, tenant_id, name, teacher_name').eq('tenant_id', tenantId).order('name');
-    setClasses(cl.error ? [] : ((cl.data as NurseryClass[]) || []));
+    setClasses(cl.error ? [] : ((cl.data as NurseryClass[]) || []).filter((x) => !restrict || restrict.has(x.id)));
     setLoading(false);
-  }, [tenantId]);
+  }, [tenantId, allowedClassIds]);
 
   useEffect(() => {
     setLoading(true);

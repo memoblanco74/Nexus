@@ -15,7 +15,8 @@ export type ScreenId =
   | 'catalog'
   | 'platform'
   | 'project_settings'
-  | 'assistants';
+  | 'assistants'
+  | 'subscriptions';
 
 export interface Tenant {
   id: string;
@@ -204,4 +205,5 @@ export interface AssistantAccount {
   fullName: string;
   createdAt: string;
   allowedScreens?: string[] | null;
+  allowedClassIds?: string[] | null;
 }
