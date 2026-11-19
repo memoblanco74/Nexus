@@ -327,6 +327,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [founderConversationId, setFounderConversationId] = useState<string | null>(null);
   const [founderUnreadCount, setFounderUnreadCount] = useState(0);
   const chatsRef = useRef<ChatMessage[]>([]);
+  const subscribeLockRef = useRef(false);
+  const subscribeReqRef = useRef<{ key: string; id: string } | null>(null);
   const showDeviceNotificationRef = useRef<((title: string, body: string, tag: string) => void) | null>(null);
   const selectedChatIdRef = useRef('');
   const screenRef = useRef<ScreenId>('founder');
@@ -1651,13 +1653,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const subscribeToSystem = async (templateId: string, projectName?: string): Promise<boolean> => {
-    if (!profile) return false;
+    if (!profile || subscribeLockRef.current) return false;
+    subscribeLockRef.current = true;
+    try {
+      const name = projectName?.trim() || null;
+      const key = `${templateId}|${name || ''}`;
+      if (subscribeReqRef.current?.key !== key) subscribeReqRef.current = { key, id: crypto.randomUUID() };
+      let res: any = await supabase.rpc('fn_subscribe_to_system', { p_template_id: templateId, p_name: name, p_request_id: subscribeReqRef.current.id });
+      if (res.error && /could not find the function|PGRST202/i.test(`${res.error.code || ''} ${res.error.message || ''}`)) {
+        res = await supabase.rpc('fn_subscribe_to_system', { p_template_id: templateId, p_name: name });
+      }
+      return await finishSubscribe(res.data, res.error);
+    } finally {
+      subscribeLockRef.current = false;
+    }
+  };
 
-    const { data: newTenantId, error } = await supabase.rpc('fn_subscribe_to_system', {
-      p_template_id: templateId,
-      p_name: projectName?.trim() || null,
-    });
-
+  const finishSubscribe = async (newTenantId: unknown, error: { message?: string } | null): Promise<boolean> => {
     if (error || !newTenantId) {
       showToast(
         error?.message?.includes('INVALID_NAME')
@@ -1667,7 +1679,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
 
-    await reloadMemberships();
+    try {
+      await reloadMemberships();
+    } catch {
+      showToast(isRTL ? 'الاشتراك تم لكن التحميل فشل، حاول تاني' : 'Subscribed, but loading failed. Please try again');
+      return false;
+    }
+    subscribeReqRef.current = null;
     setActiveTenantId(newTenantId as string);
     showToast(isRTL ? 'تم الاشتراك بنجاح' : 'Subscribed successfully');
     return true;
