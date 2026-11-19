@@ -293,7 +293,7 @@ const DICTIONARY: Record<string, { en: string; ar: string }> = {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { profile, activeTenantId, setActiveTenantId, tenantMemberships, updatePreferredTheme, updatePreferredLanguage, viewAs } = useAuth();
+  const { profile, activeTenantId, setActiveTenantId, tenantMemberships, reloadMemberships, updatePreferredTheme, updatePreferredLanguage, viewAs } = useAuth();
 
   const [screen, setScreen] = useState<ScreenId>('founder');
   const [language, setLanguageState] = useState<Language>(() => {
@@ -1667,7 +1667,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
 
-    await refreshTenants();
+    await reloadMemberships();
     setActiveTenantId(newTenantId as string);
     showToast(isRTL ? 'تم الاشتراك بنجاح' : 'Subscribed successfully');
     return true;

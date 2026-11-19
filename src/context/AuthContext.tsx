@@ -45,6 +45,7 @@ interface AuthContextType {
   session: Session | null;
   profile: UserProfile | null;
   tenantMemberships: TenantMembership[];
+  reloadMemberships: () => Promise<void>;
   activeTenantId: string | null;
   setActiveTenantId: (id: string) => void;
   allowedScreens: string[] | null;
@@ -421,12 +422,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error: null };
   };
 
+  const reloadMemberships = async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) await loadProfile(data.session);
+  };
+
   return (
     <AuthContext.Provider
       value={{
         session,
         profile,
         tenantMemberships,
+        reloadMemberships,
         activeTenantId,
         setActiveTenantId,
         allowedScreens,
