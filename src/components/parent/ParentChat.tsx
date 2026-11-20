@@ -21,8 +21,7 @@ export const parseMsgs = (raw: any[]): ChatMsg[] => (raw || []).map((m) => ({ id
 export const ParentChat: React.FC<{ token: string; ar: boolean; onSeen: () => void }> = ({ token, ar, onSeen }) => {
   const tx = (a: string, e: string) => (ar ? a : e);
   const [identity, setIdentity] = useState<Identity | null>(() => load(token));
-  const [name, setName] = useState('');
-  const [role, setRole] = useState<Identity['role']>('mother');
+  const [names, setNames] = useState<Record<string, string>>({});
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [error, setError] = useState('');
 
@@ -38,15 +37,19 @@ export const ParentChat: React.FC<{ token: string; ar: boolean; onSeen: () => vo
   }, [token, onSeen]);
 
   useEffect(() => {
+    supabase.rpc('fn_parent_chat_names', { p_token: token }).then(({ data }) => {
+      if (data && typeof data === 'object') setNames(data as Record<string, string>);
+    });
+  }, [token]);
+
+  useEffect(() => {
     refresh();
     const t = window.setInterval(refresh, 6000);
     return () => window.clearInterval(t);
   }, [refresh]);
 
-  const saveIdentity = () => {
-    const n = name.trim();
-    if (n.length < 2) { setError(tx('اكتب اسمك (حرفان على الأقل)', 'Enter your name (2+ characters)')); return; }
-    const id: Identity = { name: n, role };
+  const pickRole = (r: Identity['role']) => {
+    const id: Identity = { name: (names[r] || '').trim(), role: r };
     try { localStorage.setItem(idKey(token), JSON.stringify(id)); } catch { /* ignore */ }
     setIdentity(id);
     setError('');
@@ -68,22 +71,19 @@ export const ParentChat: React.FC<{ token: string; ar: boolean; onSeen: () => vo
     return (
       <div className="space-y-4 rounded-2xl bg-white p-5 shadow-sm">
         <p className="text-sm font-extrabold text-slate-800">{tx('محادثة مع الحضانة', 'Chat with the nursery')}</p>
-        <p className="text-xs leading-relaxed text-slate-500">{tx('هذه المحادثة مشتركة بين الأب والأم وولي الأمر، ويراها العاملون المسؤولون عن الطفل. عرّفنا بنفسك لتظهر رسائلك باسمك.', 'This chat is shared by the father, mother and guardian, and seen by the staff responsible for the child. Tell us who you are.')}</p>
+        <p className="text-xs leading-relaxed text-slate-500">{tx('هذه المحادثة مشتركة بين الأب والأم وولي الأمر، ويراها العاملون المسؤولون عن الطفل. اختر صفتك لتظهر رسائلك باسمك المسجّل لدى الحضانة.', 'This chat is shared by the father, mother and guardian, and seen by the staff responsible for the child. Choose who you are; your registered name will be used.')}</p>
         <div className="flex gap-2">
           {(['father', 'mother', 'guardian'] as const).map((r) => (
-            <button key={r} onClick={() => setRole(r)} className={`flex-1 rounded-xl py-2.5 text-xs font-bold ${role === r ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}`}>{roleLabel(r, ar)}</button>
+            <button key={r} onClick={() => pickRole(r)} className="flex-1 rounded-xl bg-slate-100 py-3 text-xs font-bold text-slate-700 active:bg-indigo-600 active:text-white">{roleLabel(r, ar)}{names[r] ? <span className="mt-0.5 block text-[10px] font-normal text-slate-500">{names[r]}</span> : null}</button>
           ))}
         </div>
-        <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder={tx('اسمك', 'Your name')} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none" />
-        {error && <p className="text-xs text-red-600">{error}</p>}
-        <button onClick={saveIdentity} className="w-full rounded-xl bg-indigo-600 py-2.5 text-xs font-bold text-white">{tx('بدء المحادثة', 'Start chat')}</button>
       </div>
     );
   }
 
   return (
     <div className="space-y-2">
-      <ChatPane messages={messages} isMine={(m) => m.kind === 'parent' && m.name === identity.name && m.role === identity.role} onSend={send} ar={ar} tone="light" heightClass="h-[62vh]" />
+      <ChatPane messages={messages} isMine={(m) => m.kind === 'parent' && m.role === identity.role} onSend={send} ar={ar} tone="light" heightClass="h-[62vh]" />
       {error && <p className="text-center text-xs text-red-600">{error}</p>}
     </div>
   );
