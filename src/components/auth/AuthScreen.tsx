@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldCheck, Mail, Lock, User, Phone, ArrowRight, Loader2, Languages } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, User, Phone, ArrowRight, Loader2, Languages, Sun, Moon } from 'lucide-react';
 
 type Mode = 'login' | 'signup' | 'forgot_username' | 'forgot_password';
 
@@ -23,6 +23,27 @@ const readLang = (): 'ar' | 'en' => {
 export const AuthScreen: React.FC = () => {
   const { signInWithIdentifier, signUp, requestPasswordReset, requestUsernameRecovery } = useAuth();
   const [lang, setLang] = useState<'ar' | 'en'>(readLang);
+  const [light, setLight] = useState(() => {
+    try {
+      return localStorage.getItem('nexus_theme') === 'light';
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', light);
+    document.documentElement.classList.toggle('dark', !light);
+  }, []);
+  const flipTheme = () => {
+    const next = !light;
+    setLight(next);
+    document.documentElement.classList.toggle('light', next);
+    document.documentElement.classList.toggle('dark', !next);
+    try {
+      localStorage.setItem('nexus_theme', next ? 'light' : 'dark');
+      localStorage.setItem('nexus_theme_pending', next ? 'light' : 'dark');
+    } catch {}
+  };
   const ar = lang === 'ar';
   const tx = (a: string, e: string) => (ar ? a : e);
   const trErr = (m: string) => (ar ? ERRORS_AR[m] || m : m);
@@ -121,6 +142,9 @@ export const AuthScreen: React.FC = () => {
           <div className="flex-1">
             <h1 className="text-sm font-bold tracking-tight text-white">{tx('نيكسوس', 'Nexus')}</h1>
           </div>
+          <button type="button" onClick={flipTheme} className="rounded-lg border border-slate-700 bg-slate-900/60 p-1.5 text-slate-200 hover:bg-slate-800">
+            {light ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+          </button>
           <button
             type="button"
             onClick={() => setLang(ar ? 'en' : 'ar')}

@@ -63,6 +63,10 @@ html.light {
   --color-purple-400: #9333ea;
 }
 
+html.light .bg-\[\#0b0f17\] {
+  background-color: #dcedf0;
+}
+
 html.light .text-white {
   color: #10202b;
 }

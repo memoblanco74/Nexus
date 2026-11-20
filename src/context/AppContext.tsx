@@ -310,7 +310,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {}
     updatePreferredLanguage(lang);
   };
-  const [theme, setTheme] = useState<ThemeMode>('dark');
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    try {
+      return localStorage.getItem('nexus_theme') === 'light' ? 'light' : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
   const [dataLoading, setDataLoading] = useState(true);
 
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -400,6 +406,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [language, isRTL, theme]);
 
   useEffect(() => {
+    try {
+      localStorage.setItem('nexus_theme', theme);
+    } catch {}
+  }, [theme]);
+
+  useEffect(() => {
     if (!profile) return;
     if (profile.roleCode === 'super_admin') setScreen('super_admin');
     else if (profile.roleCode === 'assistant') setScreen('assistant');
@@ -408,7 +420,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     if (!profile) return;
-    setTheme(profile.preferredTheme);
+    let pending: string | null = null;
+    try {
+      pending = localStorage.getItem('nexus_theme_pending');
+      localStorage.removeItem('nexus_theme_pending');
+    } catch {}
+    if (pending === 'light' || pending === 'dark') {
+      setTheme(pending);
+      if (pending !== profile.preferredTheme) updatePreferredTheme(pending);
+    } else {
+      setTheme(profile.preferredTheme);
+    }
     setLanguageState(profile.preferredLanguage);
     try {
       localStorage.setItem('nexus_lang', profile.preferredLanguage);
