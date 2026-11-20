@@ -2,7 +2,6 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { ChangePasswordCard, UserManagementCard } from './AccountSecurityCards';
 import { ReferralOverviewCard } from './ReferralParts';
-import { PaymentInfoCard } from './PaymentInfoParts';
 import { DeleteAccountCard } from './MyDataCard';
 import { LogoutCard, ProfilePhotoCard } from './ProfileSettingsCards';
 import { useAuth, DEFAULT_NOTIFICATION_PREFS, NotificationPrefs } from '../../context/AuthContext';
@@ -241,9 +240,7 @@ export const SupportView: React.FC = () => {
         </p>
       </div>
 
-      <PaymentInfoCard />
-
-      <div className="rounded-2xl border border-slate-800 bg-slate-950/60 flex flex-col h-[60vh]">
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/60 flex flex-col h-[70vh]">
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {founderChatMessages.length === 0 && (
             <p className="text-center text-xs text-slate-500 mt-10">
