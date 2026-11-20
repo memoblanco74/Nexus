@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Copy, ExternalLink, Landmark, QrCode, Trash2, Upload } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { SaveButton } from '../ui/SaveButton';
+import { cleanPaymentLink } from '../../lib/paymentLink';
 
 const inputClass =
   'w-full rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none';
@@ -34,8 +35,9 @@ const toDataUrl = (file: File): Promise<string> =>
   });
 
 export const PaymentInfoCard: React.FC = () => {
-  const { isRTL, paymentInfo, showToast } = useApp();
+  const { isRTL, paymentInfo, showToast, activeTenant, money } = useApp();
   const { phone, link, qr, note } = paymentInfo;
+  const amount = Number(activeTenant?.mrr || 0);
   if (!phone && !link && !qr) return null;
 
   const copy = async () => {
@@ -46,7 +48,15 @@ export const PaymentInfoCard: React.FC = () => {
       showToast(phone);
     }
   };
-  const safeLink = /^https?:\/\//i.test(link) ? link : link ? `https://${link}` : '';
+  const safeLink = cleanPaymentLink(link);
+  const copyAmount = async () => {
+    try {
+      await navigator.clipboard.writeText(String(amount));
+      showToast(isRTL ? 'تم نسخ المبلغ' : 'Amount copied');
+    } catch {
+      showToast(String(amount));
+    }
+  };
 
   return (
     <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-3">
@@ -55,6 +65,13 @@ export const PaymentInfoCard: React.FC = () => {
         <span>{isRTL ? 'بيانات التحويل (إنستاباي)' : 'Payment details (InstaPay)'}</span>
       </h3>
       {note && <p className="text-[11px] leading-relaxed text-slate-300">{note}</p>}
+      {amount > 0 && (
+        <div className="flex items-center justify-between gap-2 rounded-lg bg-slate-950 px-3 py-2 text-xs">
+          <span className="text-slate-400">{isRTL ? 'قيمة الاشتراك الشهري' : 'Monthly subscription'}</span>
+          <span className="flex items-center gap-2 font-bold text-white">{money(amount, 2)}<button onClick={copyAmount} className="rounded-lg border border-slate-700 p-1.5 text-slate-300 hover:bg-slate-800"><Copy className="h-3.5 w-3.5" /></button></span>
+        </div>
+      )}
+      <p className="text-[10px] leading-relaxed text-slate-500">{isRTL ? 'رابط إنستاباي لا يحمل المبلغ تلقائياً، فاكتب المبلغ المذكور أعلاه في التطبيق بعد فتح الرابط.' : 'The InstaPay link does not carry the amount automatically; enter the amount above after opening the link.'}</p>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         {qr && <img src={qr} alt="InstaPay QR" className="h-40 w-40 shrink-0 self-center rounded-xl bg-white p-1.5" />}
         <div className="flex-1 space-y-2">

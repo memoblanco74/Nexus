@@ -1,4 +1,5 @@
 import { isPushSupported, subscribeToPush } from '../lib/webPush';
+import { cleanPaymentLink } from '../lib/paymentLink';
 import { SYSTEM_VOCAB, DEFAULT_SYSTEM_KEY } from '../lib/systemVocab';
 import { flushSync } from 'react-dom';
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -1189,7 +1190,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     setPaymentInfo({
       phone: map.payment_instapay_phone || '',
-      link: map.payment_instapay_link || '',
+      link: cleanPaymentLink(map.payment_instapay_link || ''),
       qr: map.payment_instapay_qr || '',
       note: map.payment_note || '',
     });
@@ -1232,7 +1233,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const { error } = await supabase.from('platform_settings').upsert(
       [
         { key: 'payment_instapay_phone', value: info.phone.trim(), updated_at: now },
-        { key: 'payment_instapay_link', value: info.link.trim(), updated_at: now },
+        { key: 'payment_instapay_link', value: cleanPaymentLink(info.link), updated_at: now },
         { key: 'payment_instapay_qr', value: info.qr, updated_at: now },
         { key: 'payment_note', value: info.note.trim(), updated_at: now },
       ],
