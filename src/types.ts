@@ -52,7 +52,39 @@ export interface Subscription {
   mrr: number;
 }
 
+export interface ChatProjectInfo {
+  id: string;
+  name: string;
+  status: string;
+  plan: string;
+  expiresOn: string;
+}
+
+export interface ChatProfile {
+  userId: string;
+  username: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  joinedAt: string;
+  referralCode: string;
+  active: boolean;
+  tenantCode: string;
+  tenantNameAr: string;
+  plan: string;
+  status: string;
+  mrr: number;
+  location: string;
+  systemName: string;
+  startedAt: string;
+  endsAt: string;
+  paused: boolean;
+  createdAt: string;
+  projects: ChatProjectInfo[];
+}
+
 export interface ChatMessage {
+  profile?: ChatProfile;
   id: string;
   senderName: string;
   senderRole: string;

@@ -1,4 +1,5 @@
 import { askConfirm, askPrompt } from '../../lib/dialog';
+import { ChatSubscriberProfile, profileSearchText } from './ChatSubscriberProfile';
 import { supabase } from '../../lib/supabaseClient';
 import { RenewSubscriptionModal } from '../modals/RenewSubscriptionModal';
 import { AdminReports } from './AdminReports';
@@ -66,6 +67,7 @@ export const SuperAdminView: React.FC = () => {
 
   const [chatInput, setChatInput] = useState('');
   const [chatSearch, setChatSearch] = useState('');
+  const [profileOpen, setProfileOpen] = useState(false);
   const [subSearch, setSubSearch] = useState('');
   const [subFilter, setSubFilter] = useState<'all' | 'Active' | 'Expiring Soon' | 'Suspended'>('all');
   const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
@@ -172,6 +174,7 @@ export const SuperAdminView: React.FC = () => {
           c.tenant.toLowerCase().includes(chatNeedle) ||
           c.senderName.toLowerCase().includes(chatNeedle) ||
           (c.projectId || '').toLowerCase().includes(chatNeedle) ||
+          profileSearchText(c.profile).includes(chatNeedle) ||
           c.messages.some((m) => m.text.toLowerCase().includes(chatNeedle))
       )
     : chats;
@@ -594,7 +597,7 @@ export const SuperAdminView: React.FC = () => {
             <input
               value={chatSearch}
               onChange={(e) => setChatSearch(e.target.value)}
-              placeholder={isRTL ? 'ابحث في المحادثات: اسم المشروع أو الفاوندر أو نص الرسالة...' : 'Search chats: project, founder or message text...'}
+              placeholder={isRTL ? 'ابحث في المحادثات: الاسم أو البريد أو الهاتف أو المشروع أو نص الرسالة...' : 'Search chats: project, founder or message text...'}
               className={`w-full rounded-lg border border-slate-800 bg-slate-900/60 py-1.5 text-xs text-white outline-none focus:border-blue-500 ${isRTL ? 'pr-8 pl-3' : 'pl-8 pr-3'}`}
             />
           </div>
@@ -647,7 +650,7 @@ export const SuperAdminView: React.FC = () => {
             <>
               <div className="flex-1 space-y-3 overflow-y-auto p-4">
                 {/* Sender Info Banner */}
-                <div className="flex items-center gap-3 rounded-xl bg-slate-900/60 p-2.5 border border-slate-800/50">
+                <button type="button" onClick={() => selectedChat.profile && setProfileOpen(true)} className="flex w-full items-center gap-3 rounded-xl border border-slate-800/50 bg-slate-900/60 p-2.5 text-start transition hover:border-blue-500/50">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
                     {selectedChat.senderName.charAt(0).toUpperCase()}
                   </span>
@@ -660,7 +663,8 @@ export const SuperAdminView: React.FC = () => {
                       {language === 'ar' ? selectedChat.senderRoleAr : selectedChat.senderRole} • {selectedChat.tenant}
                     </p>
                   </div>
-                </div>
+                </button>
+                {profileOpen && selectedChat.profile && <ChatSubscriberProfile profile={selectedChat.profile} tenant={selectedChat.tenant} onClose={() => setProfileOpen(false)} />}
 
                 {/* Message Bubbles */}
                 {selectedChat.messages.map((msg) => {

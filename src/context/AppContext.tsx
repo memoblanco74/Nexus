@@ -797,7 +797,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const { data: conversations } = await supabase
       .from('support_conversations')
-      .select('*, tenants(name)');
+      .select('*, tenants(name, name_ar, code, plan, status, mrr, location, system_id, subscription_started_at, subscription_ends_at, subscription_paused, created_at)');
 
     if (!conversations || conversations.length === 0) {
       setChats([]);
@@ -805,15 +805,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const founderNames: Record<string, string> = {};
+    const founderUsers: Record<string, any> = {};
     const { data: founderRows } = await supabase
       .from('tenant_users')
-      .select('tenant_id, users(username, full_name)')
+      .select('tenant_id, user_id, users(id, username, full_name, email, phone, created_at, referral_code, is_active)')
       .eq('is_founder', true)
       .in('tenant_id', (conversations as any[]).map((c) => c.tenant_id));
     ((founderRows as any[]) || []).forEach((r) => {
       const u = Array.isArray(r.users) ? r.users[0] : r.users;
-      if (u) founderNames[r.tenant_id] = u.username || u.full_name || '';
+      if (u) {
+        founderNames[r.tenant_id] = u.username || u.full_name || '';
+        founderUsers[r.tenant_id] = u;
+      }
     });
+
+    const founderIds = Array.from(new Set(Object.values(founderUsers).map((u: any) => u.id)));
+    const projectsByUser: Record<string, any[]> = {};
+    if (founderIds.length > 0) {
+      const { data: owned } = await supabase
+        .from('tenant_users')
+        .select('user_id, tenants(id, name_ar, name, status, plan, subscription_ends_at)')
+        .eq('is_founder', true)
+        .in('user_id', founderIds);
+      ((owned as any[]) || []).forEach((r) => {
+        const t = Array.isArray(r.tenants) ? r.tenants[0] : r.tenants;
+        if (t) (projectsByUser[r.user_id] ||= []).push(t);
+      });
+    }
+    const systemNames: Record<string, string> = {};
+    const { data: sysRows } = await supabase.from('system_templates').select('id, name_ar, name_en');
+    ((sysRows as any[]) || []).forEach((s) => { systemNames[s.id] = s.name_ar || s.name_en || ''; });
+    const dateOf = (v: unknown) => (v ? new Date(v as string).toLocaleDateString('en-GB') : '');
 
     const mapped: ChatMessage[] = [];
     for (const conv of conversations as any[]) {
@@ -836,7 +858,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const lastRaw = raw[raw.length - 1] as any;
       const unread = raw.filter((m: any) => m.sender_user_id !== profile.id && new Date(m.created_at).getTime() > seenAt).length;
 
+      const fu = founderUsers[conv.tenant_id];
+      const tn = conv.tenants || {};
+      const profileInfo = fu
+        ? {
+            userId: fu.id as string,
+            username: fu.username || '',
+            fullName: fu.full_name || '',
+            email: fu.email || '',
+            phone: fu.phone || '',
+            joinedAt: dateOf(fu.created_at),
+            referralCode: fu.referral_code || '',
+            active: fu.is_active !== false,
+            tenantCode: tn.code || '',
+            tenantNameAr: tn.name_ar || '',
+            plan: tn.plan || '',
+            status: tn.status || '',
+            mrr: Number(tn.mrr || 0),
+            location: tn.location || '',
+            systemName: systemNames[tn.system_id] || '',
+            startedAt: dateOf(tn.subscription_started_at),
+            endsAt: dateOf(tn.subscription_ends_at),
+            paused: !!tn.subscription_paused,
+            createdAt: dateOf(tn.created_at),
+            projects: (projectsByUser[fu.id] || []).map((t: any) => ({ id: t.id, name: t.name_ar || t.name, status: t.status || '', plan: t.plan || '', expiresOn: dateOf(t.subscription_ends_at) })),
+          }
+        : undefined;
+
       mapped.push({
+        profile: profileInfo,
         id: conv.id,
         tenant: tenantName,
         senderName: founderNames[conv.tenant_id] || tenantName,
