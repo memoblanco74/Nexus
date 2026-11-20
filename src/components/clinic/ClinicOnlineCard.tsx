@@ -27,7 +27,7 @@ const DoctorForm: React.FC<{ doctor: Doctor | null; tenantId: string; onClose: (
   const save = async () => {
     const slot = Number(f.slot);
     const commission = Number(f.commission || 0);
-    if (!(f.name.trim() || f.name_ar.trim())) { showToast(tx('اكتب اسم الطبيب', 'Enter the doctor name')); return; }
+    if (!(f.name.trim() || f.name_ar.trim())) { showToast(tx('أدخل اسم الطبيب', 'Enter the doctor name')); return; }
     if (!(slot >= 5 && slot <= 240) || !(commission >= 0 && commission <= 100) || f.start >= f.end) { showToast(tx('راجع المواعيد ومدة الكشف والعمولة', 'Check hours, slot length and commission')); return; }
     setBusy(true);
     const payload = {
@@ -42,7 +42,7 @@ const DoctorForm: React.FC<{ doctor: Doctor | null; tenantId: string; onClose: (
   };
 
   const remove = async () => {
-    if (!doctor || !(await askConfirm({ danger: true, message: tx('حذف الطبيب؟ الحجوزات القديمة هتفضل موجودة.', 'Delete this doctor? Past bookings stay.') }))) return;
+    if (!doctor || !(await askConfirm({ danger: true, message: tx('حذف الطبيب؟ ستبقى الحجوزات السابقة موجودة.', 'Delete this doctor? Past bookings stay.') }))) return;
     const { error } = await supabase.from('clinic_doctors').delete().eq('id', doctor.id);
     if (error) showToast(error.message);
     else { onSaved(); onClose(); }
@@ -101,7 +101,7 @@ export const ClinicOnlineCard: React.FC = () => {
     if (error) showToast(error.message);
     else refreshTenants();
   };
-  const copy = async (text: string) => { try { await navigator.clipboard.writeText(text); showToast(tx('تم نسخ اللينك', 'Link copied')); } catch { /* ignore */ } };
+  const copy = async (text: string) => { try { await navigator.clipboard.writeText(text); showToast(tx('تم نسخ الرابط', 'Link copied')); } catch { /* ignore */ } };
 
   const bookLink = token ? pageLink('book', token) : '';
   const queueLink = token ? pageLink('queue', token) : '';
@@ -113,7 +113,7 @@ export const ClinicOnlineCard: React.FC = () => {
         <button data-write="1" onClick={() => setEditing('new')} className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-blue-500"><Plus className="h-3.5 w-3.5" />{tx('طبيب', 'Doctor')}</button>
       </div>
 
-      {doctors.length === 0 ? <p className="text-[11px] text-slate-500">{tx('ضيف الأطباء بمواعيدهم عشان المرضى يحجزوا من اللينك.', 'Add doctors with their hours so patients can book from the link.')}</p> : (
+      {doctors.length === 0 ? <p className="text-[11px] text-slate-500">{tx('أضف الأطباء بمواعيدهم ليتمكن المرضى من الحجز عبر الرابط.', 'Add doctors with their hours so patients can book from the link.')}</p> : (
         <div className="space-y-2">
           {doctors.map((d) => (
             <div key={d.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-800 px-3 py-2 text-xs">
@@ -132,10 +132,10 @@ export const ClinicOnlineCard: React.FC = () => {
 
       <div className="space-y-2 rounded-2xl border border-slate-800 p-3">
         <div className="flex items-center justify-between">
-          <h4 className="flex items-center gap-2 text-xs font-bold text-white"><Link2 className="h-4 w-4 text-indigo-400" />{tx('لينك الحجز للمرضى', 'Patient booking link')}</h4>
+          <h4 className="flex items-center gap-2 text-xs font-bold text-white"><Link2 className="h-4 w-4 text-indigo-400" />{tx('رابط الحجز للمرضى', 'Patient booking link')}</h4>
           <Badge tone={enabled ? 'ok' : 'muted'}>{enabled ? tx('مفعّل', 'Enabled') : tx('متوقف', 'Disabled')}</Badge>
         </div>
-        <p className="text-[11px] text-slate-400">{tx('المريض يختار الطبيب والميعاد الفاضي ويسجّل اسمه وموبايله، والحجز بيظهر عندك "قيد المراجعة" لتأكيده.', 'Patients pick a doctor and a free slot; the booking appears as pending for you to confirm.')}</p>
+        <p className="text-[11px] text-slate-400">{tx('يختار المريض الطبيب والموعد الفارغ ويسجّل اسمه وهاتفه، ويظهر الحجز لديك "قيد المراجعة" لتأكيده.', 'Patients pick a doctor and a free slot; the booking appears as pending for you to confirm.')}</p>
         {enabled && bookLink && (
           <div className="flex gap-2">
             <input readOnly dir="ltr" value={bookLink} className={`${inputClass} text-[10px]`} onFocus={(e) => e.currentTarget.select()} />
@@ -145,7 +145,7 @@ export const ClinicOnlineCard: React.FC = () => {
         )}
         <div className="flex flex-wrap gap-2" data-write="1">
           <button disabled={busy} onClick={() => call(!enabled, false)} className="rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-800">{enabled ? tx('إيقاف الحجز أونلاين', 'Disable') : tx('تفعيل الحجز أونلاين', 'Enable')}</button>
-          <button disabled={busy} onClick={async () => { if (await askConfirm({ danger: true, message: tx('اللينكات القديمة (الحجز وشاشة الانتظار) هتبطل تشتغل. متأكد؟', 'Old links (booking and queue screen) will stop working. Continue?') })) call(null, true); }} className="flex items-center gap-1 rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-800"><RefreshCw className="h-3.5 w-3.5" />{tx('لينك جديد', 'New link')}</button>
+          <button disabled={busy} onClick={async () => { if (await askConfirm({ danger: true, message: tx('ستتوقف الروابط القديمة (الحجز وشاشة الانتظار) عن العمل. هل أنت متأكد؟', 'Old links (booking and queue screen) will stop working. Continue?') })) call(null, true); }} className="flex items-center gap-1 rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-800"><RefreshCw className="h-3.5 w-3.5" />{tx('رابط جديد', 'New link')}</button>
         </div>
         {queueLink && (
           <div className="border-t border-slate-800 pt-2">

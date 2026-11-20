@@ -55,17 +55,17 @@ export const PublicBooking: React.FC<{ token: string }> = ({ token }) => {
 
   const submit = async () => {
     setErr('');
-    if (name.trim().length < 2) { setErr(tx('اكتب اسمك', 'Enter your name')); return; }
-    if (phone.replace(/\D/g, '').length < 8) { setErr(tx('اكتب رقم موبايل صحيح', 'Enter a valid phone number')); return; }
+    if (name.trim().length < 2) { setErr(tx('أدخل اسمك', 'Enter your name')); return; }
+    if (phone.replace(/\D/g, '').length < 8) { setErr(tx('أدخل رقم هاتف محمول صحيح', 'Enter a valid phone number')); return; }
     setBusy(true);
     const { data, error } = await supabase.rpc('fn_public_book', { p_token: token, p_doctor_id: doctorId, p_day: day, p_time: time, p_name: name.trim(), p_phone: phone.trim() });
     setBusy(false);
     if (error) {
       const m = error.message || '';
-      setErr(m.includes('SLOT_TAKEN') ? tx('الميعاد ده اتحجز، اختار ميعاد تاني', 'That slot was just taken, pick another')
+      setErr(m.includes('SLOT_TAKEN') ? tx('هذا الموعد محجوز بالفعل، اختر موعداً آخر', 'That slot was just taken, pick another')
         : m.includes('TOO_MANY') ? tx('تم تجاوز عدد الحجوزات المسموح، تواصل مع العيادة', 'Booking limit reached, please contact the clinic')
-        : m.includes('INVALID_PHONE') ? tx('رقم الموبايل غير صحيح', 'Invalid phone number')
-        : tx('تعذر إتمام الحجز، حاول تاني', 'Could not complete the booking'));
+        : m.includes('INVALID_PHONE') ? tx('رقم الهاتف المحمول غير صحيح', 'Invalid phone number')
+        : tx('تعذّر إتمام الحجز، حاول مرة أخرى', 'Could not complete the booking'));
       if (m.includes('SLOT_TAKEN')) { setTime(''); const r = await supabase.rpc('fn_public_slots', { p_token: token, p_doctor_id: doctorId, p_day: day }); setSlots((r.data as string[]) || []); }
       return;
     }
@@ -91,7 +91,7 @@ export const PublicBooking: React.FC<{ token: string }> = ({ token }) => {
           <p className="text-sm text-slate-600">{clinic}</p>
           <p className="text-sm">{dayLabel(day)} — {time}</p>
           {done.number && <p className="text-xs text-slate-500">{tx('رقم الحجز', 'Booking no.')}: <b>{done.number}</b></p>}
-          <p className="text-xs text-slate-500">{tx('هتتواصل معاك العيادة لتأكيد الميعاد.', 'The clinic will contact you to confirm.')}</p>
+          <p className="text-xs text-slate-500">{tx('ستتواصل معك العيادة لتأكيد الموعد.', 'The clinic will contact you to confirm.')}</p>
         </div>
       </div>
     );
@@ -109,7 +109,7 @@ export const PublicBooking: React.FC<{ token: string }> = ({ token }) => {
         </div>
 
         <div>
-          <p className="mb-2 text-xs font-bold">{tx('اختار الطبيب', 'Choose a doctor')}</p>
+          <p className="mb-2 text-xs font-bold">{tx('اختر الطبيب', 'Choose a doctor')}</p>
           <div className="flex flex-wrap gap-2">
             {info.doctors.length === 0 && <p className="text-xs text-slate-500">{tx('لا يوجد أطباء متاحين للحجز.', 'No doctors available.')}</p>}
             {info.doctors.map((d) => (
@@ -122,7 +122,7 @@ export const PublicBooking: React.FC<{ token: string }> = ({ token }) => {
 
         {doctor && (
           <div>
-            <p className="mb-2 text-xs font-bold">{tx('اختار اليوم', 'Choose a day')}</p>
+            <p className="mb-2 text-xs font-bold">{tx('اختر اليوم', 'Choose a day')}</p>
             <div className="flex flex-wrap gap-2">{days.map((d) => <button key={d} onClick={() => setDay(d)} className={chip(day === d)}>{dayLabel(d)}</button>)}</div>
           </div>
         )}
@@ -130,7 +130,7 @@ export const PublicBooking: React.FC<{ token: string }> = ({ token }) => {
         {day && (
           <div>
             <p className="mb-2 text-xs font-bold">{tx('المواعيد المتاحة', 'Available times')}</p>
-            {slots === null ? <p className="text-xs text-slate-500">...</p> : slots.length === 0 ? <p className="text-xs text-slate-500">{tx('لا توجد مواعيد فاضية في اليوم ده.', 'No free slots on this day.')}</p> : (
+            {slots === null ? <p className="text-xs text-slate-500">...</p> : slots.length === 0 ? <p className="text-xs text-slate-500">{tx('لا توجد مواعيد فارغة في هذا اليوم.', 'No free slots on this day.')}</p> : (
               <div className="flex flex-wrap gap-2">{slots.map((s) => <button key={s} onClick={() => setTime(s)} className={chip(time === s)} dir="ltr">{s}</button>)}</div>
             )}
           </div>
@@ -139,7 +139,7 @@ export const PublicBooking: React.FC<{ token: string }> = ({ token }) => {
         {time && (
           <div className="space-y-3">
             <input className={input} placeholder={tx('الاسم', 'Name')} value={name} maxLength={80} onChange={(e) => setName(e.target.value)} />
-            <input className={input} placeholder={tx('رقم الموبايل', 'Mobile number')} dir="ltr" inputMode="tel" value={phone} maxLength={16} onChange={(e) => setPhone(e.target.value)} />
+            <input className={input} placeholder={tx('رقم الهاتف المحمول', 'Mobile number')} dir="ltr" inputMode="tel" value={phone} maxLength={16} onChange={(e) => setPhone(e.target.value)} />
             {err && <p className="rounded-lg bg-red-50 p-2 text-xs text-red-600">{err}</p>}
             <button disabled={busy} onClick={submit} className="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white disabled:opacity-50">{busy ? '...' : tx('تأكيد الحجز', 'Confirm booking')}</button>
           </div>

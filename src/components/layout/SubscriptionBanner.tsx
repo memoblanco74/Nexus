@@ -23,7 +23,7 @@ export const SubscriptionBanner: React.FC = () => {
         <Lock className="mt-0.5 h-4 w-4 shrink-0" />
         <p className="leading-relaxed">
           {isRTL
-            ? `${reasonAr}. تقدر تشوف بياناتك بس مش هتقدر تضيف أو تعدّل أو تحذف حاجة لحد ما يتجدد الاشتراك.${isFounder ? ' تواصل مع الدعم الفني للتجديد.' : ' كلّم المسؤول عنك للتجديد.'}`
+            ? `${reasonAr}. يمكنك عرض بياناتك فقط ولا يمكنك الإضافة أو التعديل أو الحذف حتى يتم تجديد الاشتراك.${isFounder ? ' تواصل مع الدعم الفني للتجديد.' : ' تواصل مع المسؤول عنك للتجديد.'}`
             : `${reasonEn}. You can view your data but cannot add, edit or delete anything until it is renewed.${isFounder ? ' Contact support to renew.' : ' Ask your manager to renew.'}`}
         </p>
       </div>
@@ -36,7 +36,7 @@ export const SubscriptionBanner: React.FC = () => {
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
         <p className="leading-relaxed">
           {isRTL
-            ? `اشتراكك ينتهي بتاريخ ${activeAccess.expiresOn} (متبقي ${activeAccess.daysLeft} يوم). جدّده قبل الانتهاء علشان ما يتحولش لوضع القراءة فقط.`
+            ? `اشتراكك ينتهي بتاريخ ${activeAccess.expiresOn} (متبقي ${activeAccess.daysLeft} يوم). جدّده قبل الانتهاء لكي لا يتحول إلى وضع القراءة فقط.`
             : `Your subscription ends on ${activeAccess.expiresOn} (${activeAccess.daysLeft} day(s) left). Renew before it ends to avoid read-only mode.`}
         </p>
       </div>

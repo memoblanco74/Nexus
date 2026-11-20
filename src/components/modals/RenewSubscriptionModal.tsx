@@ -181,7 +181,7 @@ export const RenewSubscriptionModal: React.FC<Props> = ({ tenantId, tenantName, 
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={isRTL ? 'ملاحظة (اختياري)' : 'Note (optional)'} className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500" />
         </div>
         <p className="rounded-xl bg-emerald-500/10 p-3 text-xs text-emerald-300">
-          {isRTL ? `هيتجدد حتى ${preview}` : `Will be renewed until ${preview}`}
+          {isRTL ? `سيتم التجديد حتى ${preview}` : `Will be renewed until ${preview}`}
         </p>
         <button
           onClick={confirm}

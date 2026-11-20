@@ -29,7 +29,7 @@ const ProjectNameCard: React.FC = () => {
 
   const save = async () => {
     if (name.trim().length < 2) {
-      showToast(isRTL ? 'اسم المشروع لازم يكون حرفين على الأقل' : 'Project name must be at least 2 characters');
+      showToast(isRTL ? 'يجب أن يكون اسم المشروع حرفين على الأقل' : 'Project name must be at least 2 characters');
       return false;
     }
     const ok = await renameTenant(activeTenant.id, name.trim());
@@ -44,7 +44,7 @@ const ProjectNameCard: React.FC = () => {
         <span>{isRTL ? 'اسم المشروع' : 'Project name'}</span>
       </h3>
       <p className="text-[11px] text-slate-400">
-        {isRTL ? 'الاسم ده بيظهر لك ولكل المساعدين.' : 'This name is shown to you and all your assistants.'}
+        {isRTL ? 'يظهر هذا الاسم لك ولجميع المساعدين.' : 'This name is shown to you and all your assistants.'}
       </p>
       <div className="flex flex-col gap-2 sm:flex-row" data-write="1">
         <input value={name} maxLength={60} onChange={(e) => setName(e.target.value)} className={inputClass} />
@@ -124,7 +124,7 @@ const SubscriptionCard: React.FC = () => {
 
       <p className="text-[11px] leading-relaxed text-slate-400">
         {isRTL
-          ? 'لتجديد الاشتراك: حوّل المبلغ بالطريقة الموضحة تحت، وبعدها كلّم الدعم الفني وقولهم عدد الشهور اللي دفعتها وهيجددوه لك.'
+          ? 'لتجديد الاشتراك: حوّل المبلغ بالطريقة الموضحة أدناه، ثم تواصل مع الدعم الفني وأخبرهم بعدد الأشهر التي دفعتها وسيجددونه لك.'
           : 'To renew: transfer the amount using the details below, then message support with the number of months you paid and they will renew it for you.'}
       </p>
       <PaymentInfoCard />

@@ -58,7 +58,7 @@ const FeeRow: React.FC<{ item: FeeItem; canEdit: boolean; onChanged: () => void 
   };
 
   const remove = async () => {
-    if (!(await askConfirm({ danger: true, message: tx('حذف الاشتراك ده هيشيله من كل الأطفال المشتركين فيه. متأكد؟', 'This removes it from all children. Continue?') }))) return;
+    if (!(await askConfirm({ danger: true, message: tx('حذف هذا الاشتراك سيزيله من جميع الأطفال المشتركين فيه. هل أنت متأكد؟', 'This removes it from all children. Continue?') }))) return;
     const { error } = await supabase.from('nursery_fee_items').delete().eq('id', item.id);
     if (error) showToast(error.message);
     else onChanged();
@@ -104,7 +104,7 @@ export const FeesTab: React.FC<{ core: NurseryCore; canEdit: boolean }> = ({ cor
   const add = async () => {
     const p = Number(price);
     if ((!name.trim() && !nameEn.trim()) || !isFinite(p) || p < 0) {
-      showToast(tx('اكتب اسم الاشتراك وسعره', 'Enter name and price'));
+      showToast(tx('أدخل اسم الاشتراك وسعره', 'Enter name and price'));
       return;
     }
     setBusy(true);
@@ -186,7 +186,7 @@ const PaymentModal: React.FC<{ child: Child; period: string; due: number; paid: 
   const add = async () => {
     const a = Number(amount);
     if (!isFinite(a) || a <= 0) {
-      showToast(tx('اكتب مبلغ صحيح', 'Enter a valid amount'));
+      showToast(tx('أدخل مبلغاً صحيحاً', 'Enter a valid amount'));
       return;
     }
     setBusy(true);
@@ -209,7 +209,7 @@ const PaymentModal: React.FC<{ child: Child; period: string; due: number; paid: 
   };
 
   const remove = async (id: string) => {
-    if (!(await askConfirm({ danger: true, message: tx('حذف الدفعة دي؟', 'Delete this payment?') }))) return;
+    if (!(await askConfirm({ danger: true, message: tx('حذف هذه الدفعة؟', 'Delete this payment?') }))) return;
     const { error } = await supabase.from('nursery_payments').delete().eq('id', id);
     if (error) showToast(error.message);
     else core.reload();
@@ -233,7 +233,7 @@ const PaymentModal: React.FC<{ child: Child; period: string; due: number; paid: 
         <div className="grid grid-cols-2 gap-3">
           <Field label={tx('المبلغ', 'Amount')}><input className={inputClass} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} /></Field>
           <Field label={tx('تاريخ الدفع', 'Date')}><input type="date" className={inputClass} value={date} onChange={(e) => setDate(e.target.value)} /></Field>
-          <Field label={tx('طريقة الدفع', 'Method')}><input className={inputClass} placeholder={tx('كاش / انستاباي', 'Cash / InstaPay')} value={method} onChange={(e) => setMethod(e.target.value)} /></Field>
+          <Field label={tx('طريقة الدفع', 'Method')}><input className={inputClass} placeholder={tx('نقداً / انستاباي', 'Cash / InstaPay')} value={method} onChange={(e) => setMethod(e.target.value)} /></Field>
           <Field label={tx('ملاحظة', 'Note')}><input className={inputClass} value={note} onChange={(e) => setNote(e.target.value)} /></Field>
         </div>
         <button onClick={add} disabled={busy} className="w-full rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white hover:bg-emerald-500 disabled:opacity-50">
@@ -262,7 +262,7 @@ const RemindersModal: React.FC<{ rows: { child: Child; remaining: number }[]; pe
   const [sent, setSent] = useState<Record<string, boolean>>({});
   return (
     <Modal title={tx(`تذكير المتأخرين — ${period}`, `Overdue reminders — ${period}`)} onClose={onClose}>
-      <p className="text-[11px] text-slate-400">{tx('كل ضغطة بتفتح واتساب برسالة جاهزة لولي الأمر. تم إرسال', 'Each tap opens WhatsApp with a ready message. Sent')} {Object.keys(sent).length} / {rows.length}</p>
+      <p className="text-[11px] text-slate-400">{tx('كل ضغطة تفتح واتساب برسالة جاهزة لولي الأمر. تم إرسال', 'Each tap opens WhatsApp with a ready message. Sent')} {Object.keys(sent).length} / {rows.length}</p>
       <div className="space-y-2">
         {rows.map((r) => {
           const phone = childPhone(r.child);
@@ -270,7 +270,7 @@ const RemindersModal: React.FC<{ rows: { child: Child; remaining: number }[]; pe
             <div key={r.child.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-800 p-3">
               <div className="min-w-0">
                 <p className="truncate text-xs font-bold text-white">{r.child.full_name}</p>
-                <p className="text-[11px] text-slate-500"><span dir="ltr">{phone || tx('مفيش رقم', 'No phone')}</span> • {money(r.remaining)}</p>
+                <p className="text-[11px] text-slate-500"><span dir="ltr">{phone || tx('لا يوجد رقم', 'No phone')}</span> • {money(r.remaining)}</p>
               </div>
               {phone && (
                 <button onClick={() => { openReminder(r.child, period, r.remaining, nursery, isRTL); setSent((x) => ({ ...x, [r.child.id]: true })); }} className={`shrink-0 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold ${sent[r.child.id] ? 'border-slate-700 text-slate-400' : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'}`}>
@@ -317,7 +317,7 @@ export const PaymentsTab: React.FC<{ core: NurseryCore }> = ({ core }) => {
     const html = `<div dir="${isRTL ? 'rtl' : 'ltr'}" style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;color:#0f172a;padding:28px;width:760px;background:#fff">
       <h2 style="margin:0 0 4px;color:#1d4ed8">${esc(nurseryName)}</h2>
       <p style="margin:0 0 14px;font-size:12px;color:#475569">${tx('كشف المتأخرين عن شهر', 'Overdue statement for')} ${period} — ${tx('الإجمالي المتبقي', 'Total outstanding')}: <b>${overdue.reduce((a, r) => a + r.remaining, 0)}</b></p>
-      <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr>${[tx('الطفل', 'Child'), tx('المطلوب', 'Due'), tx('المدفوع', 'Paid'), tx('المتبقي', 'Remaining'), tx('موبايل', 'Phone')].map((h) => `<th style="background:#1d4ed8;color:#fff;padding:6px;text-align:${isRTL ? 'right' : 'left'}">${h}</th>`).join('')}</tr></thead>
+      <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr>${[tx('الطفل', 'Child'), tx('المطلوب', 'Due'), tx('المدفوع', 'Paid'), tx('المتبقي', 'Remaining'), tx('الهاتف', 'Phone')].map((h) => `<th style="background:#1d4ed8;color:#fff;padding:6px;text-align:${isRTL ? 'right' : 'left'}">${h}</th>`).join('')}</tr></thead>
       <tbody>${overdue.map((r, i) => `<tr style="background:${i % 2 ? '#f1f5f9' : '#fff'}">${[esc(r.child.full_name), r.due, r.paid, r.remaining, esc(childPhone(r.child))].map((c) => `<td style="padding:5px 6px;border-bottom:1px solid #e2e8f0">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
     const blob = await renderReportPdf(html);
     const url = URL.createObjectURL(blob);
@@ -395,7 +395,7 @@ export const NurserySubscriptionsView: React.FC<{ core: NurseryCore }> = ({ core
           <Wallet className="h-5 w-5 text-amber-400" />
           {tx('الاشتراكات', 'Subscriptions')}
         </h1>
-        <p className="mt-1 text-xs text-slate-400">{tx('سجّل أنواع الاشتراكات والخدمات اللي بتقدمها الحضانة (مصاريف شهرية، مواصلات، وجبات...) وأسعارها', 'Define the subscription types and services your nursery offers, with their prices')}</p>
+        <p className="mt-1 text-xs text-slate-400">{tx('سجّل أنواع الاشتراكات والخدمات التي تقدمها الحضانة (مصاريف شهرية، مواصلات، وجبات...) وأسعارها', 'Define the subscription types and services your nursery offers, with their prices')}</p>
       </div>
       <FeesTab core={core} canEdit={can('fees.edit')} />
     </div>

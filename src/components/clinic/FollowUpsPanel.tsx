@@ -29,9 +29,9 @@ export const FollowUpsPanel: React.FC = () => {
   const remind = (r: Row) => {
     const p = r.patients;
     const phone = p?.phone || '';
-    if (!phone) { showToast(tx('مفيش رقم موبايل للمريض', 'No phone number')); return; }
+    if (!phone) { showToast(tx('لا يوجد رقم هاتف للمريض', 'No phone number')); return; }
     const name = (isRTL ? p?.name_ar : p?.full_name) || p?.full_name || '';
-    const msg = isRTL ? `أهلاً ${name}، تذكير من ${clinic} بميعاد المتابعة يوم ${r.follow_up_date}. نتمنى لك الشفاء العاجل.` : `Hello ${name}, a reminder from ${clinic} about your follow-up on ${r.follow_up_date}. Wishing you a speedy recovery.`;
+    const msg = isRTL ? `أهلاً ${name}، تذكير من ${clinic} بموعد المتابعة يوم ${r.follow_up_date}. نتمنى لك الشفاء العاجل.` : `Hello ${name}, a reminder from ${clinic} about your follow-up on ${r.follow_up_date}. Wishing you a speedy recovery.`;
     window.open(`https://wa.me/${phoneForWhatsApp(phone)}?text=${encodeURIComponent(msg)}`, '_blank');
   };
   const done = async (r: Row) => {

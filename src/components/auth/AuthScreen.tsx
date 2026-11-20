@@ -6,10 +6,10 @@ type Mode = 'login' | 'signup' | 'forgot_username' | 'forgot_password';
 
 const ERRORS_AR: Record<string, string> = {
   'Invalid username/email or password.': 'اسم المستخدم أو البريد أو كلمة المرور غير صحيحة.',
-  'Username must be letters and numbers only, no spaces.': 'اسم المستخدم لازم يكون حروف وأرقام فقط بدون مسافات.',
-  'This username is already taken.': 'اسم المستخدم ده مستخدم قبل كده.',
-  'This email is already registered. Please sign in instead.': 'البريد ده مسجل بالفعل. سجّل الدخول بدل كده.',
-  'This mobile number is already registered.': 'رقم الموبايل ده مسجل بالفعل.',
+  'Username must be letters and numbers only, no spaces.': 'يجب أن يتكون اسم المستخدم من حروف وأرقام فقط بدون مسافات.',
+  'This username is already taken.': 'اسم المستخدم هذا مستخدم من قبل.',
+  'This email is already registered. Please sign in instead.': 'هذا البريد مسجل بالفعل. سجّل الدخول بدلاً من ذلك.',
+  'This mobile number is already registered.': 'رقم الهاتف المحمول هذا مسجل بالفعل.',
 };
 
 const readLang = (): 'ar' | 'en' => {
@@ -95,7 +95,7 @@ export const AuthScreen: React.FC = () => {
       setError(error);
       return;
     }
-    setInfo(tx('اتبعت رابط إعادة تعيين كلمة المرور على بريدك.', 'A password reset link has been sent to your email.'));
+    setInfo(tx('تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك.', 'A password reset link has been sent to your email.'));
   };
 
   const handleForgotUsername = async (e: React.FormEvent) => {
@@ -108,7 +108,7 @@ export const AuthScreen: React.FC = () => {
       setError(error);
       return;
     }
-    setInfo(tx('لو البريد ده مسجل، هنبعتلك اسم المستخدم عليه.', 'If that email is registered, your username has been sent to it.'));
+    setInfo(tx('إذا كان هذا البريد مسجلاً، فسيتم إرسال اسم المستخدم إليه.', 'If that email is registered, your username has been sent to it.'));
   };
 
   return (
@@ -168,11 +168,11 @@ export const AuthScreen: React.FC = () => {
           <form onSubmit={handleSignUp} className="space-y-3">
             <Field icon={<User className="h-3.5 w-3.5" />} placeholder={tx('اسم المستخدم (حروف وأرقام بدون مسافات)', 'Username (letters/numbers, no spaces)')} value={suUsername} onChange={setSuUsername} />
             <Field icon={<Mail className="h-3.5 w-3.5" />} placeholder={tx('البريد الإلكتروني', 'Email')} type="email" value={suEmail} onChange={setSuEmail} />
-            <Field icon={<Phone className="h-3.5 w-3.5" />} placeholder={tx('رقم الموبايل', 'Mobile number')} value={suPhone} onChange={setSuPhone} />
+            <Field icon={<Phone className="h-3.5 w-3.5" />} placeholder={tx('رقم الهاتف المحمول', 'Mobile number')} value={suPhone} onChange={setSuPhone} />
             <Field icon={<Lock className="h-3.5 w-3.5" />} placeholder={tx('كلمة المرور', 'Password')} type="password" value={suPassword} onChange={setSuPassword} />
             <SubmitButton loading={loading} label={tx('إنشاء الحساب', 'Create Account')} />
             <div className="text-center text-[11px] text-slate-400 pt-2">
-              {tx('عندك حساب؟', 'Already have an account?')}{' '}
+              {tx('هل لديك حساب؟', 'Already have an account?')}{' '}
               <button type="button" onClick={() => { resetMessages(); setMode('login'); }} className="text-blue-400 font-semibold hover:text-blue-300">
                 {tx('سجّل الدخول', 'Sign in')}
               </button>
@@ -182,7 +182,7 @@ export const AuthScreen: React.FC = () => {
 
         {mode === 'forgot_username' && (
           <form onSubmit={handleForgotUsername} className="space-y-3">
-            <p className="text-xs text-slate-400">{tx('اكتب بريدك وهنبعتلك اسم المستخدم.', "Enter your email and we'll send you your username.")}</p>
+            <p className="text-xs text-slate-400">{tx('أدخل بريدك وسنرسل إليك اسم المستخدم.', "Enter your email and we'll send you your username.")}</p>
             <Field icon={<Mail className="h-3.5 w-3.5" />} placeholder={tx('البريد الإلكتروني', 'Email')} type="email" value={recoveryEmail} onChange={setRecoveryEmail} />
             <SubmitButton loading={loading} label={tx('إرسال اسم المستخدم', 'Send Username')} />
             <BackToLogin label={tx('رجوع لتسجيل الدخول', 'Back to sign in')} onClick={() => { resetMessages(); setMode('login'); }} />
@@ -191,7 +191,7 @@ export const AuthScreen: React.FC = () => {
 
         {mode === 'forgot_password' && (
           <form onSubmit={handleForgotPassword} className="space-y-3">
-            <p className="text-xs text-slate-400">{tx('اكتب بريدك وهنبعتلك رابط إعادة تعيين كلمة المرور.', "Enter your email and we'll send you a reset link.")}</p>
+            <p className="text-xs text-slate-400">{tx('أدخل بريدك وسنرسل إليك رابط إعادة تعيين كلمة المرور.', "Enter your email and we'll send you a reset link.")}</p>
             <Field icon={<Mail className="h-3.5 w-3.5" />} placeholder={tx('البريد الإلكتروني', 'Email')} type="email" value={recoveryEmail} onChange={setRecoveryEmail} />
             <SubmitButton loading={loading} label={tx('إرسال رابط إعادة التعيين', 'Send Reset Link')} />
             <BackToLogin label={tx('رجوع لتسجيل الدخول', 'Back to sign in')} onClick={() => { resetMessages(); setMode('login'); }} />

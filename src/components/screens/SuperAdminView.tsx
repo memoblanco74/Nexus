@@ -102,8 +102,8 @@ export const SuperAdminView: React.FC = () => {
           const map = new Map<string, { n: number; sum: number }>();
           pays.filter((r) => Number(r.amount_paid || 0) > 0).forEach((r) => { const c = map.get(r.tenant_name) || { n: 0, sum: 0 }; c.n += 1; c.sum += Number(r.amount_paid || 0); map.set(r.tenant_name, c); });
           setKpiDetail({
-            title: isRTL ? 'المشتركون اللي دفعوا' : 'Subscribers who paid',
-            note: isRTL ? 'المشتركون اللي ليهم دفعة واحدة على الأقل بمبلغ أكبر من صفر في سجل المدفوعات.' : 'Subscribers with at least one payment above zero in the payments log.',
+            title: isRTL ? 'المشتركون الذين دفعوا' : 'Subscribers who paid',
+            note: isRTL ? 'المشتركون الذين لديهم دفعة واحدة على الأقل بمبلغ أكبر من صفر في سجل المدفوعات.' : 'Subscribers with at least one payment above zero in the payments log.',
             rows: Array.from(map.entries()).sort((a, b) => b[1].sum - a[1].sum).map(([name, c]) => ({ name, sub: isRTL ? `${c.n} دفعة` : `${c.n} payment(s)`, value: `${c.sum.toLocaleString()} EGP` })),
           });
         }
@@ -113,7 +113,7 @@ export const SuperAdminView: React.FC = () => {
     if (kind === 'mrr') {
       setKpiDetail({
         title: isRTL ? 'تفاصيل الإيرادات الشهرية' : 'Monthly Revenue Breakdown',
-        note: isRTL ? 'مجموع قيمة الاشتراك الشهري (بعد الخصم) للمشاريع النشطة اللي خلصت فترتها المجانية. المشاريع في الفترة المجانية مش محسوبة.' : 'Sum of the monthly subscription price (after discount) of active projects past their free period. Projects still in the free period are excluded.',
+        note: isRTL ? 'مجموع قيمة الاشتراك الشهري (بعد الخصم) للمشاريع النشطة التي انتهت فترتها المجانية. المشاريع في الفترة المجانية غير محسوبة.' : 'Sum of the monthly subscription price (after discount) of active projects past their free period. Projects still in the free period are excluded.',
         rows: subscriptions
           .filter((s) => s.status === 'Active')
           .sort((a, b) => b.mrr - a.mrr)
@@ -136,7 +136,7 @@ export const SuperAdminView: React.FC = () => {
     } else if (kind === 'active_subs') {
       setKpiDetail({
         title: isRTL ? 'الاشتراكات النشطة' : 'Active Subscriptions',
-        note: isRTL ? 'المشاريع اللي حالة اشتراكها نشطة. النسبة = النشطة ÷ إجمالي المشاريع.' : 'Projects whose subscription status is Active. Percentage = active ÷ all projects.',
+        note: isRTL ? 'المشاريع التي حالة اشتراكها نشطة. النسبة = النشطة ÷ إجمالي المشاريع.' : 'Projects whose subscription status is Active. Percentage = active ÷ all projects.',
         rows: subscriptions
           .filter((s) => s.status === 'Active')
           .map((s) => ({
@@ -148,7 +148,7 @@ export const SuperAdminView: React.FC = () => {
     } else {
       setKpiDetail({
         title: isRTL ? 'محادثات تنتظر ردك' : 'Conversations Awaiting Reply',
-        note: isRTL ? 'المحادثات اللي آخر رسالة فيها من المشترك ولسه ماردتش عليها.' : 'Chats whose last message is from the subscriber and has not been answered yet.',
+        note: isRTL ? 'المحادثات التي آخر رسالة فيها من المشترك ولم يتم الرد عليها بعد.' : 'Chats whose last message is from the subscriber and has not been answered yet.',
         rows: pendingReplyChats.map((c) => ({
           name: c.senderName,
           sub: c.tenant,
@@ -223,7 +223,7 @@ export const SuperAdminView: React.FC = () => {
 
   const { startViewAs } = useAuth();
   const openView = async (id: string, name: string) => {
-    if (!(await askConfirm({ title: isRTL ? 'معاينة المشروع' : 'View project', message: isRTL ? `هتدخل لمعاينة بيانات «${name}» للقراءة فقط، وهيتسجل الدخول في سجل التدقيق وصاحب المشروع هيوصله إشعار. متابعة؟` : `You will view “${name}” read-only. This is logged and the founder is notified. Continue?` }))) return;
+    if (!(await askConfirm({ title: isRTL ? 'معاينة المشروع' : 'View project', message: isRTL ? `ستدخل لمعاينة بيانات «${name}» للقراءة فقط، وسيتم تسجيل الدخول في سجل التدقيق وسيصل صاحب المشروع إشعار. متابعة؟` : `You will view “${name}” read-only. This is logged and the founder is notified. Continue?` }))) return;
     const err = await startViewAs(id, name);
     if (err) showToast(err);
   };
@@ -497,7 +497,7 @@ export const SuperAdminView: React.FC = () => {
           </div>
 
           <div className="mt-3 space-y-2 rounded-xl border border-slate-800/60 p-3">
-            <p className="text-[11px] font-bold text-slate-300">{isRTL ? 'لمين يظهر الإعلان؟' : 'Who sees this announcement?'}</p>
+            <p className="text-[11px] font-bold text-slate-300">{isRTL ? 'لمن يظهر الإعلان؟' : 'Who sees this announcement?'}</p>
             <div className="flex flex-wrap gap-1.5">
               {([['all', isRTL ? 'الكل' : 'Everyone'], ['systems', isRTL ? 'حسب نوع النظام' : 'By system'], ['tenants', isRTL ? 'مشتركين محددين' : 'Specific subscribers']] as const).map(([k, label]) => (
                 <button key={k} onClick={() => setTgMode(k)} className={`rounded-lg border px-2.5 py-1 text-[11px] font-bold ${tgMode === k ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-slate-700 text-slate-400 hover:bg-slate-800'}`}>{label}</button>
@@ -729,7 +729,7 @@ export const SuperAdminView: React.FC = () => {
                   type="text"
                   value={subSearch}
                   onChange={(e) => setSubSearch(e.target.value)}
-                  placeholder={isRTL ? 'بحث بالاسم أو الإيميل أو الموبايل أو المعرف...' : 'Search name, email, phone or ID...'}
+                  placeholder={isRTL ? 'بحث بالاسم أو البريد الإلكتروني أو الهاتف المحمول أو المعرف...' : 'Search name, email, phone or ID...'}
                   className={`rounded-lg border border-slate-800 bg-slate-900/90 py-1.5 ${
                     isRTL ? 'pr-8 pl-3' : 'pl-8 pr-3'
                   } text-xs text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none`}
@@ -922,7 +922,7 @@ export const SuperAdminView: React.FC = () => {
                                 danger: true,
                                 title: isRTL ? 'حذف المشترك نهائياً' : 'Delete subscriber permanently',
                                 message: isRTL
-                                  ? `متأكد إنك عايز تحذف "${name}" نهائيًا؟ هيتمسح كل بياناته (مرضى، حجوزات، فواتير، مخزون) ومش هترجع تاني.`
+                                  ? `هل أنت متأكد أنك تريد حذف "${name}" نهائيًا؟ سيتم حذف جميع بياناته (مرضى، حجوزات، فواتير، مخزون) ولا يمكن استرجاعها.`
                                   : `Permanently delete "${name}"? All their data (patients, bookings, invoices, inventory) will be erased and cannot be recovered.`,
                               });
                               if (confirmed) deleteTenant(sub.id);

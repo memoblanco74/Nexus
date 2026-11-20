@@ -35,7 +35,7 @@ export const OfflineBanner: React.FC = () => {
         {online ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <CloudOff className="h-3.5 w-3.5" />}
         {online
           ? (isRTL ? `جاري مزامنة ${pending} تعديل...` : `Syncing ${pending} change(s)...`)
-          : (isRTL ? `غير متصل بالإنترنت — التعديلات هتتحفظ على الجهاز وتتزامن لما النت يرجع${pending ? ` (${pending} معلّق)` : ''}` : `Offline — changes are saved on this device and will sync later${pending ? ` (${pending} pending)` : ''}`)}
+          : (isRTL ? `غير متصل بالإنترنت — ستُحفظ التعديلات على الجهاز وتتم مزامنتها عند عودة الاتصال${pending ? ` (${pending} معلّق)` : ''}` : `Offline — changes are saved on this device and will sync later${pending ? ` (${pending} pending)` : ''}`)}
       </span>
       {online && pending > 0 && <button onClick={() => flushOutbox()} className="rounded bg-white/20 px-2 py-0.5">{isRTL ? 'مزامنة الآن' : 'Sync now'}</button>}
     </div>

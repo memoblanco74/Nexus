@@ -56,11 +56,11 @@ export const AssistantsView: React.FC = () => {
   const handleCreate = async () => {
     setFormError('');
     if (!/^[A-Za-z0-9]+$/.test(username)) {
-      setFormError(isRTL ? 'اسم اليوزر لازم يكون حروف وأرقام بس' : 'Username must be letters/numbers only');
+      setFormError(isRTL ? 'يجب أن يتكون اسم المستخدم من حروف وأرقام فقط' : 'Username must be letters/numbers only');
       return;
     }
     if (password.length < 6) {
-      setFormError(isRTL ? 'الباسورد لازم يكون 6 حروف على الأقل' : 'Password must be at least 6 characters');
+      setFormError(isRTL ? 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل' : 'Password must be at least 6 characters');
       return;
     }
     setSubmitting(true);
@@ -85,7 +85,7 @@ export const AssistantsView: React.FC = () => {
           </h1>
           <p className="mt-1 text-xs text-slate-400">
             {isRTL
-              ? 'أنشئ يوزرات لمساعديك، مش محتاجين تفعيل إيميل — بيسجلوا دخول باليوزر والباسورد على طول'
+              ? 'أنشئ حسابات لمساعديك، دون الحاجة إلى تفعيل البريد الإلكتروني — يسجلون الدخول مباشرة باسم المستخدم وكلمة المرور'
               : 'Create accounts for your assistants — no email confirmation needed, they log in with username and password right away'}
           </p>
         </div>
@@ -101,14 +101,14 @@ export const AssistantsView: React.FC = () => {
       <div className="rounded-2xl border border-slate-800 bg-slate-950/60 dark:border-slate-800 dark:bg-slate-950/60 light:border-[#e2e8f0] light:bg-white overflow-hidden">
         {assistants.length === 0 ? (
           <div className="p-8 text-center text-xs text-slate-500">
-            {isRTL ? 'لسه معملتش أي حساب مساعد' : 'You have not created any assistant accounts yet'}
+            {isRTL ? 'لم تنشئ أي حساب مساعد بعد' : 'You have not created any assistant accounts yet'}
           </div>
         ) : (
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-800/60 text-[11px] text-slate-500">
                 <th className="text-left px-4 py-3 font-semibold">{isRTL ? 'الاسم' : 'Name'}</th>
-                <th className="text-left px-4 py-3 font-semibold">{isRTL ? 'اليوزر' : 'Username'}</th>
+                <th className="text-left px-4 py-3 font-semibold">{isRTL ? 'اسم المستخدم' : 'Username'}</th>
                 <th className="text-left px-4 py-3 font-semibold">{isRTL ? 'تاريخ الإنشاء' : 'Created'}</th>
                 <th className="text-right px-4 py-3 font-semibold">{isRTL ? 'إجراء' : 'Action'}</th>
               </tr>
@@ -165,14 +165,14 @@ export const AssistantsView: React.FC = () => {
             <input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder={isRTL ? 'اسم اليوزر (حروف وأرقام بس)' : 'Username (letters/numbers only)'}
+              placeholder={isRTL ? 'اسم المستخدم (حروف وأرقام فقط)' : 'Username (letters/numbers only)'}
               className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
             />
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={isRTL ? 'الباسورد' : 'Password'}
+              placeholder={isRTL ? 'كلمة المرور' : 'Password'}
               className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
             />
             <div className="flex gap-2 pt-2">
@@ -201,7 +201,7 @@ export const AssistantsView: React.FC = () => {
         >
           {isNurseryTenant ? (
             <div className="space-y-4">
-              <p className="text-[11px] text-slate-400">{isRTL ? 'حدد بالظبط إيه اللي المستخدم يقدر يشوفه ويعمله. الصفحات بتظهر له حسب الصلاحيات، والإعدادات الشخصية متاحة دايماً.' : 'Choose exactly what this user can see and do. Pages appear based on the permissions; personal settings are always available.'}</p>
+              <p className="text-[11px] text-slate-400">{isRTL ? 'حدد بدقة ما يمكن للمستخدم رؤيته وفعله. تظهر له الصفحات حسب الصلاحيات، والإعدادات الشخصية متاحة دائماً.' : 'Choose exactly what this user can see and do. Pages appear based on the permissions; personal settings are always available.'}</p>
               <div className="flex flex-wrap gap-2">
                 <button onClick={() => setPermSel(DEFAULT_ACTIONS)} className="rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] text-slate-300 hover:bg-slate-800">{isRTL ? 'الافتراضي' : 'Default'}</button>
                 <button onClick={() => setPermSel(PERMISSIONS.map((x) => x.key))} className="rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] text-slate-300 hover:bg-slate-800">{isRTL ? 'كل الصلاحيات' : 'Everything'}</button>
@@ -229,7 +229,7 @@ export const AssistantsView: React.FC = () => {
             </div>
           ) : (
             <>
-          <p className="text-[11px] text-slate-400">{isRTL ? 'اختار الشاشات اللي المساعد يقدر يفتحها. الصفحة الرئيسية والإعدادات الشخصية متاحة دايماً.' : 'Choose the screens this assistant can open. Home and personal settings are always available.'}</p>
+          <p className="text-[11px] text-slate-400">{isRTL ? 'اختر الشاشات التي يمكن للمساعد فتحها. الصفحة الرئيسية والإعدادات الشخصية متاحة دائماً.' : 'Choose the screens this assistant can open. Home and personal settings are always available.'}</p>
           <div className="space-y-2">
             {options.map((o) => (
               <label key={o} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-800 px-3 py-2.5 text-xs text-white">
@@ -242,7 +242,7 @@ export const AssistantsView: React.FC = () => {
           )}
           {isNurseryTenant && (
             <div className="space-y-2 border-t border-slate-800 pt-3">
-              <p className="text-xs font-bold text-white">{isRTL ? 'الفصول اللي يشوفها' : 'Classes this user can see'}</p>
+              <p className="text-xs font-bold text-white">{isRTL ? 'الفصول التي يمكنه رؤيتها' : 'Classes this user can see'}</p>
               <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-800 px-3 py-2.5 text-xs text-white">
                 <input type="radio" className="h-4 w-4 accent-blue-500" checked={classSel === null} onChange={() => setClassSel(null)} />
                 {isRTL ? 'كل الفصول (وكل الأطفال)' : 'All classes (and all children)'}
@@ -253,7 +253,7 @@ export const AssistantsView: React.FC = () => {
               </label>
               {classSel !== null && (
                 classList.length === 0
-                  ? <p className="text-[11px] text-amber-300">{isRTL ? 'لسه مفيش فصول. أضف فصول من صفحة الأطفال أولاً.' : 'No classes yet. Add classes from the Children page first.'}</p>
+                  ? <p className="text-[11px] text-amber-300">{isRTL ? 'لا توجد فصول بعد. أضف فصولاً من صفحة الأطفال أولاً.' : 'No classes yet. Add classes from the Children page first.'}</p>
                   : <div className="grid grid-cols-2 gap-2">
                       {classList.map((c) => (
                         <label key={c.id} className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-800 px-3 py-2 text-xs text-white">
@@ -263,10 +263,10 @@ export const AssistantsView: React.FC = () => {
                       ))}
                     </div>
               )}
-              {classSel !== null && classSel.length === 0 && classList.length > 0 && <p className="text-[11px] text-amber-300">{isRTL ? 'لو ماختارتش أي فصل، المستخدم مش هيشوف أي طفل.' : 'With no class selected, this user will see no children.'}</p>}
+              {classSel !== null && classSel.length === 0 && classList.length > 0 && <p className="text-[11px] text-amber-300">{isRTL ? 'إذا لم تختر أي فصل، فلن يرى المستخدم أي طفل.' : 'With no class selected, this user will see no children.'}</p>}
             </div>
           )}
-          <p className="text-[10px] text-slate-500">{isRTL ? 'التحكم هنا في ظهور الشاشات والأطفال للمساعد داخل التطبيق.' : 'This controls which screens and children the assistant sees in the app.'}</p>
+          <p className="text-[10px] text-slate-500">{isRTL ? 'يتحكم هذا في ظهور الشاشات والأطفال للمساعد داخل التطبيق.' : 'This controls which screens and children the assistant sees in the app.'}</p>
         </Modal>
       )}
     </div>

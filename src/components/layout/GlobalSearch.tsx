@@ -126,7 +126,7 @@ export const GlobalSearch: React.FC = () => {
   };
 
   const placeholder = isNursery
-    ? isRTL ? 'بحث باسم الطفل أو ولي الأمر أو الموبايل...' : 'Search child, parent or phone...'
+    ? isRTL ? 'بحث باسم الطفل أو ولي الأمر أو الهاتف المحمول...' : 'Search child, parent or phone...'
     : isRTL ? 'بحث في المرضى، الحجوزات، الفواتير، الأصناف...' : 'Search patients, bookings, invoices, stock...';
 
   return (

@@ -20,7 +20,7 @@ export const SystemCatalogAdminView: React.FC = () => {
         </h1>
         <p className="mt-1 text-xs text-slate-400">
           {isRTL
-            ? 'الأنظمة اللي بتظهر للفاوندرز يختاروا منها. اتحكم في فتح أو قفل الاشتراك في كل نظام. لإضافة نظام جديد أو تعديل سعر، قولّي مباشرة.'
+            ? 'الأنظمة التي تظهر للمؤسسين ليختاروا منها. تحكّم في فتح أو إغلاق الاشتراك في كل نظام. لإضافة نظام جديد أو تعديل سعر، تواصل معي مباشرة.'
             : 'The systems founders can choose from. To add a new system or change a price, just ask.'}
         </p>
       </div>
@@ -96,7 +96,7 @@ export const SystemCatalogAdminView: React.FC = () => {
           <div className="rounded-2xl border border-dashed border-slate-800 p-10 text-center">
             <Package className="h-8 w-8 text-slate-600 mx-auto mb-2" />
             <p className="text-xs text-slate-500">
-              {isRTL ? 'لسه مفيش أي نظام في الكتالوج' : 'No systems in the catalog yet'}
+              {isRTL ? 'لا يوجد أي نظام في الكتالوج بعد' : 'No systems in the catalog yet'}
             </p>
           </div>
         )}

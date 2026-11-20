@@ -232,10 +232,10 @@ export const NurseryHome: React.FC<{ core: NurseryCore }> = ({ core }) => {
         <div className={`${cardClass} space-y-2`}>
           <h3 className="flex items-center gap-2 text-xs font-bold text-white"><ShieldAlert className="h-4 w-4 text-red-400" />{tx('تنبيهات اليوم', "Today's alerts")}</h3>
           {allergyKids.length > 0 && (
-            <p className="text-xs text-slate-300">{tx(`${allergyKids.length} من الحاضرين عندهم حساسية:`, `${allergyKids.length} present children have allergies:`)} <span className="text-red-300">{allergyKids.map((c) => `${c.full_name} (${c.allergies})`).join('، ')}</span></p>
+            <p className="text-xs text-slate-300">{tx(`${allergyKids.length} من الحاضرين لديهم حساسية:`, `${allergyKids.length} present children have allergies:`)} <span className="text-red-300">{allergyKids.map((c) => `${c.full_name} (${c.allergies})`).join('، ')}</span></p>
           )}
           {emptyClasses.length > 0 && (
-            <p className="text-xs text-slate-300">{tx('فصول مفيهاش أي حاضر لحد دلوقتي:', 'Classes with nobody present so far:')} <span className="text-amber-300">{emptyClasses.map((g) => g.name).join('، ')}</span></p>
+            <p className="text-xs text-slate-300">{tx('فصول لا يوجد بها أي حاضر حتى الآن:', 'Classes with nobody present so far:')} <span className="text-amber-300">{emptyClasses.map((g) => g.name).join('، ')}</span></p>
           )}
         </div>
       )}
@@ -249,10 +249,10 @@ export const NurseryHome: React.FC<{ core: NurseryCore }> = ({ core }) => {
               <div key={child.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-800 px-3 py-2 text-xs">
                 <div className="min-w-0">
                   <p className="truncate font-bold text-white">{child.full_name}</p>
-                  <p className="text-[11px] text-slate-400">{diff === 0 ? tx('النهارده', 'Today') : diff === 1 ? tx('بكرة', 'Tomorrow') : tx(`بعد ${diff} أيام`, `in ${diff} days`)} • {tx(`${age} سنة`, `turns ${age}`)}</p>
+                  <p className="text-[11px] text-slate-400">{diff === 0 ? tx('اليوم', 'Today') : diff === 1 ? tx('غداً', 'Tomorrow') : tx(`بعد ${diff} أيام`, `in ${diff} days`)} • {tx(`${age} سنة`, `turns ${age}`)}</p>
                 </div>
                 {canWa && phone && (
-                  <button onClick={() => openWhatsApp(phone, tx(`كل سنة وطفلكم ${child.full_name} طيب من ${nurseryName} 🎂 عيد ميلاد سعيد!`, `Happy birthday to ${child.full_name} from ${nurseryName}! 🎂`))} className="shrink-0 rounded-lg border border-emerald-500/40 p-1.5 text-emerald-300 hover:bg-emerald-500/10"><MessageCircle className="h-3.5 w-3.5" /></button>
+                  <button onClick={() => openWhatsApp(phone, tx(`كل عام وطفلكم ${child.full_name} بخير من ${nurseryName} 🎂 عيد ميلاد سعيد!`, `Happy birthday to ${child.full_name} from ${nurseryName}! 🎂`))} className="shrink-0 rounded-lg border border-emerald-500/40 p-1.5 text-emerald-300 hover:bg-emerald-500/10"><MessageCircle className="h-3.5 w-3.5" /></button>
                 )}
               </div>
             );
@@ -272,7 +272,7 @@ export const NurseryHome: React.FC<{ core: NurseryCore }> = ({ core }) => {
                   <p className="truncate font-bold text-white">{child!.full_name}</p>
                   <p className="truncate text-[11px] text-slate-400">{v.vaccine_name}</p>
                 </div>
-                <span className={`shrink-0 text-[11px] font-semibold ${d < 0 ? 'text-red-400' : 'text-amber-300'}`}>{d < 0 ? tx(`متأخر ${-d} يوم`, `${-d}d overdue`) : d === 0 ? tx('النهارده', 'Today') : tx(`بعد ${d} يوم`, `in ${d}d`)}</span>
+                <span className={`shrink-0 text-[11px] font-semibold ${d < 0 ? 'text-red-400' : 'text-amber-300'}`}>{d < 0 ? tx(`متأخر ${-d} يوم`, `${-d}d overdue`) : d === 0 ? tx('اليوم', 'Today') : tx(`بعد ${d} يوم`, `in ${d}d`)}</span>
                 {canWa && phone && (
                   <button onClick={() => openWhatsApp(phone, tx(`تذكير من ${nurseryName}: موعد تطعيم ${child!.full_name} (${v.vaccine_name}) يوم ${v.due_date}.`, `Reminder from ${nurseryName}: ${child!.full_name}'s vaccine (${v.vaccine_name}) is due on ${v.due_date}.`))} className="shrink-0 rounded-lg border border-emerald-500/40 p-1.5 text-emerald-300 hover:bg-emerald-500/10"><MessageCircle className="h-3.5 w-3.5" /></button>
                 )}
@@ -285,7 +285,7 @@ export const NurseryHome: React.FC<{ core: NurseryCore }> = ({ core }) => {
       {showStaff && (absentStaff.length > 0 || raisesDue.length > 0) && (
         <div className={`${cardClass} space-y-2`}>
           <h3 className="flex items-center gap-2 text-xs font-bold text-white"><UserCog className="h-4 w-4 text-blue-400" />{tx('الموظفين', 'Staff')}</h3>
-          {absentStaff.length > 0 && <p className="text-xs text-slate-300">{tx('غايبين النهارده:', 'Absent today:')} <span className="text-red-300">{absentStaff.map((s) => s.full_name).join('، ')}</span></p>}
+          {absentStaff.length > 0 && <p className="text-xs text-slate-300">{tx('الغائبون اليوم:', 'Absent today:')} <span className="text-red-300">{absentStaff.map((s) => s.full_name).join('، ')}</span></p>}
           {raisesDue.length > 0 && (
             <p className="text-xs text-slate-300">{tx('زيادة سنوية مستحقة:', 'Raises due:')} <span className="text-amber-300">{raisesDue.map((s) => `${s.full_name} (${s.raise_percent}%)`).join('، ')}</span></p>
           )}
@@ -294,7 +294,7 @@ export const NurseryHome: React.FC<{ core: NurseryCore }> = ({ core }) => {
 
       {showMoney && months && (
         <div className={`${cardClass} space-y-3`}>
-          <h3 className="flex items-center gap-2 text-xs font-bold text-white"><Wallet className="h-4 w-4 text-amber-400" />{tx('هذا الشهر مقابل الشهر اللي فات', 'This month vs last month')}</h3>
+          <h3 className="flex items-center gap-2 text-xs font-bold text-white"><Wallet className="h-4 w-4 text-amber-400" />{tx('هذا الشهر مقابل الشهر الماضي', 'This month vs last month')}</h3>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               { label: tx('المحصّل', 'Collected'), cur: months.cur.collected, prev: months.prev.collected, good: true },
@@ -318,7 +318,7 @@ export const NurseryHome: React.FC<{ core: NurseryCore }> = ({ core }) => {
 
       {showMoney && topLate.length > 0 && (
         <div className={`${cardClass} space-y-2`}>
-          <h3 className="flex items-center gap-2 text-xs font-bold text-white"><Wallet className="h-4 w-4 text-red-400" />{tx('أكتر المتأخرين في السداد', 'Top late payers')}</h3>
+          <h3 className="flex items-center gap-2 text-xs font-bold text-white"><Wallet className="h-4 w-4 text-red-400" />{tx('أكثر المتأخرين في السداد', 'Top late payers')}</h3>
           {topLate.map(({ child, remaining }) => {
             const phone = childPhone(child);
             return (

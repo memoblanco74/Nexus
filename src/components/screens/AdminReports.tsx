@@ -80,7 +80,7 @@ export const AdminReports: React.FC<{ onRenew: (id: string, name: string) => voi
   };
   const renewalDetail: DetailPayload = {
     title: isRTL ? 'معدل التجديد' : 'Renewal rate',
-    note: isRTL ? `${data.renewal.renewed} ÷ ${data.renewal.eligible} = ${rate}%. المقام: المشتركون اللي انتهت فترتهم المجانية. البسط: اللي منهم دفعوا وجددوا اشتراكهم.` : `${data.renewal.renewed} ÷ ${data.renewal.eligible} = ${rate}%. Denominator: subscribers whose free period has ended. Numerator: those who paid and renewed.`,
+    note: isRTL ? `${data.renewal.renewed} ÷ ${data.renewal.eligible} = ${rate}%. المقام: المشتركون الذين انتهت فترتهم المجانية. البسط: الذين دفعوا منهم وجددوا اشتراكهم.` : `${data.renewal.renewed} ÷ ${data.renewal.eligible} = ${rate}%. Denominator: subscribers whose free period has ended. Numerator: those who paid and renewed.`,
     rows: [
       { name: isRTL ? 'انتهت فترتهم المجانية' : 'Free period ended', value: String(data.renewal.eligible) },
       { name: isRTL ? 'جددوا' : 'Renewed', value: String(data.renewal.renewed) },
@@ -88,7 +88,7 @@ export const AdminReports: React.FC<{ onRenew: (id: string, name: string) => voi
   };
   const renewalsDetail: DetailPayload = {
     title: isRTL ? 'التجديدات والمشتركون الجدد' : 'Renewals & new subscribers',
-    note: isRTL ? 'التجديدات: عدد الدفعات المسجلة في الشهر. الجدد: عدد المشاريع اللي اتسجلت في الشهر.' : 'Renewals: payments recorded in the month. New: projects created in the month.',
+    note: isRTL ? 'التجديدات: عدد الدفعات المسجلة في الشهر. الجدد: عدد المشاريع التي سُجلت في الشهر.' : 'Renewals: payments recorded in the month. New: projects created in the month.',
     rows: [...data.monthly].reverse().map((m) => ({ name: m.month, sub: `${isRTL ? 'جدد' : 'New'}: ${m.new_tenants}`, value: `${m.renewals} ${isRTL ? 'تجديد' : 'renewals'}` })),
   };
   const systemDetail: DetailPayload = {
@@ -106,7 +106,7 @@ export const AdminReports: React.FC<{ onRenew: (id: string, name: string) => voi
   };
   const expiringDetail: DetailPayload = {
     title: isRTL ? 'اشتراكات قاربت على الانتهاء' : 'Expiring soon',
-    note: isRTL ? 'اشتراكات بتنتهي خلال الأيام الجاية أو انتهت مؤخرًا، حسب تاريخ الانتهاء.' : 'Subscriptions ending soon or recently expired, by expiry date.',
+    note: isRTL ? 'اشتراكات تنتهي خلال الأيام القادمة أو انتهت مؤخرًا، حسب تاريخ الانتهاء.' : 'Subscriptions ending soon or recently expired, by expiry date.',
     rows: data.expiring.map((e) => ({ name: e.name, sub: e.expires_on, value: e.days < 0 ? (isRTL ? `منتهي ${-e.days}ي` : `${-e.days}d ago`) : `${e.days}${isRTL ? ' يوم' : 'd'}` })),
   };
   const title = 'mb-3 text-xs font-bold text-slate-300';

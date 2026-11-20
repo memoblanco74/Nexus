@@ -47,19 +47,19 @@ export const PortalCard: React.FC<{ child: Child; core: NurseryCore }> = ({ chil
         <h4 className="flex items-center gap-2 text-xs font-bold text-white"><Link2 className="h-4 w-4 text-indigo-400" />{tx('بوابة ولي الأمر', 'Parent portal')}</h4>
         <Badge tone={enabled ? 'ok' : 'muted'}>{enabled ? tx('مفعّلة', 'Enabled') : tx('متوقفة', 'Disabled')}</Badge>
       </div>
-      <p className="text-[11px] text-slate-400">{tx('لينك خاص بالطفل يشوف منه ولي الأمر تقرير اليوم والمدفوعات والتطعيمات من غير تسجيل دخول.', 'A private link where parents see daily reports, payments and vaccinations without signing in.')}</p>
+      <p className="text-[11px] text-slate-400">{tx('رابط خاص بالطفل يطّلع منه ولي الأمر على تقرير اليوم والمدفوعات والتطعيمات دون تسجيل الدخول.', 'A private link where parents see daily reports, payments and vaccinations without signing in.')}</p>
       {link && enabled && (
         <div className="flex gap-2">
           <input readOnly dir="ltr" value={link} className={`${inputClass} text-[10px]`} onFocus={(e) => e.currentTarget.select()} />
-          <button onClick={async () => { try { await navigator.clipboard.writeText(link); showToast(tx('تم نسخ اللينك', 'Link copied')); } catch { /* ignore */ } }} className="shrink-0 rounded-xl border border-slate-700 px-3 text-slate-300 hover:bg-slate-800"><Copy className="h-4 w-4" /></button>
+          <button onClick={async () => { try { await navigator.clipboard.writeText(link); showToast(tx('تم نسخ الرابط', 'Link copied')); } catch { /* ignore */ } }} className="shrink-0 rounded-xl border border-slate-700 px-3 text-slate-300 hover:bg-slate-800"><Copy className="h-4 w-4" /></button>
         </div>
       )}
       <div className="flex flex-wrap gap-2" data-write="1">
         {link && enabled && childPhone(child) && (
-          <button onClick={() => openWhatsApp(childPhone(child), tx(`أهلاً بحضرتك، ده اللينك الخاص بمتابعة ${child.full_name} في ${nursery} (تقارير اليوم والمدفوعات والتطعيمات): ${link}`, `Hello, here is the private link to follow ${child.full_name} at ${nursery}: ${link}`))} className="flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20"><MessageCircle className="h-3.5 w-3.5" />{tx('إرسال لولي الأمر', 'Send to parent')}</button>
+          <button onClick={() => openWhatsApp(childPhone(child), tx(`أهلاً بحضرتكم، هذا هو الرابط الخاص بمتابعة ${child.full_name} في ${nursery} (تقارير اليوم والمدفوعات والتطعيمات): ${link}`, `Hello, here is the private link to follow ${child.full_name} at ${nursery}: ${link}`))} className="flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20"><MessageCircle className="h-3.5 w-3.5" />{tx('إرسال لولي الأمر', 'Send to parent')}</button>
         )}
-        <button disabled={busy} onClick={() => call(!enabled, false)} className="rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-800">{enabled ? tx('إيقاف اللينك', 'Disable link') : tx('تفعيل اللينك', 'Enable link')}</button>
-        <button disabled={busy} onClick={async () => { if (await askConfirm({ danger: true, title: tx('تغيير اللينك', 'Regenerate link'), message: tx('اللينك القديم هيبطل يشتغل. متأكد؟', 'The old link will stop working. Continue?') })) call(null, true); }} className="flex items-center gap-1 rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-800"><RefreshCw className="h-3.5 w-3.5" />{tx('لينك جديد', 'New link')}</button>
+        <button disabled={busy} onClick={() => call(!enabled, false)} className="rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-800">{enabled ? tx('إيقاف الرابط', 'Disable link') : tx('تفعيل الرابط', 'Enable link')}</button>
+        <button disabled={busy} onClick={async () => { if (await askConfirm({ danger: true, title: tx('تغيير الرابط', 'Regenerate link'), message: tx('سيتوقف الرابط القديم عن العمل. هل أنت متأكد؟', 'The old link will stop working. Continue?') })) call(null, true); }} className="flex items-center gap-1 rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-300 hover:bg-slate-800"><RefreshCw className="h-3.5 w-3.5" />{tx('رابط جديد', 'New link')}</button>
       </div>
     </div>
   );
@@ -73,7 +73,7 @@ export const VaccineSchedule: React.FC<{ child: Child; vaccinations: Vaccination
   const rows = [...vaccinations].sort((a, b) => (a.due_date || a.given_on || '').localeCompare(b.due_date || b.given_on || ''));
 
   const generate = async () => {
-    if (!child.birth_date) { showToast(tx('سجّل تاريخ ميلاد الطفل الأول', 'Set the birth date first')); return; }
+    if (!child.birth_date) { showToast(tx('سجّل تاريخ ميلاد الطفل أولاً', 'Set the birth date first')); return; }
     const existing = new Set(vaccinations.map((v) => v.vaccine_name));
     const toAdd = VACCINE_SCHEDULE
       .map((v) => ({ name: isRTL ? v.ar : v.en, due: addMonthsISO(child.birth_date!, v.months) }))
@@ -100,11 +100,11 @@ export const VaccineSchedule: React.FC<{ child: Child; vaccinations: Vaccination
   };
 
   const status = (v: Vaccination) => {
-    if (v.given_on) return { tone: 'ok' as const, text: tx(`اتعمل ${v.given_on}`, `Given ${v.given_on}`) };
+    if (v.given_on) return { tone: 'ok' as const, text: tx(`تم ${v.given_on}`, `Given ${v.given_on}`) };
     if (!v.due_date) return { tone: 'muted' as const, text: '' };
     const d = daysUntil(v.due_date);
     if (d < 0) return { tone: 'bad' as const, text: tx(`متأخر ${-d} يوم`, `${-d}d overdue`) };
-    if (d <= 7) return { tone: 'warn' as const, text: d === 0 ? tx('النهارده', 'Today') : tx(`بعد ${d} يوم`, `in ${d}d`) };
+    if (d <= 7) return { tone: 'warn' as const, text: d === 0 ? tx('اليوم', 'Today') : tx(`بعد ${d} يوم`, `in ${d}d`) };
     return { tone: 'muted' as const, text: v.due_date };
   };
 
@@ -114,7 +114,7 @@ export const VaccineSchedule: React.FC<{ child: Child; vaccinations: Vaccination
         <h4 className="flex items-center gap-2 text-xs font-bold text-white"><Syringe className="h-4 w-4 text-emerald-400" />{tx('جدول التطعيمات', 'Vaccination schedule')}</h4>
         {canEdit && <button data-write="1" disabled={busy} onClick={generate} className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20">{tx('إنشاء الجدول المقترح', 'Generate suggested')}</button>}
       </div>
-      <p className="text-[10px] text-slate-500">{tx('الجدول مقترح حسب سن الطفل، راجعه مع طبيب الأطفال. تقدر تعدّل أو تحذف أي بند.', 'Suggested by age — confirm with the pediatrician. You can delete any item.')}</p>
+      <p className="text-[10px] text-slate-500">{tx('الجدول مقترح حسب سن الطفل، راجعه مع طبيب الأطفال. يمكنك تعديل أو حذف أي بند.', 'Suggested by age — confirm with the pediatrician. You can delete any item.')}</p>
       {rows.map((v) => {
         const st = status(v);
         const phone = childPhone(child);
@@ -174,7 +174,7 @@ export const BulkMessageModal: React.FC<{ children: Child[]; onClose: () => void
         ))}
       </div>
       <textarea rows={4} className={inputClass} value={text} onChange={(e) => setText(e.target.value)} placeholder={tx('اكتب الرسالة...', 'Write the message...')} />
-      <p className="text-[11px] text-slate-400">{tx(`هتتبعت لـ ${targets.length} ولي أمر (أرقام مكررة بتتحسب مرة). الإرسال واحد واحد عبر واتساب.`, `${targets.length} parents (duplicates counted once). Sent one by one via WhatsApp.`)} {tx('تم', 'Sent')}: {Object.keys(sent).length}</p>
+      <p className="text-[11px] text-slate-400">{tx(`ستُرسل إلى ${targets.length} ولي أمر (الأرقام المكررة تُحتسب مرة واحدة). الإرسال واحداً تلو الآخر عبر واتساب.`, `${targets.length} parents (duplicates counted once). Sent one by one via WhatsApp.`)} {tx('تم', 'Sent')}: {Object.keys(sent).length}</p>
       <div className="max-h-64 space-y-1.5 overflow-y-auto">
         {targets.map((c) => (
           <div key={c.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-800 px-3 py-2">
@@ -182,7 +182,7 @@ export const BulkMessageModal: React.FC<{ children: Child[]; onClose: () => void
             <button disabled={!text.trim()} onClick={() => { openWhatsApp(childPhone(c), text.trim()); setSent((s) => ({ ...s, [c.id]: true })); }} className={`shrink-0 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold disabled:opacity-40 ${sent[c.id] ? 'border-slate-700 text-slate-400' : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'}`}>{sent[c.id] ? tx('إعادة', 'Again') : tx('إرسال', 'Send')}</button>
           </div>
         ))}
-        {targets.length === 0 && <p className="py-4 text-center text-xs text-slate-500">{tx('مفيش أرقام موبايل مسجلة', 'No phone numbers on file')}</p>}
+        {targets.length === 0 && <p className="py-4 text-center text-xs text-slate-500">{tx('لا توجد أرقام هاتف مسجلة', 'No phone numbers on file')}</p>}
       </div>
     </Modal>
   );

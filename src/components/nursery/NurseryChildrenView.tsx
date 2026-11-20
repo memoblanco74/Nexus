@@ -130,7 +130,7 @@ const ChildFormModal: React.FC<{ child: Child | null; classes: NurseryClass[]; o
         </Field>
         )}
         {can('children.contacts') && (
-        <Field label={tx('موبايل الأب', 'Father phone')}>
+        <Field label={tx('هاتف الأب', 'Father phone')}>
           <input className={inputClass} inputMode="tel" value={form.father_phone || ''} onChange={(e) => set('father_phone', e.target.value)} />
         </Field>
         )}
@@ -140,7 +140,7 @@ const ChildFormModal: React.FC<{ child: Child | null; classes: NurseryClass[]; o
         </Field>
         )}
         {can('children.contacts') && (
-        <Field label={tx('موبايل الأم', 'Mother phone')}>
+        <Field label={tx('هاتف الأم', 'Mother phone')}>
           <input className={inputClass} inputMode="tel" value={form.mother_phone || ''} onChange={(e) => set('mother_phone', e.target.value)} />
         </Field>
         )}
@@ -155,7 +155,7 @@ const ChildFormModal: React.FC<{ child: Child | null; classes: NurseryClass[]; o
         </Field>
         )}
         {can('children.contacts') && (
-        <Field label={tx('موبايل ولي الأمر', 'Guardian phone')}>
+        <Field label={tx('هاتف ولي الأمر', 'Guardian phone')}>
           <input className={inputClass} inputMode="tel" value={form.guardian_phone || ''} onChange={(e) => set('guardian_phone', e.target.value)} />
         </Field>
         )}
@@ -249,9 +249,9 @@ const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () 
       <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
         {child.birth_date && <span>{ageLabel(child.birth_date, isRTL)}</span>}
         {child.address && <span>• {child.address}</span>}
-        <Badge tone={vacc.length ? 'ok' : 'warn'}>{vacc.length ? tx('اتطعّم', 'Vaccinated') : tx('لم يُسجَّل تطعيم', 'No vaccination')}</Badge>
+        <Badge tone={vacc.length ? 'ok' : 'warn'}>{vacc.length ? tx('تم تطعيمه', 'Vaccinated') : tx('لم يُسجَّل تطعيم', 'No vaccination')}</Badge>
         <Badge tone={due === 0 ? 'muted' : paid >= due ? 'ok' : 'bad'}>
-          {due === 0 ? tx('لا اشتراكات', 'No fees') : paid >= due ? tx('دافع هذا الشهر', 'Paid this month') : tx('لم يدفع هذا الشهر', 'Unpaid this month')}
+          {due === 0 ? tx('لا اشتراكات', 'No fees') : paid >= due ? tx('دفع هذا الشهر', 'Paid this month') : tx('لم يدفع هذا الشهر', 'Unpaid this month')}
         </Badge>
       </div>
       {can('children.health') && <AllergyAlert child={child} />}
@@ -279,7 +279,7 @@ const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () 
           <Truck className="h-4 w-4 text-blue-400" />
           {tx('اشتراكات الطفل', 'Child subscriptions')}
         </h4>
-        {items.length === 0 && <p className="text-[11px] text-slate-500">{tx('المؤسس لسه ماضافش أنواع اشتراكات. من صفحة الاشتراكات والمدفوعات.', 'No subscription types yet. Add them from Fees & Payments.')}</p>}
+        {items.length === 0 && <p className="text-[11px] text-slate-500">{tx('لم يضف المؤسس أنواع اشتراكات بعد. يمكن إضافتها من صفحة الاشتراكات والمدفوعات.', 'No subscription types yet. Add them from Fees & Payments.')}</p>}
         {items.map((item) => {
           const a = assigned.find((x) => x.fee_item_id === item.id);
           return (
@@ -308,7 +308,7 @@ const ChildDetailModal: React.FC<{ child: Child; core: NurseryCore; onClose: () 
           <span>{tx('الإجمالي الشهري', 'Monthly total')}</span>
           <span>{money(due)}</span>
         </div>
-        {profile?.roleCode && <p className="text-[10px] text-slate-500">{tx('اكتب سعر خاص في الخانة لو الطفل له خصم، أو سيبها فاضية لسعر الاشتراك العام.', 'Type a custom price to override the default.')}</p>}
+        {profile?.roleCode && <p className="text-[10px] text-slate-500">{tx('اكتب سعراً خاصاً في الخانة إذا كان للطفل خصم، أو اتركها فارغة لسعر الاشتراك العام.', 'Type a custom price to override the default.')}</p>}
       </div>
       {can('portal.manage') && <PortalCard child={child} core={core} />}
     </Modal>
@@ -379,7 +379,7 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
 
       <div className="relative">
         <Search className={`absolute top-2.5 h-4 w-4 text-slate-500 ${isRTL ? 'right-3' : 'left-3'}`} />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tx('بحث بالاسم أو الموبايل...', 'Search name or phone...')} className={`${inputClass} ${isRTL ? 'pr-9' : 'pl-9'}`} />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tx('بحث بالاسم أو الهاتف...', 'Search name or phone...')} className={`${inputClass} ${isRTL ? 'pr-9' : 'pl-9'}`} />
       </div>
 
       <ClassFilter core={core} value={classFilter} onChange={setClassFilter} />
@@ -417,9 +417,9 @@ export const NurseryChildrenView: React.FC<{ core: NurseryCore }> = ({ core }) =
                   </button>}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  <Badge tone={vacc ? 'ok' : 'warn'}>{vacc ? tx('اتطعّم', 'Vaccinated') : tx('بدون تطعيم', 'No vaccine')}</Badge>
+                  <Badge tone={vacc ? 'ok' : 'warn'}>{vacc ? tx('تم تطعيمه', 'Vaccinated') : tx('بدون تطعيم', 'No vaccine')}</Badge>
                   <Badge tone={due === 0 ? 'muted' : paid >= due ? 'ok' : 'bad'}>
-                    {due === 0 ? tx('بدون اشتراك', 'No fees') : paid >= due ? tx('دافع الشهر', 'Paid') : `${tx('متبقي', 'Due')} ${money(Math.max(due - paid, 0))}`}
+                    {due === 0 ? tx('بدون اشتراك', 'No fees') : paid >= due ? tx('دفع هذا الشهر', 'Paid') : `${tx('متبقي', 'Due')} ${money(Math.max(due - paid, 0))}`}
                   </Badge>
                   {usesTransport && <Badge tone="muted">{tx('مواصلات', 'Transport')}</Badge>}
                 </div>

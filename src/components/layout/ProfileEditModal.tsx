@@ -44,7 +44,7 @@ export const ProfileEditModal: React.FC<{ isRTL: boolean; onClose: () => void }>
 
   const handleChangePassword = async () => {
     if (newPassword.length < 6) {
-      setError(isRTL ? 'الباسورد لازم يكون 6 حروف على الأقل' : 'Password must be at least 6 characters');
+      setError(isRTL ? 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل' : 'Password must be at least 6 characters');
       return;
     }
     setSavingPassword(true);
@@ -54,7 +54,7 @@ export const ProfileEditModal: React.FC<{ isRTL: boolean; onClose: () => void }>
     setSavingPassword(false);
     if (result.error) setError(result.error);
     else {
-      setSuccess(isRTL ? 'تم تغيير الباسورد' : 'Password changed');
+      setSuccess(isRTL ? 'تم تغيير كلمة المرور' : 'Password changed');
       setNewPassword('');
     }
   };
@@ -113,7 +113,7 @@ export const ProfileEditModal: React.FC<{ isRTL: boolean; onClose: () => void }>
             onChange={(e) => setFullName(e.target.value)}
             className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white"
           />
-          <label className="block text-[11px] text-slate-400">{isRTL ? 'رقم الموبايل' : 'Mobile Number'}</label>
+          <label className="block text-[11px] text-slate-400">{isRTL ? 'رقم الهاتف المحمول' : 'Mobile Number'}</label>
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -130,12 +130,12 @@ export const ProfileEditModal: React.FC<{ isRTL: boolean; onClose: () => void }>
 
         {/* Password */}
         <div className="space-y-2 border-t border-slate-800 pt-3">
-          <label className="block text-[11px] text-slate-400">{isRTL ? 'باسورد جديد' : 'New Password'}</label>
+          <label className="block text-[11px] text-slate-400">{isRTL ? 'كلمة مرور جديدة' : 'New Password'}</label>
           <input
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            placeholder={isRTL ? 'اتركه فاضي لو مش عايز تغيّره' : 'Leave blank to keep current'}
+            placeholder={isRTL ? 'اتركه فارغاً إن لم ترغب في تغييره' : 'Leave blank to keep current'}
             className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500"
           />
           <button
@@ -143,7 +143,7 @@ export const ProfileEditModal: React.FC<{ isRTL: boolean; onClose: () => void }>
             disabled={savingPassword || !newPassword}
             className="w-full rounded-xl border border-slate-700 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-900 disabled:opacity-50"
           >
-            {savingPassword ? '...' : isRTL ? 'تغيير الباسورد' : 'Change Password'}
+            {savingPassword ? '...' : isRTL ? 'تغيير كلمة المرور' : 'Change Password'}
           </button>
         </div>
       </div>

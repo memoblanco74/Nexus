@@ -54,7 +54,7 @@ const StaffForm: React.FC<{ staff: Staff | null; tenantId: string; onClose: () =
     <Modal title={staff ? tx('تعديل موظف', 'Edit staff') : tx('موظف جديد', 'New staff')} onClose={onClose} footer={<button disabled={busy} onClick={save} className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 disabled:opacity-50">{tx('حفظ', 'Save')}</button>}>
       <Field label={tx('الاسم', 'Name')}><input className={inputClass} value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></Field>
       <Field label={tx('الوظيفة', 'Job title')}><input className={inputClass} placeholder={tx('مدرسة / مساعدة / سائق', 'Teacher / Assistant / Driver')} value={form.job_title} onChange={(e) => setForm({ ...form, job_title: e.target.value })} /></Field>
-      <Field label={tx('الموبايل', 'Phone')}><input className={inputClass} dir="ltr" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
+      <Field label={tx('الهاتف', 'Phone')}><input className={inputClass} dir="ltr" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
       <Field label={tx('المرتب الشهري (ج.م)', 'Monthly salary (EGP)')}><input className={inputClass} inputMode="decimal" value={form.salary} onChange={(e) => setForm({ ...form, salary: e.target.value })} /></Field>
       <div className="grid grid-cols-3 gap-2">
         <Field label={tx('ضريبة المرتب %', 'Salary tax %')}><input className={inputClass} inputMode="decimal" value={form.tax} onChange={(e) => setForm({ ...form, tax: e.target.value })} /></Field>
@@ -97,7 +97,7 @@ const PayModal: React.FC<{ staff: Staff; period: string; tenantId: string; sugge
       <Field label={tx('خصومات (غياب / جزاءات)', 'Deductions')}><input className={inputClass} inputMode="decimal" value={deduction} onChange={(e) => setDeduction(e.target.value)} /></Field>
       <Field label={tx('مكافآت / إضافي', 'Bonus')}><input className={inputClass} inputMode="decimal" value={bonus} onChange={(e) => setBonus(e.target.value)} /></Field>
       {taxPct > 0 && <p className="text-xs text-slate-300">{tx(`ضريبة المرتب ${taxPct}%`, `Salary tax ${taxPct}%`)}: <b className="text-amber-300">{money(tax)}</b> • {tx('الصافي', 'Net')}: <b className="text-white">{money(net)}</b></p>}
-      <p className="text-[10px] text-slate-500">{tx('الخصم المقترح محسوب من أيام الغياب (المرتب ÷ 26 لكل يوم) وتقدر تعدله.', 'Suggested deduction is absent days × (salary ÷ 26). You can edit it.')}</p>
+      <p className="text-[10px] text-slate-500">{tx('الخصم المقترح محسوب من أيام الغياب (المرتب ÷ 26 لكل يوم) ويمكنك تعديله.', 'Suggested deduction is absent days × (salary ÷ 26). You can edit it.')}</p>
     </Modal>
   );
 };
@@ -190,7 +190,7 @@ export const NurseryStaffTab: React.FC = () => {
         </div>
       </div>
 
-      {staff.length === 0 && <p className={`${cardClass} text-center text-xs text-slate-500`}>{tx('لسه ماضفتش موظفين (مدرسين، مساعدات، سائقين).', 'No staff yet.')}</p>}
+      {staff.length === 0 && <p className={`${cardClass} text-center text-xs text-slate-500`}>{tx('لم تضف موظفين بعد (مدرسين، مساعدات، سائقين).', 'No staff yet.')}</p>}
 
       {view === 'attendance' && active.map((s) => {
         const cur = att.find((a) => a.staff_id === s.id && a.day === day)?.status;
@@ -241,7 +241,7 @@ export const NurseryStaffTab: React.FC = () => {
               <input className={`${inputClass} max-w-[8rem]`} inputMode="decimal" placeholder="%" value={bulkPct} onChange={(e) => setBulkPct(e.target.value)} />
               <button disabled={busyRaise || !(Number(bulkPct) > 0)} onClick={async () => { if (await askConfirm({ message: tx(`تطبيق زيادة ${bulkPct}% على كل الموظفين على رأس العمل؟`, `Apply a ${bulkPct}% raise to all active staff?`), confirmText: tx('تطبيق', 'Apply') })) applyRaise(active.map((x) => x.id), Number(bulkPct), true); }} className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-400">{tx('تطبيق على الكل', 'Apply to all')}</button>
             </div>
-            <p className="text-[10px] text-slate-500">{tx('أو حدّد نسبة لكل موظف من زر التعديل، وهتظهر هنا لما ييجي شهرها.', 'Or set a % per employee in the edit form; they appear here when due.')}</p>
+            <p className="text-[10px] text-slate-500">{tx('أو حدّد نسبة لكل موظف من زر التعديل، وستظهر هنا عند حلول شهرها.', 'Or set a % per employee in the edit form; they appear here when due.')}</p>
           </div>
           {active.map((s) => {
             const due = raiseDue(s);
@@ -253,7 +253,7 @@ export const NurseryStaffTab: React.FC = () => {
                   <p className="text-[11px] text-slate-500">{money(s.monthly_salary)} • {pct > 0 ? `${pct}%${s.raise_month ? ` • ${tx('شهر', 'month')} ${s.raise_month}` : ''}` : tx('بدون نسبة زيادة', 'No raise set')}{s.last_raise_on ? ` • ${tx('آخر زيادة', 'last')} ${s.last_raise_on}` : ''}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {pct > 0 && <Badge tone={due ? 'warn' : 'muted'}>{due ? tx(`مستحقة → ${money(Math.round(s.monthly_salary * (1 + pct / 100) * 100) / 100)}`, `Due → ${money(Math.round(s.monthly_salary * (1 + pct / 100) * 100) / 100)}`) : tx('مش مستحقة', 'Not due')}</Badge>}
+                  {pct > 0 && <Badge tone={due ? 'warn' : 'muted'}>{due ? tx(`مستحقة → ${money(Math.round(s.monthly_salary * (1 + pct / 100) * 100) / 100)}`, `Due → ${money(Math.round(s.monthly_salary * (1 + pct / 100) * 100) / 100)}`) : tx('غير مستحقة', 'Not due')}</Badge>}
                   <button data-write="1" disabled={busyRaise || !due} onClick={() => applyRaise([s.id], null, false)} className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1.5 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-40">{tx('تطبيق', 'Apply')}</button>
                   <button data-write="1" onClick={() => setEditing(s)} className="rounded-lg border border-slate-700 p-1.5 text-slate-400 hover:bg-slate-800"><Pencil className="h-3.5 w-3.5" /></button>
                 </div>

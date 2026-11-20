@@ -27,10 +27,10 @@ export const ReferralPromptStep: React.FC = () => {
           <Ticket className="h-6 w-6" />
         </span>
         <div>
-          <h2 className="text-base font-extrabold text-white">{isRTL ? 'معاك كود خصم؟' : 'Do you have a discount code?'}</h2>
+          <h2 className="text-base font-extrabold text-white">{isRTL ? 'هل لديك كود خصم؟' : 'Do you have a discount code?'}</h2>
           <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
             {isRTL
-              ? `لو حد بعتلك كود دعوة اكتبه دلوقتي وهتاخد خصم ${referral?.defaultPercent || ''}% ويتاخد نفس الخصم لصاحب الكود. تقدر كمان تضيفه بعدين من الإعدادات، بس مرة واحدة فقط.`
+              ? `إذا أرسل لك أحد كود دعوة فأدخله الآن لتحصل على خصم ${referral?.defaultPercent || ''}% ويحصل صاحب الكود على نفس الخصم. يمكنك أيضاً إضافته لاحقاً من الإعدادات، لكن مرة واحدة فقط.`
               : `If someone sent you an invite code, enter it now to get ${referral?.defaultPercent || ''}% off, and the same discount goes to the person who invited you. You can also add it later from Settings, once only.`}
           </p>
         </div>
@@ -97,7 +97,7 @@ export const ReferralCard: React.FC = () => {
       <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
         <p className="text-[11px] text-slate-400">
           {isRTL
-            ? `كودك الخاص: ابعته لأي مشترك جديد، لما يستخدمه انت وهو تاخدوا خصم ${referral.defaultPercent}%.`
+            ? `كودك الخاص: أرسله لأي مشترك جديد، وعندما يستخدمه تحصلان أنت وهو على خصم ${referral.defaultPercent}%.`
             : `Your code: send it to a new subscriber; when they use it, you both get ${referral.defaultPercent}% off.`}
         </p>
         <div className="mt-2 flex items-center gap-2">
@@ -134,7 +134,7 @@ export const ReferralCard: React.FC = () => {
       ) : (
         <div className="space-y-2">
           <p className="text-[11px] text-slate-400">
-            {isRTL ? 'معاك كود دعوة من مشترك؟ اكتبه هنا، مرة واحدة فقط.' : 'Have an invite code? Enter it here, once only.'}
+            {isRTL ? 'هل لديك كود دعوة من مشترك؟ أدخله هنا، مرة واحدة فقط.' : 'Have an invite code? Enter it here, once only.'}
           </p>
           <div className="flex gap-2">
             <input

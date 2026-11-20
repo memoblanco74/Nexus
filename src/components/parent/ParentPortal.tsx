@@ -65,8 +65,8 @@ export const ParentPortal: React.FC<{ token: string }> = ({ token }) => {
     return (
       <div className={`${shell} flex items-center justify-center p-6 text-center`}>
         <div className="max-w-sm rounded-2xl bg-white p-6 shadow">
-          <p className="text-base font-extrabold">{tx('اللينك غير صالح أو متوقف', 'This link is invalid or disabled')}</p>
-          <p className="mt-2 text-xs text-slate-500">{tx('اطلب من الحضانة لينك جديد.', 'Ask the nursery for a new link.')}</p>
+          <p className="text-base font-extrabold">{tx('الرابط غير صالح أو متوقف', 'This link is invalid or disabled')}</p>
+          <p className="mt-2 text-xs text-slate-500">{tx('اطلب من الحضانة رابطاً جديداً.', 'Ask the nursery for a new link.')}</p>
         </div>
       </div>
     );

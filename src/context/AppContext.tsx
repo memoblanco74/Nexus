@@ -1275,8 +1275,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     showToast(
       active
-        ? isRTL ? 'الإعلان ظاهر للفاوندرز الآن' : 'Announcement is now visible to founders'
-        : isRTL ? 'تم إخفاء الإعلان عن الفاوندرز' : 'Announcement hidden from founders'
+        ? isRTL ? 'الإعلان ظاهر للمؤسسين الآن' : 'Announcement is now visible to founders'
+        : isRTL ? 'تم إخفاء الإعلان عن المؤسسين' : 'Announcement hidden from founders'
     );
   };
 
@@ -1673,7 +1673,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (error || !newTenantId) {
       showToast(
         error?.message?.includes('INVALID_NAME')
-          ? isRTL ? 'اسم المشروع لازم يكون من 2 إلى 60 حرف' : 'Project name must be 2 to 60 characters'
+          ? isRTL ? 'يجب أن يتراوح اسم المشروع بين 2 و60 حرفًا' : 'Project name must be 2 to 60 characters'
           : error?.message || 'Error creating project'
       );
       return false;
@@ -1682,7 +1682,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       await reloadMemberships();
     } catch {
-      showToast(isRTL ? 'الاشتراك تم لكن التحميل فشل، حاول تاني' : 'Subscribed, but loading failed. Please try again');
+      showToast(isRTL ? 'تم الاشتراك لكن فشل التحميل، حاول مرة أخرى' : 'Subscribed, but loading failed. Please try again');
       return false;
     }
     subscribeReqRef.current = null;
@@ -1696,7 +1696,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (error) {
       showToast(
         error.message.includes('INVALID_NAME')
-          ? isRTL ? 'اسم المشروع لازم يكون من 2 إلى 60 حرف' : 'Project name must be 2 to 60 characters'
+          ? isRTL ? 'يجب أن يتراوح اسم المشروع بين 2 و60 حرفًا' : 'Project name must be 2 to 60 characters'
           : error.message
       );
       return false;
@@ -1711,13 +1711,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (error) {
       showToast(
         error.message.includes('READ_ONLY')
-          ? isRTL ? 'الاشتراك منتهي، لا يمكن مسح البيانات' : 'Subscription expired, data cannot be erased'
+          ? isRTL ? 'الاشتراك منتهي، لا يمكن حذف البيانات' : 'Subscription expired, data cannot be erased'
           : error.message
       );
       return false;
     }
     await Promise.all([refreshPatients(), refreshBookings(), refreshInventory(), refreshInvoices(), refreshProjects(), refreshExpenses()]);
-    showToast(isRTL ? 'تم مسح كل بيانات المشروع' : 'All project data erased');
+    showToast(isRTL ? 'تم حذف كل بيانات المشروع' : 'All project data erased');
     return true;
   };
 
@@ -1738,7 +1738,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
     await refreshSystemTemplates();
-    showToast(isRTL ? 'تم إضافة النظام' : 'System added');
+    showToast(isRTL ? 'تمت إضافة النظام' : 'System added');
   };
 
   const updateSystemTemplate = async (id: string, updates: Partial<SystemTemplate>) => {

@@ -121,7 +121,7 @@ const ReportEditor: React.FC<{
       showToast(res.error || 'Error');
       return false;
     }
-    if (res.queued) showToast(tx('اتحفظ على الجهاز وهيتزامن لما النت يرجع', 'Saved on this device, will sync when online'));
+    if (res.queued) showToast(tx('تم الحفظ على الجهاز وستتم المزامنة عند عودة الإنترنت', 'Saved on this device, will sync when online'));
     setBaseline(JSON.stringify(log));
     onSaved();
     return true;
@@ -136,7 +136,7 @@ const ReportEditor: React.FC<{
       const msg = isRTL ? `تقرير ${child.full_name} ليوم ${day}` : `${child.full_name} report for ${day}`;
       const safeName = `${child.full_name.replace(/[\\/:*?"<>|\s]+/g, '_')}_${day}.pdf`;
       const result = await sendReportViaWhatsApp(blob, safeName, target, msg);
-      if (result === 'downloaded') showToast(tx('اتحمّل الـ PDF وفتحنا واتساب، أرفق الملف في المحادثة', 'PDF downloaded and WhatsApp opened, attach the file to the chat'));
+      if (result === 'downloaded') showToast(tx('تم تنزيل ملف PDF وفتح واتساب، أرفق الملف في المحادثة', 'PDF downloaded and WhatsApp opened, attach the file to the chat'));
     } catch (e: any) {
       showToast(e?.message || 'Error');
     }
@@ -155,7 +155,7 @@ const ReportEditor: React.FC<{
           <button
             onClick={sendPdf}
             disabled={sending || dirty}
-            title={dirty ? tx('احفظ الأول', 'Save first') : ''}
+            title={dirty ? tx('احفظ أولاً', 'Save first') : ''}
             className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-40"
           >
             {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -176,7 +176,7 @@ const ReportEditor: React.FC<{
           </select>
         </div>
       )}
-      {phones.length === 0 && <p className="text-[11px] text-amber-400">{tx('مفيش رقم موبايل مسجل لولي الأمر. أضفه من بيانات الطفل.', 'No parent phone saved for this child.')}</p>}
+      {phones.length === 0 && <p className="text-[11px] text-amber-400">{tx('لا يوجد رقم هاتف محمول مسجل لولي الأمر. أضفه من بيانات الطفل.', 'No parent phone saved for this child.')}</p>}
 
       <div className="grid grid-cols-2 gap-2">
         {(['present', 'absent'] as const).map((s) => (
@@ -205,30 +205,30 @@ const ReportEditor: React.FC<{
         <>
           <Section title={tx('الوصول والانصراف', 'Arrival & departure')}>
             <div className="grid grid-cols-2 gap-3">
-              <Field label={tx('وصل الساعة', 'Arrival')}>
+              <Field label={tx('وقت الوصول', 'Arrival')}>
                 <TimeField value={log.arrival_time} onChange={(v) => set('arrival_time', v)} />
               </Field>
-              <Field label={tx('مشي الساعة', 'Departure')}>
+              <Field label={tx('وقت المغادرة', 'Departure')}>
                 <TimeField value={log.departure_time} onChange={(v) => set('departure_time', v)} />
               </Field>
               <Field label={tx('طريقة الانصراف', 'Departure mode')} className="col-span-2">
                 <select className={inputClass} value={log.departure_mode} onChange={(e) => set('departure_mode', e.target.value as DailyLog['departure_mode'])}>
                   <option value="">—</option>
                   <option value="pickup">{tx('استلمه من الحضانة', 'Picked up at nursery')}</option>
-                  <option value="transport">{tx('توصيل للبيت (مواصلات)', 'Transport to home')}</option>
+                  <option value="transport">{tx('توصيل إلى المنزل (مواصلات)', 'Transport to home')}</option>
                 </select>
               </Field>
               {log.departure_mode === 'pickup' && (
-                <Field label={tx('مين استلمه', 'Received by')} className="col-span-2">
+                <Field label={tx('من استلمه', 'Received by')} className="col-span-2">
                   <input className={inputClass} value={log.received_by} onChange={(e) => set('received_by', e.target.value)} />
                 </Field>
               )}
               {log.departure_mode === 'transport' && (
                 <>
-                  <Field label={tx('المشرف اللي هيوصله', 'Transport supervisor')} className="col-span-2">
+                  <Field label={tx('المشرف الذي سيوصله', 'Transport supervisor')} className="col-span-2">
                     <input className={inputClass} value={log.transport_supervisor} onChange={(e) => set('transport_supervisor', e.target.value)} />
                   </Field>
-                  <Field label={tx('سلّمه لمين', 'Handed to')}>
+                  <Field label={tx('سُلِّم إلى', 'Handed to')}>
                     <input className={inputClass} value={log.delivered_to} onChange={(e) => set('delivered_to', e.target.value)} />
                   </Field>
                   <Field label={tx('وقت التسليم', 'Handed at')}>
@@ -244,10 +244,10 @@ const ReportEditor: React.FC<{
               </label>
               <label className="flex items-center gap-2">
                 <input type="checkbox" className="h-4 w-4 accent-blue-500" checked={log.supplies_brought} onChange={(e) => set('supplies_brought', e.target.checked)} />
-                {tx('جاب سابلايز', 'Brought supplies')}
+                {tx('أحضر المستلزمات', 'Brought supplies')}
               </label>
             </div>
-            {log.supplies_brought && <input className={inputClass} placeholder={tx('إيه اللي جابه؟', 'What was brought?')} value={log.supplies_note} onChange={(e) => set('supplies_note', e.target.value)} />}
+            {log.supplies_brought && <input className={inputClass} placeholder={tx('ما الذي أحضره؟', 'What was brought?')} value={log.supplies_note} onChange={(e) => set('supplies_note', e.target.value)} />}
           </Section>
 
           <Section title={tx('الوجبات', 'Meals')}>
@@ -255,7 +255,7 @@ const ReportEditor: React.FC<{
               <div key={type} className="flex items-center gap-2">
                 <span className="w-20 shrink-0 text-xs text-slate-300">{mealLabel(type)}</span>
                 <input type="number" min={0} className={`${inputClass} max-w-[5rem] text-center`} value={meal(type).times || ''} placeholder={tx('مرات', 'times')} onChange={(e) => setMeal(type, { times: Math.max(0, Number(e.target.value) || 0) })} />
-                <input className={inputClass} placeholder={tx('ملاحظة (اتغدى كويس، أكل نص...)', 'Note')} value={meal(type).note} onChange={(e) => setMeal(type, { note: e.target.value })} />
+                <input className={inputClass} placeholder={tx('ملاحظة (تناول الغداء جيداً، أكل نصف الوجبة...)', 'Note')} value={meal(type).note} onChange={(e) => setMeal(type, { note: e.target.value })} />
               </div>
             ))}
           </Section>
@@ -278,7 +278,7 @@ const ReportEditor: React.FC<{
             {log.medicines.map((m, i) => (
               <div key={i} className="grid grid-cols-[1fr_1fr_6.5rem_auto] items-center gap-2">
                 <input className={inputClass} placeholder={tx('اسم الدواء', 'Name')} value={m.name} onChange={(e) => set('medicines', log.medicines.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} />
-                <input className={inputClass} placeholder={tx('ليه؟', 'Why?')} value={m.reason} onChange={(e) => set('medicines', log.medicines.map((x, j) => (j === i ? { ...x, reason: e.target.value } : x)))} />
+                <input className={inputClass} placeholder={tx('لماذا؟', 'Why?')} value={m.reason} onChange={(e) => set('medicines', log.medicines.map((x, j) => (j === i ? { ...x, reason: e.target.value } : x)))} />
                 <input type="time" className={inputClass} value={m.time} onChange={(e) => set('medicines', log.medicines.map((x, j) => (j === i ? { ...x, time: e.target.value } : x)))} />
                 <RemoveBtn onClick={() => set('medicines', log.medicines.filter((_, j) => j !== i))} />
               </div>
@@ -290,14 +290,14 @@ const ReportEditor: React.FC<{
               <div key={i} className="flex items-center gap-2">
                 <span className="text-[11px] text-slate-400">{tx('نام', 'From')}</span>
                 <input type="time" className={inputClass} value={n.from} onChange={(e) => set('naps', log.naps.map((x, j) => (j === i ? { ...x, from: e.target.value } : x)))} />
-                <span className="text-[11px] text-slate-400">{tx('صحي', 'To')}</span>
+                <span className="text-[11px] text-slate-400">{tx('استيقظ', 'To')}</span>
                 <input type="time" className={inputClass} value={n.to} onChange={(e) => set('naps', log.naps.map((x, j) => (j === i ? { ...x, to: e.target.value } : x)))} />
                 <RemoveBtn onClick={() => set('naps', log.naps.filter((_, j) => j !== i))} />
               </div>
             ))}
           </Section>
 
-          <Section title={tx('تغيير الهدوم', 'Clothes changes')} action={<AddBtn label={tx('إضافة', 'Add')} onClick={() => set('clothes', [...log.clothes, { time: nowHHMM(), note: '' }])} />}>
+          <Section title={tx('تغيير الملابس', 'Clothes changes')} action={<AddBtn label={tx('إضافة', 'Add')} onClick={() => set('clothes', [...log.clothes, { time: nowHHMM(), note: '' }])} />}>
             {log.clothes.map((c, i) => (
               <div key={i} className="flex items-center gap-2">
                 <input type="time" className={`${inputClass} max-w-[7.5rem]`} value={c.time} onChange={(e) => set('clothes', log.clothes.map((x, j) => (j === i ? { ...x, time: e.target.value } : x)))} />
@@ -308,11 +308,11 @@ const ReportEditor: React.FC<{
           </Section>
 
           <Section title={tx('اليوم الدراسي', 'School day')}>
-            <Field label={tx('أخد إيه في اليوم الدراسي', 'What the child did')}>
+            <Field label={tx('ماذا فعل في اليوم الدراسي', 'What the child did')}>
               <textarea rows={2} className={inputClass} value={log.daily_activities} onChange={(e) => set('daily_activities', e.target.value)} />
             </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label={tx('البريك امتى', 'Break time')}>
+              <Field label={tx('موعد الاستراحة', 'Break time')}>
                 <input className={inputClass} value={log.break_time} onChange={(e) => set('break_time', e.target.value)} />
               </Field>
               <Field label={tx('Fun day', 'Fun day')}>

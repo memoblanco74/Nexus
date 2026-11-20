@@ -43,7 +43,7 @@ export const ImportModal: React.FC<{ entity: ImportEntity; onClose: () => void; 
     setErr('');
     try {
       const s = await readSheet(f);
-      if (s.rows.length === 0) setErr(tx('الملف فاضي أو مفيهوش صفوف بيانات', 'The file has no data rows'));
+      if (s.rows.length === 0) setErr(tx('الملف فارغ أو لا يحتوي على صفوف بيانات', 'The file has no data rows'));
       else if (s.rows.length > 2000) setErr(tx('الحد الأقصى 2000 صف في المرة', 'Maximum 2000 rows per import'));
       else setSheet(s);
     } catch {
@@ -81,7 +81,7 @@ export const ImportModal: React.FC<{ entity: ImportEntity; onClose: () => void; 
         </button>
         <input ref={fileRef} type="file" accept=".xlsx,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onFile(f); }} />
       </div>
-      <p className="text-[11px] text-slate-500">{tx('الصف الأول لازم يكون عناوين الأعمدة. حمّل القالب واملاه، أو ارفع ملفك بنفس العناوين.', 'The first row must be the column headings. Download the template, or use your own file with the same headings.')}</p>
+      <p className="text-[11px] text-slate-500">{tx('يجب أن يحتوي الصف الأول على عناوين الأعمدة. حمّل القالب واملأه، أو ارفع ملفك بنفس العناوين.', 'The first row must be the column headings. Download the template, or use your own file with the same headings.')}</p>
       {err && <p className="rounded-xl bg-red-500/10 p-3 text-xs text-red-300">{err}</p>}
 
       {sheet && (
@@ -93,8 +93,8 @@ export const ImportModal: React.FC<{ entity: ImportEntity; onClose: () => void; 
               </span>
             ))}
           </div>
-          {missingRequired.length > 0 && <p className="text-[11px] text-red-300">{tx('عمود مطلوب مش موجود في الملف: ', 'Required column not found: ')}{missingRequired.map((c) => (isRTL ? c.labelAr : c.labelEn)).join('، ')}</p>}
-          <p className="flex items-center gap-1.5 text-xs text-slate-300"><FileSpreadsheet className="h-4 w-4 text-emerald-400" />{tx(`${good.length} صف سليم`, `${good.length} valid row(s)`)}{bad.length > 0 && <span className="text-amber-300"> — {tx(`${bad.length} صف هيتم تخطيه`, `${bad.length} row(s) will be skipped`)}</span>}</p>
+          {missingRequired.length > 0 && <p className="text-[11px] text-red-300">{tx('عمود مطلوب غير موجود في الملف: ', 'Required column not found: ')}{missingRequired.map((c) => (isRTL ? c.labelAr : c.labelEn)).join('، ')}</p>}
+          <p className="flex items-center gap-1.5 text-xs text-slate-300"><FileSpreadsheet className="h-4 w-4 text-emerald-400" />{tx(`${good.length} صف سليم`, `${good.length} valid row(s)`)}{bad.length > 0 && <span className="text-amber-300"> — {tx(`${bad.length} صف سيتم تخطيه`, `${bad.length} row(s) will be skipped`)}</span>}</p>
           {bad.length > 0 && (
             <ul className="max-h-24 overflow-y-auto rounded-xl border border-slate-800 p-2 text-[11px] text-amber-300">
               {bad.slice(0, 20).map((b, i) => <li key={i}>{tx('صف', 'Row')} {checked.indexOf(b) + 2}: {b.error}</li>)}

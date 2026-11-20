@@ -54,8 +54,8 @@ export const PatientRecordsModal: React.FC<{ patient: Patient; onClose: () => vo
   const save = async () => {
     if (!tenantId || !adding) return;
     const cleanItems = items.filter((i) => i.drug.trim());
-    if (adding === 'prescription' && cleanItems.length === 0) { showToast(tx('اكتب دواء واحد على الأقل', 'Add at least one drug')); return; }
-    if (adding !== 'prescription' && !title.trim() && !body.trim()) { showToast(tx('اكتب عنوان أو تفاصيل', 'Enter a title or details')); return; }
+    if (adding === 'prescription' && cleanItems.length === 0) { showToast(tx('أدخل دواءً واحداً على الأقل', 'Add at least one drug')); return; }
+    if (adding !== 'prescription' && !title.trim() && !body.trim()) { showToast(tx('أدخل عنواناً أو تفاصيل', 'Enter a title or details')); return; }
     setBusy(true);
     const { error } = await supabase.from('patient_records').insert({
       tenant_id: tenantId,
@@ -94,7 +94,7 @@ export const PatientRecordsModal: React.FC<{ patient: Patient; onClose: () => vo
   };
 
   const remove = async (r: RecordRow) => {
-    if (!(await askConfirm({ danger: true, message: tx('حذف السجل ده؟', 'Delete this record?') }))) return;
+    if (!(await askConfirm({ danger: true, message: tx('حذف هذا السجل؟', 'Delete this record?') }))) return;
     if (r.file_path) await supabase.storage.from('patient-files').remove([r.file_path]);
     const { error } = await supabase.from('patient_records').delete().eq('id', r.id);
     if (error) showToast(error.message);
@@ -109,7 +109,7 @@ export const PatientRecordsModal: React.FC<{ patient: Patient; onClose: () => vo
   };
 
   const icon = (k: Kind) => (k === 'diagnosis' ? <Stethoscope className="h-4 w-4 text-blue-400" /> : k === 'prescription' ? <Pill className="h-4 w-4 text-emerald-400" /> : k === 'file' ? <Paperclip className="h-4 w-4 text-amber-400" /> : <StickyNote className="h-4 w-4 text-slate-400" />);
-  const kindLabel = (k: Kind) => ({ diagnosis: tx('تشخيص', 'Diagnosis'), prescription: tx('روشتة', 'Prescription'), note: tx('ملاحظة', 'Note'), file: tx('مرفق', 'File') })[k];
+  const kindLabel = (k: Kind) => ({ diagnosis: tx('تشخيص', 'Diagnosis'), prescription: tx('وصفة طبية', 'Prescription'), note: tx('ملاحظة', 'Note'), file: tx('مرفق', 'File') })[k];
 
   return (
     <Modal title={`${tx('الملف الطبي', 'Medical file')} — ${patientName}`} onClose={onClose} wide>
@@ -145,7 +145,7 @@ export const PatientRecordsModal: React.FC<{ patient: Patient; onClose: () => vo
             <textarea rows={3} className={inputClass} value={body} onChange={(e) => setBody(e.target.value)} />
           </Field>
           {adding !== 'file' && (
-            <Field label={tx('موعد المتابعة (اختياري) — هيظهر في تذكيرات المتابعة', 'Follow-up date (optional)')}>
+            <Field label={tx('موعد المتابعة (اختياري) — سيظهر في تذكيرات المتابعة', 'Follow-up date (optional)')}>
               <input type="date" className={inputClass} value={followUp} onChange={(e) => setFollowUp(e.target.value)} />
             </Field>
           )}
@@ -159,7 +159,7 @@ export const PatientRecordsModal: React.FC<{ patient: Patient; onClose: () => vo
       {loading ? (
         <SkeletonList rows={3} />
       ) : rows.length === 0 ? (
-        <p className="py-6 text-center text-xs text-slate-500">{tx('مفيش سجلات للمريض ده لسه', 'No records yet')}</p>
+        <p className="py-6 text-center text-xs text-slate-500">{tx('لا توجد سجلات لهذا المريض بعد', 'No records yet')}</p>
       ) : (
         <div className="space-y-2">
           {rows.map((r) => (

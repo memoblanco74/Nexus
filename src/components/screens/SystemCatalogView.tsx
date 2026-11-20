@@ -105,7 +105,7 @@ export const SystemCatalogView: React.FC = () => {
   const handleSubscribe = async () => {
     if (!selected) return;
     if (projectName.trim().length < 2) {
-      showToast(isRTL ? 'اكتب اسم المشروع الأول' : 'Enter the project name first');
+      showToast(isRTL ? 'اكتب اسم المشروع أولاً' : 'Enter the project name first');
       return;
     }
     setSubscribing(true);
@@ -126,7 +126,7 @@ export const SystemCatalogView: React.FC = () => {
             </p>
             <p className="text-xs text-slate-400">
               {isRTL
-                ? 'المشرف العام لسه ما ضافش أي نظام للاشتراك فيه. راجعنا قريب.'
+                ? 'لم يضف المشرف العام أي نظام للاشتراك فيه بعد. عاود الزيارة قريبًا.'
                 : 'The administrator has not published any systems to subscribe to yet. Please check back soon.'}
             </p>
             <button
@@ -150,7 +150,7 @@ export const SystemCatalogView: React.FC = () => {
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white mb-6"
             >
               <BackIcon className="h-3.5 w-3.5" />
-              {isRTL ? 'رجوع لكل الأنظمة' : 'Back to all systems'}
+              {isRTL ? 'العودة إلى كل الأنظمة' : 'Back to all systems'}
             </button>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 space-y-5">
@@ -179,7 +179,7 @@ export const SystemCatalogView: React.FC = () => {
               {selected.features.length > 0 && (
                 <div>
                   <p className="text-xs font-semibold text-slate-400 mb-2">
-                    {isRTL ? 'دوس على أي خدمة عشان تعرف عنها أكتر' : 'Tap any feature to learn more'}
+                    {isRTL ? 'اضغط على أي خدمة لمعرفة المزيد عنها' : 'Tap any feature to learn more'}
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {selected.features.map((f) => (
@@ -221,7 +221,7 @@ export const SystemCatalogView: React.FC = () => {
                   className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
                 />
                 <p className="mt-1 text-[11px] text-slate-500">
-                  {isRTL ? 'هيظهر لك ولكل المساعدين، وتقدر تعدله بعدين من إعدادات المشروع.' : 'Shown to you and all your assistants. You can change it later in project settings.'}
+                  {isRTL ? 'سيظهر لك ولكل المساعدين، ويمكنك تعديله لاحقًا من إعدادات المشروع.' : 'Shown to you and all your assistants. You can change it later in project settings.'}
                 </p>
               </div>
 
@@ -245,11 +245,11 @@ export const SystemCatalogView: React.FC = () => {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
               <h1 className="text-xl font-extrabold text-white">
-                {isRTL ? 'اختار نظامك' : 'Choose your system'}
+                {isRTL ? 'اختر نظامك' : 'Choose your system'}
               </h1>
               <p className="mt-1 text-xs text-slate-400">
                 {isRTL
-                  ? 'اختار نوع المشروع اللي عايز تديره، وهنعرض لك خدماته وسعر الاشتراك'
+                  ? 'اختر نوع المشروع الذي تريد إدارته، وسنعرض لك خدماته وسعر الاشتراك'
                   : 'Pick the type of business you want to manage — we will show you its features and pricing'}
               </p>
             </div>

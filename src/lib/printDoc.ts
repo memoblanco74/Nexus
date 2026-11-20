@@ -48,7 +48,7 @@ export const buildPrescriptionHtml = (
 ) => {
   const th = (t: string) => `<th style="background:#1d4ed8;color:#fff;padding:7px;text-align:${ar ? 'right' : 'left'};font-size:12px">${t}</th>`;
   const td = (t: string) => `<td style="padding:7px;border-bottom:1px solid #e2e8f0;font-size:13px">${esc(t)}</td>`;
-  return `<div style="padding:8px">${docHeader(clinic, ar ? 'روشتة طبية' : 'Prescription', esc(p.date))}
+  return `<div style="padding:8px">${docHeader(clinic, ar ? 'وصفة طبية' : 'Prescription', esc(p.date))}
     <table style="width:100%;font-size:13px;margin-bottom:12px"><tr><td><b>${ar ? 'المريض' : 'Patient'}:</b> ${esc(p.patient)}</td><td style="text-align:end">${p.age ? `<b>${ar ? 'السن' : 'Age'}:</b> ${esc(String(p.age))}` : ''}</td></tr>
     ${doctor ? `<tr><td colspan="2"><b>${ar ? 'الطبيب' : 'Doctor'}:</b> ${esc(doctor)}</td></tr>` : ''}
     ${p.diagnosis ? `<tr><td colspan="2"><b>${ar ? 'التشخيص' : 'Diagnosis'}:</b> ${esc(p.diagnosis)}</td></tr>` : ''}</table>

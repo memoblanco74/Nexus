@@ -115,16 +115,16 @@ export const PaymentInfoEditor: React.FC = () => {
     <div className="glass-panel space-y-3 rounded-2xl border border-slate-800 p-5">
       <h3 className="flex items-center gap-2 text-sm font-bold text-white">
         <Landmark className="h-4 w-4 text-emerald-400" />
-        <span>{isRTL ? 'بيانات الدفع للفاوندرز (إنستاباي)' : 'Founder payment details (InstaPay)'}</span>
+        <span>{isRTL ? 'بيانات الدفع للمؤسسين (إنستاباي)' : 'Founder payment details (InstaPay)'}</span>
       </h3>
       <p className="text-[11px] text-slate-400">
         {isRTL
-          ? 'اللي تكتبه هنا بيظهر للفاوندرز في صفحة الدعم الفني فورًا. سيب الحقل فاضي لو مش عايز تظهره.'
+          ? 'ما تكتبه هنا يظهر للمؤسسين في صفحة الدعم الفني فورًا. اترك الحقل فارغًا إن لم ترد إظهاره.'
           : 'What you enter here shows to founders on their Support page right away. Leave a field empty to hide it.'}
       </p>
-      <input dir="ltr" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder={isRTL ? 'رقم الموبايل للتحويل' : 'Mobile number'} className={inputClass} />
+      <input dir="ltr" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder={isRTL ? 'رقم الهاتف المحمول للتحويل' : 'Mobile number'} className={inputClass} />
       <input dir="ltr" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder={isRTL ? 'رابط إنستاباي' : 'InstaPay link'} className={inputClass} />
-      <textarea value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} rows={2} placeholder={isRTL ? 'ملاحظة للفاوندرز (اختياري)' : 'Note for founders (optional)'} className={inputClass} />
+      <textarea value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} rows={2} placeholder={isRTL ? 'ملاحظة للمؤسسين (اختياري)' : 'Note for founders (optional)'} className={inputClass} />
       <div className="flex items-center gap-3">
         {form.qr ? (
           <img src={form.qr} alt="QR" className="h-20 w-20 rounded-lg bg-white p-1" />

@@ -56,13 +56,13 @@ export const buildReportHtml = (child: Child, log: DailyLog, nurseryName: string
     .map((m) => `<div><b>${esc(m.name)}</b>${m.reason ? ` — ${esc(m.reason)}` : ''}${m.time ? ` (${esc(m.time)})` : ''}</div>`)
     .join('');
   const naps = log.naps
-    .map((n) => `<div>${tx('نام', 'Slept')} ${esc(n.from)} — ${tx('صحي', 'woke')} ${esc(n.to)} <span style="color:#64748b">(${esc(durationLabel(minutesBetween(n.from, n.to), ar))})</span></div>`)
+    .map((n) => `<div>${tx('نام', 'Slept')} ${esc(n.from)} — ${tx('استيقظ', 'woke')} ${esc(n.to)} <span style="color:#64748b">(${esc(durationLabel(minutesBetween(n.from, n.to), ar))})</span></div>`)
     .join('');
   const clothes = log.clothes.map((c) => `<div>${esc(c.time)}${c.note ? ` — ${esc(c.note)}` : ''}</div>`).join('');
-  const clothesBlock = log.clothes.length ? `<div style="color:#64748b">${tx('عدد مرات تغيير الهدوم', 'Clothes changes')}: <b style="color:#0f172a">${log.clothes.length}</b></div>${clothes}` : '';
-  const school = [row(tx('الأنشطة', 'Activities'), log.daily_activities), row(tx('وقت البريك', 'Break time'), log.break_time), row(tx('فن داي', 'Fun day'), log.fun_day)].join('');
+  const clothesBlock = log.clothes.length ? `<div style="color:#64748b">${tx('عدد مرات تغيير الملابس', 'Clothes changes')}: <b style="color:#0f172a">${log.clothes.length}</b></div>${clothes}` : '';
+  const school = [row(tx('الأنشطة', 'Activities'), log.daily_activities), row(tx('وقت الاستراحة', 'Break time'), log.break_time), row(tx('يوم المرح', 'Fun day'), log.fun_day)].join('');
   const extras = [
-    log.supplies_brought ? `<div>${tx('أحضر الطفل المستلزمات (سابلايز)', 'Supplies brought')}${log.supplies_note ? ` — ${esc(log.supplies_note)}` : ''}</div>` : '',
+    log.supplies_brought ? `<div>${tx('أحضر الطفل المستلزمات', 'Supplies brought')}${log.supplies_note ? ` — ${esc(log.supplies_note)}` : ''}</div>` : '',
     log.used_transport ? `<div>${tx('استخدم المواصلات اليوم', 'Used transport today')}</div>` : '',
   ].join('');
   const comment = log.teacher_comment
@@ -80,7 +80,7 @@ export const buildReportHtml = (child: Child, log: DailyLog, nurseryName: string
     ${log.status === 'present' ? section(tx('الحفاضات', 'Diapers'), diapers) : ''}
     ${log.status === 'present' ? section(tx('الدواء', 'Medicine'), medicines) : ''}
     ${log.status === 'present' ? section(tx('النوم', 'Sleep'), naps) : ''}
-    ${log.status === 'present' ? section(tx('تغيير الهدوم', 'Clothes'), clothesBlock) : ''}
+    ${log.status === 'present' ? section(tx('تغيير الملابس', 'Clothes'), clothesBlock) : ''}
     ${log.status === 'present' ? section(tx('اليوم الدراسي', 'School day'), school) : ''}
     ${log.status === 'present' ? section(tx('ملاحظات', 'Other'), extras) : ''}
     ${comment}

@@ -113,11 +113,11 @@ export const ProjectDataCard: React.FC = () => {
       <div data-write="1" className="space-y-2 rounded-xl border border-red-500/30 bg-red-500/5 p-3">
         <p className="flex items-center gap-2 text-xs font-bold text-red-400">
           <Trash2 className="h-4 w-4" />
-          {isRTL ? 'مسح كل بيانات المشروع' : 'Erase all project data'}
+          {isRTL ? 'حذف كل بيانات المشروع' : 'Erase all project data'}
         </p>
         <p className="text-[11px] leading-relaxed text-slate-400">
           {isRTL
-            ? `هتتمسح كل البيانات المسجلة في "${projectName}" (الأطفال أو المرضى، الحضور، الحجوزات، الفواتير، المصروفات، المخزون، الاشتراكات والمدفوعات). المشروع والمساعدين واشتراكك بيفضلوا زي ما هما. مش هترجع تاني، فصدّر نسخة الأول.`
+            ? `ستُحذف كل البيانات المسجلة في "${projectName}" (الأطفال أو المرضى، الحضور، الحجوزات، الفواتير، المصروفات، المخزون، الاشتراكات والمدفوعات). يبقى المشروع والمساعدون واشتراكك كما هم. لا يمكن التراجع عن ذلك، لذا صدّر نسخة أولاً.`
             : `All data recorded in "${projectName}" will be erased. The project, assistants and your subscription stay. This cannot be undone, so export a copy first.`}
         </p>
         <input value={phrase} onChange={(e) => setPhrase(e.target.value)} placeholder={isRTL ? 'اكتب اسم المشروع للتأكيد' : 'Type the project name to confirm'} className={inputClass} />
@@ -126,7 +126,7 @@ export const ProjectDataCard: React.FC = () => {
           disabled={wiping || !projectName || phrase.trim() !== projectName}
           className="w-full rounded-xl bg-red-600 py-2 text-xs font-bold text-white hover:bg-red-500 disabled:opacity-40"
         >
-          {wiping ? '...' : isRTL ? 'امسح كل البيانات' : 'Erase all data'}
+          {wiping ? '...' : isRTL ? 'احذف كل البيانات' : 'Erase all data'}
         </button>
       </div>
     </div>
@@ -163,7 +163,7 @@ export const DeleteAccountCard: React.FC = () => {
       </p>
       <p className="text-[11px] leading-relaxed text-slate-400">
         {isRTL
-          ? 'هيتمسح حسابك وكلمة مرورك وكل مشاريعك والمساعدين وكل البيانات. مش هترجع تاني. صدّر بياناتك الأول من إعدادات المشروع.'
+          ? 'سيُحذف حسابك وكلمة مرورك وكل مشاريعك والمساعدين وكل البيانات. ولا يمكن التراجع عن ذلك. صدّر بياناتك أولاً من إعدادات المشروع.'
           : 'Your account, all your projects, assistants and data will be erased. This cannot be undone. Export your data first from project settings.'}
       </p>
       <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={isRTL ? 'كلمة المرور الحالية' : 'Current password'} autoComplete="current-password" className={inputClass} />

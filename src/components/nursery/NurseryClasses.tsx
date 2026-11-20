@@ -46,7 +46,7 @@ const MembersEditor: React.FC<{ cls: NurseryClass; core: NurseryCore; onBack: ()
                 <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c.id)} className="h-4 w-4" />
                 <span className="truncate font-semibold text-white">{c.full_name}</span>
               </span>
-              {other && selected.has(c.id) && <span className="shrink-0 text-[10px] text-amber-300">{tx(`هيتنقل من ${other}`, `moves from ${other}`)}</span>}
+              {other && selected.has(c.id) && <span className="shrink-0 text-[10px] text-amber-300">{tx(`سيُنقل من ${other}`, `moves from ${other}`)}</span>}
               {other && !selected.has(c.id) && <span className="shrink-0 text-[10px] text-slate-500">{other}</span>}
             </label>
           );
@@ -71,7 +71,7 @@ export const ClassesManager: React.FC<{ core: NurseryCore; onClose: () => void }
 
   const save = async () => {
     const n = name.trim();
-    if (!n || !activeTenant) { showToast(tx('اكتب اسم الفصل', 'Enter the class name')); return; }
+    if (!n || !activeTenant) { showToast(tx('أدخل اسم الفصل', 'Enter the class name')); return; }
     setBusy(true);
     const res = editId
       ? await supabase.from('nursery_classes').update({ name: n, teacher_name: teacher.trim() || null }).eq('id', editId)
@@ -83,7 +83,7 @@ export const ClassesManager: React.FC<{ core: NurseryCore; onClose: () => void }
   };
 
   const remove = async (c: NurseryClass) => {
-    const ok = await askConfirm({ message: tx(`حذف فصل "${c.name}"؟ الأطفال هيفضلوا في النظام من غير فصل.`, `Delete class "${c.name}"? Children stay, without a class.`), danger: true, confirmText: tx('حذف', 'Delete') });
+    const ok = await askConfirm({ message: tx(`حذف فصل "${c.name}"؟ سيبقى الأطفال في النظام دون فصل.`, `Delete class "${c.name}"? Children stay, without a class.`), danger: true, confirmText: tx('حذف', 'Delete') });
     if (!ok) return;
     const { error } = await supabase.from('nursery_classes').delete().eq('id', c.id);
     if (error) { showToast(error.message); return; }

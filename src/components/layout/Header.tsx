@@ -35,8 +35,8 @@ const localizeNotification = (n: { title: string; body: string; code?: string | 
     case 'daily_summary': return {
       title: ar ? 'ملخص اليوم' : "Today's summary",
       body: p.kind === 'nursery'
-        ? (ar ? `حضور ${p.present} • غياب ${p.absent} • إيراد اليوم ${p.revenue} ج.م • متأخرين عن الدفع ${p.overdue}` : `Present ${p.present} • Absent ${p.absent} • Revenue ${p.revenue} EGP • Overdue ${p.overdue}`)
-        : (ar ? `حجوزات اليوم ${p.today} • حجوزات بكرة ${p.tomorrow} • إيراد اليوم ${p.revenue} ج.م • فواتير معلقة ${p.pending}` : `Today ${p.today} • Tomorrow ${p.tomorrow} • Revenue ${p.revenue} EGP • Unpaid invoices ${p.pending}`),
+        ? (ar ? `حضور ${p.present} • غياب ${p.absent} • إيراد اليوم ${p.revenue} ج.م • المتأخرون عن الدفع ${p.overdue}` : `Present ${p.present} • Absent ${p.absent} • Revenue ${p.revenue} EGP • Overdue ${p.overdue}`)
+        : (ar ? `حجوزات اليوم ${p.today} • حجوزات الغد ${p.tomorrow} • إيراد اليوم ${p.revenue} ج.م • فواتير معلقة ${p.pending}` : `Today ${p.today} • Tomorrow ${p.tomorrow} • Revenue ${p.revenue} EGP • Unpaid invoices ${p.pending}`),
     };
     case 'online_booking': return { title: ar ? 'حجز أونلاين جديد' : 'New online booking', body: ar ? `${p.name} — ${p.doctor} — ${p.day} ${p.time}` : `${p.name} — ${p.doctor} — ${p.day} ${p.time}` };
     case 'admin_view': return { title: ar ? 'معاينة من الدعم الفني' : 'Support viewed your project', body: ar ? 'دخل الدعم الفني لمعاينة مشروعك (قراءة فقط) لمساعدتك في حل مشكلة' : 'Support viewed your project (read-only) to help with an issue' };

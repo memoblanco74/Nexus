@@ -67,7 +67,7 @@ export const NurseryExpensesTab: React.FC = () => {
   };
 
   const remove = async (x: Exp) => {
-    const ok = await askConfirm({ message: tx('حذف المصروف ده؟', 'Delete this expense?'), danger: true, confirmText: tx('حذف', 'Delete') });
+    const ok = await askConfirm({ message: tx('حذف هذا المصروف؟', 'Delete this expense?'), danger: true, confirmText: tx('حذف', 'Delete') });
     if (!ok) return;
     const { error } = await supabase.from('nursery_expenses').delete().eq('id', x.id);
     if (error) showToast(error.message);

@@ -16,10 +16,10 @@ const childColumns: ColumnDef[] = [
   { key: 'birth_date', labelAr: 'تاريخ الميلاد', labelEn: 'Birth date', aliases: ['birth', 'dob', 'الميلاد'], sampleAr: '2023-05-14', sampleEn: '2023-05-14' },
   { key: 'gender', labelAr: 'النوع', labelEn: 'Gender', aliases: ['الجنس', 'sex'], sampleAr: 'ولد', sampleEn: 'Boy' },
   { key: 'father_name', labelAr: 'اسم الأب', labelEn: 'Father name', aliases: ['الاب'], sampleAr: 'أحمد محمود', sampleEn: 'Ahmed Mahmoud' },
-  { key: 'father_phone', labelAr: 'موبايل الأب', labelEn: 'Father phone', aliases: ['تليفون الاب', 'رقم الاب'], sampleAr: '01012345678', sampleEn: '01012345678' },
+  { key: 'father_phone', labelAr: 'هاتف الأب', labelEn: 'Father phone', aliases: ['موبايل الأب', 'تليفون الاب', 'رقم الاب'], sampleAr: '01012345678', sampleEn: '01012345678' },
   { key: 'mother_name', labelAr: 'اسم الأم', labelEn: 'Mother name', aliases: ['الام'], sampleAr: 'منى علي', sampleEn: 'Mona Ali' },
-  { key: 'mother_phone', labelAr: 'موبايل الأم', labelEn: 'Mother phone', aliases: ['تليفون الام', 'رقم الام'], sampleAr: '01112345678', sampleEn: '01112345678' },
-  { key: 'guardian_phone', labelAr: 'موبايل ولي الأمر', labelEn: 'Guardian phone', aliases: ['ولي الامر', 'guardian'], sampleAr: '', sampleEn: '' },
+  { key: 'mother_phone', labelAr: 'هاتف الأم', labelEn: 'Mother phone', aliases: ['موبايل الأم', 'تليفون الام', 'رقم الام'], sampleAr: '01112345678', sampleEn: '01112345678' },
+  { key: 'guardian_phone', labelAr: 'هاتف ولي الأمر', labelEn: 'Guardian phone', aliases: ['موبايل ولي الأمر', 'ولي الامر', 'guardian'], sampleAr: '', sampleEn: '' },
   { key: 'address', labelAr: 'العنوان', labelEn: 'Address', sampleAr: 'مدينة نصر', sampleEn: 'Nasr City' },
   { key: 'allergies', labelAr: 'حساسية', labelEn: 'Allergies', aliases: ['الحساسية'], sampleAr: 'بيض', sampleEn: 'Eggs' },
   { key: 'notes', labelAr: 'ملاحظات', labelEn: 'Notes', sampleAr: '', sampleEn: '' },
@@ -61,7 +61,7 @@ export const childrenEntity = (tenantId: string, existingNames: string[]): Impor
 
 const patientColumns: ColumnDef[] = [
   { key: 'name', labelAr: 'اسم المريض', labelEn: 'Patient name', aliases: ['الاسم', 'name', 'full name'], required: true, sampleAr: 'محمود حسن', sampleEn: 'Mahmoud Hassan' },
-  { key: 'phone', labelAr: 'الموبايل', labelEn: 'Phone', aliases: ['تليفون', 'رقم الموبايل', 'mobile'], sampleAr: '01012345678', sampleEn: '01012345678' },
+  { key: 'phone', labelAr: 'الهاتف', labelEn: 'Phone', aliases: ['الموبايل', 'تليفون', 'رقم الموبايل', 'mobile'], sampleAr: '01012345678', sampleEn: '01012345678' },
   { key: 'gender', labelAr: 'النوع', labelEn: 'Gender', aliases: ['الجنس'], sampleAr: 'ذكر', sampleEn: 'Male' },
   { key: 'age', labelAr: 'السن', labelEn: 'Age', aliases: ['العمر'], sampleAr: '35', sampleEn: '35' },
   { key: 'blood', labelAr: 'فصيلة الدم', labelEn: 'Blood type', aliases: ['blood'], sampleAr: 'O+', sampleEn: 'O+' },
@@ -77,7 +77,7 @@ export const patientsEntity = (tenantId: string, existingPhones: string[]): Impo
   columns: patientColumns,
   validate: (r) => {
     const ph = toPhone(r.phone);
-    if (ph && existingPhones.includes(ph)) return 'الموبايل مسجّل بالفعل / Phone already exists';
+    if (ph && existingPhones.includes(ph)) return 'رقم الهاتف مسجّل بالفعل / Phone already exists';
     return null;
   },
   insert: async (records) => {

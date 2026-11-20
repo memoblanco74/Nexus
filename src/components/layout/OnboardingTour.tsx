@@ -21,18 +21,18 @@ export const OnboardingTour: React.FC = () => {
   if (!open || !id) return null;
 
   const common: Array<[string, string, string, string]> = [
-    ['أهلاً بيك في نكسس 👋', 'Welcome to Nexus 👋', 'جولة سريعة (دقيقة) تعرّفك على أهم الأماكن. تقدر تقفلها في أي وقت.', 'A one-minute tour of the key areas. You can close it any time.'],
-    ['مشروع تجريبي', 'Try a demo project', 'من الإعدادات → "بيانات تجريبية" تقدر تضيف بيانات وهمية تجرب بيها وتمسحها كلها بضغطة واحدة.', 'In Settings → "Demo data" you can add sample data to explore and delete it all in one click.'],
-    ['استيراد من Excel', 'Import from Excel', 'بدل ما تكتب بيانات واحدة واحدة، استورد ملف Excel أو CSV من زر "استيراد" في الشاشة.', 'Instead of typing records one by one, import an Excel/CSV from the "Import" button.'],
-    ['المساعدين والصلاحيات', 'Assistants & permissions', 'من الإعدادات أضف مساعدين وحدد الشاشات اللي كل واحد يشوفها.', 'Add assistants in Settings and choose which screens each one can see.'],
+    ['أهلاً بك في نكسس 👋', 'Welcome to Nexus 👋', 'جولة سريعة (دقيقة) تعرّفك على أهم الأماكن. يمكنك إغلاقها في أي وقت.', 'A one-minute tour of the key areas. You can close it any time.'],
+    ['مشروع تجريبي', 'Try a demo project', 'من الإعدادات → "بيانات تجريبية" يمكنك إضافة بيانات وهمية للتجربة وحذفها كلها بضغطة واحدة.', 'In Settings → "Demo data" you can add sample data to explore and delete it all in one click.'],
+    ['استيراد من Excel', 'Import from Excel', 'بدلاً من كتابة البيانات واحدة تلو الأخرى، استورد ملف Excel أو CSV من زر "استيراد" في الشاشة.', 'Instead of typing records one by one, import an Excel/CSV from the "Import" button.'],
+    ['المساعدين والصلاحيات', 'Assistants & permissions', 'من الإعدادات أضف مساعدين وحدد الشاشات التي يستطيع كل واحد رؤيتها.', 'Add assistants in Settings and choose which screens each one can see.'],
   ];
   const specific: Record<string, Array<[string, string, string, string]>> = {
     clinic: [
-      ['الحجز أونلاين', 'Online booking', 'فعّل رابط الحجز من الإعدادات وشاركه مع المرضى: كل مريض يشوف المواعيد الفاضية لكل دكتور.', 'Enable the booking link in Settings and share it: patients see each doctor’s free slots.'],
-      ['دور الانتظار والمتابعات', 'Queue & follow-ups', 'من شاشة الحجوزات تدير دور الانتظار وتشوف المتابعات المستحقة وتبعت تذكير واتساب.', 'In Bookings you manage the waiting queue and see due follow-ups with WhatsApp reminders.'],
+      ['الحجز أونلاين', 'Online booking', 'فعّل رابط الحجز من الإعدادات وشاركه مع المرضى: يرى كل مريض المواعيد الفارغة لكل طبيب.', 'Enable the booking link in Settings and share it: patients see each doctor’s free slots.'],
+      ['دور الانتظار والمتابعات', 'Queue & follow-ups', 'من شاشة الحجوزات يمكنك إدارة دور الانتظار ومتابعة المتابعات المستحقة وإرسال تذكير عبر واتساب.', 'In Bookings you manage the waiting queue and see due follow-ups with WhatsApp reminders.'],
     ],
     nursery: [
-      ['اليومية وبوابة ولي الأمر', 'Daily log & parent portal', 'سجّل يوميات الأطفال وشارك مع ولي الأمر رابط خاص يتابع منه طفله.', 'Log each child’s day and share a private link parents can follow.'],
+      ['اليومية وبوابة ولي الأمر', 'Daily log & parent portal', 'سجّل يوميات الأطفال وشارك ولي الأمر رابطاً خاصاً يتابع منه طفله.', 'Log each child’s day and share a private link parents can follow.'],
       ['الموظفين والمرتبات', 'Staff & payroll', 'من المالية سجّل حضور المدرسين واحسب المرتبات والخصومات.', 'In Finance, record teacher attendance and compute payroll and deductions.'],
     ],
   };

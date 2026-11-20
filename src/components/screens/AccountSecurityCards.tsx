@@ -16,7 +16,7 @@ export const ChangePasswordCard: React.FC = () => {
   const [confirm, setConfirm] = useState('');
   const submit = async (): Promise<boolean> => {
     if (next.length < 6) {
-      showToast(isRTL ? 'كلمة المرور الجديدة لازم تكون 6 حروف على الأقل' : 'New password must be at least 6 characters');
+      showToast(isRTL ? 'يجب ألا تقل كلمة المرور الجديدة عن 6 أحرف' : 'New password must be at least 6 characters');
       return false;
     }
     if (next !== confirm) {
@@ -174,7 +174,7 @@ export const UserManagementCard: React.FC = () => {
 
   const reset = async (userId: string) => {
     if (newPassword.length < 6) {
-      showToast(isRTL ? 'كلمة المرور لازم تكون 6 حروف على الأقل' : 'Password must be at least 6 characters');
+      showToast(isRTL ? 'يجب ألا تقل كلمة المرور عن 6 أحرف' : 'Password must be at least 6 characters');
       return;
     }
     setBusy(true);
@@ -199,7 +199,7 @@ export const UserManagementCard: React.FC = () => {
       </h3>
       <p className="text-[11px] text-slate-400">
         {isAdmin
-          ? isRTL ? 'ابحث باسم المستخدم أو الاسم أو الإيميل أو الموبايل أو اسم المشروع، ثم أعد تعيين كلمة المرور.' : 'Search by username, name, email, phone or project name, then reset the password.'
+          ? isRTL ? 'ابحث باسم المستخدم أو الاسم أو البريد الإلكتروني أو الجوال أو اسم المشروع، ثم أعد تعيين كلمة المرور.' : 'Search by username, name, email, phone or project name, then reset the password.'
           : isRTL ? 'ابحث باسم المستخدم أو الاسم، ثم أعد تعيين كلمة مرور المساعد.' : 'Search by username or name, then reset the assistant password.'}
       </p>
       <div className="relative">
@@ -251,7 +251,7 @@ export const UserManagementCard: React.FC = () => {
               <div className="space-y-2 rounded-xl border border-red-500/30 bg-red-500/5 p-3">
                 <p className="text-[11px] leading-relaxed text-red-300">
                   {isRTL
-                    ? `هيتمسح حساب "${u.user_name}" وكل المساعدين التابعين له وكل بياناته (مرضى، حجوزات، فواتير، مخزون، مصروفات) نهائيًا من قاعدة البيانات. اكتب اسم المستخدم للتأكيد.`
+                    ? `سيتم حذف حساب "${u.user_name}" وكل المساعدين التابعين له وكل بياناته (مرضى، حجوزات، فواتير، مخزون، مصروفات) نهائيًا من قاعدة البيانات. اكتب اسم المستخدم للتأكيد.`
                     : `This permanently erases "${u.user_name}", all their assistants and all their data from the database. Type the username to confirm.`}
                 </p>
                 <div className="flex gap-2">
@@ -261,7 +261,7 @@ export const UserManagementCard: React.FC = () => {
                     disabled={delBusy || !u.user_name || delPhrase.trim().toLowerCase() !== u.user_name.toLowerCase()}
                     className="shrink-0 rounded-xl bg-red-600 px-3 py-2 text-xs font-bold text-white hover:bg-red-500 disabled:opacity-40"
                   >
-                    {isRTL ? 'احذف نهائيًا' : 'Delete'}
+                    {isRTL ? 'حذف نهائي' : 'Delete'}
                   </button>
                 </div>
               </div>

@@ -80,7 +80,7 @@ export const QueuePanel: React.FC = () => {
       </div>
 
       <div className="flex flex-wrap gap-2" data-write="1">
-        <input list="queue-names" className={`${inputClass} max-w-[14rem]`} placeholder={tx('اسم المريض (أو اختار من حجوزات اليوم)', 'Patient name')} value={name} onChange={(e) => setName(e.target.value)} />
+        <input list="queue-names" className={`${inputClass} max-w-[14rem]`} placeholder={tx('اسم المريض (أو اختر من حجوزات اليوم)', 'Patient name')} value={name} onChange={(e) => setName(e.target.value)} />
         <datalist id="queue-names">{todayBookings.map((b) => <option key={b.id} value={isRTL ? b.patientNameAr : b.patientName} />)}</datalist>
         <input className={`${inputClass} max-w-[10rem]`} placeholder={tx('الطبيب (اختياري)', 'Doctor (optional)')} value={doctor} onChange={(e) => setDoctor(e.target.value)} />
         <button disabled={busy} onClick={add} className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 disabled:opacity-50">{tx('إضافة للدور', 'Add to queue')}</button>

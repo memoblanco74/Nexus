@@ -30,12 +30,12 @@ export const PERMISSIONS: PermDef[] = [
   { key: 'staff.attendance', group: 'money', ar: 'تسجيل حضور الموظفين', en: 'Record staff attendance' },
   { key: 'staff.payroll', group: 'money', ar: 'رؤية وصرف المرتبات', en: 'View and pay salaries' },
   { key: 'reports.view', group: 'money', ar: 'رؤية الأرباح والخسائر', en: 'View profit and loss' },
-  { key: 'home.attendance', group: 'home', ar: 'كارت الحضور حسب الفصل', en: 'Attendance by class card' },
-  { key: 'home.birthdays', group: 'home', ar: 'كارت أعياد الميلاد', en: 'Birthdays card' },
+  { key: 'home.attendance', group: 'home', ar: 'بطاقة الحضور حسب الفصل', en: 'Attendance by class card' },
+  { key: 'home.birthdays', group: 'home', ar: 'بطاقة أعياد الميلاد', en: 'Birthdays card' },
   { key: 'home.quick_actions', group: 'home', ar: 'أزرار الإجراءات السريعة', en: 'Quick actions' },
   { key: 'home.alerts', group: 'home', ar: 'تنبيهات الحساسية والفصول', en: 'Allergy and class alerts' },
-  { key: 'home.staff', group: 'home', ar: 'كارت الموظفين (الغياب والزيادات المستحقة)', en: 'Staff card (absences, due raises)' },
-  { key: 'home.money', group: 'home', ar: 'الكروت المالية (المقارنة والمتأخرين)', en: 'Money cards (comparison, late payers)' },
+  { key: 'home.staff', group: 'home', ar: 'بطاقة الموظفين (الغياب والزيادات المستحقة)', en: 'Staff card (absences, due raises)' },
+  { key: 'home.money', group: 'home', ar: 'البطاقات المالية (المقارنة والمتأخرين)', en: 'Money cards (comparison, late payers)' },
 ];
 
 export const DEFAULT_ACTIONS: string[] = [

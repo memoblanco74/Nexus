@@ -31,7 +31,7 @@ export const SettingsView: React.FC = () => {
   const registerPush = async () => {
     const res = await subscribeToPush();
     setPushState(res === 'ok' ? 'ok' : res === 'unsupported' ? 'unsupported' : 'failed');
-    if (res === 'ok') showToast(isRTL ? 'تم تسجيل الجهاز للإشعارات حتى والتطبيق مقفول' : 'Device registered for notifications even when the app is closed');
+    if (res === 'ok') showToast(isRTL ? 'تم تسجيل الجهاز للإشعارات حتى والتطبيق مغلق' : 'Device registered for notifications even when the app is closed');
   };
 
   React.useEffect(() => {
@@ -40,7 +40,7 @@ export const SettingsView: React.FC = () => {
 
   const sendTest = () => {
     const title = isRTL ? 'إشعار تجريبي' : 'Test notification';
-    const body = isRTL ? 'الإشعارات شغالة على هذا الجهاز' : 'Notifications are working on this device';
+    const body = isRTL ? 'الإشعارات تعمل على هذا الجهاز' : 'Notifications are working on this device';
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready
         .then((reg) => reg.showNotification(title, { body, icon: '/Nexus/icon-192.png', badge: '/Nexus/badge-96.png' }))
@@ -59,13 +59,13 @@ export const SettingsView: React.FC = () => {
       key: 'chatDevice',
       title: isRTL ? 'إشعار الجهاز للرسائل' : 'Device alert for chat messages',
       hint: isAdmin
-        ? isRTL ? 'إشعار باسم المشروع ونص الرسالة لما يوصلك رسالة من مؤسس' : 'Shows the project name and message text when a founder writes to you'
-        : isRTL ? 'إشعار بنص الرسالة لما يرد عليك الدعم الفني' : 'Shows the message text when support replies to you',
+        ? isRTL ? 'إشعار باسم المشروع ونص الرسالة عند وصول رسالة من المؤسس' : 'Shows the project name and message text when a founder writes to you'
+        : isRTL ? 'إشعار بنص الرسالة عندما يرد عليك الدعم الفني' : 'Shows the message text when support replies to you',
     },
     {
       key: 'chatToast',
       title: isRTL ? 'تنبيه داخل التطبيق للرسائل' : 'In-app alert for chat messages',
-      hint: isRTL ? 'رسالة صغيرة تظهر على الشاشة وأنت فاتح التطبيق' : 'A small message on screen while the app is open',
+      hint: isRTL ? 'رسالة صغيرة تظهر على الشاشة والتطبيق مفتوح' : 'A small message on screen while the app is open',
     },
     {
       key: 'chatSound',
@@ -77,7 +77,7 @@ export const SettingsView: React.FC = () => {
     rows.push({
       key: 'systemDevice',
       title: isRTL ? 'إشعارات النظام' : 'System alerts',
-      hint: isRTL ? 'حجز جديد، فاتورة مدفوعة، نقص مخزون، وتصلك على الجهاز لما يكون التطبيق في الخلفية' : 'New booking, paid invoice, low stock, delivered to the device while the app is in the background',
+      hint: isRTL ? 'حجز جديد، فاتورة مدفوعة، نقص مخزون، وتصلك على الجهاز عندما يكون التطبيق في الخلفية' : 'New booking, paid invoice, low stock, delivered to the device while the app is in the background',
     });
   }
 
@@ -156,12 +156,12 @@ export const SettingsView: React.FC = () => {
               {permission === 'granted' && (
                 <span className={`mt-0.5 block text-[11px] ${pushState === 'ok' ? 'text-emerald-400' : pushState === 'idle' ? 'text-slate-500' : 'text-amber-400'}`}>
                   {pushState === 'ok'
-                    ? isRTL ? 'الإشعارات بتوصلك حتى والتطبيق مقفول' : 'You will get notifications even when the app is closed'
+                    ? isRTL ? 'تصلك الإشعارات حتى والتطبيق مغلق' : 'You will get notifications even when the app is closed'
                     : pushState === 'idle'
                     ? isRTL ? 'جاري تسجيل الجهاز...' : 'Registering device...'
                     : pushState === 'unsupported'
-                    ? isRTL ? 'الجهاز ده مش بيدعم الإشعارات والتطبيق مقفول (على الآيفون ثبّت التطبيق على الشاشة الرئيسية أولًا)' : 'This device cannot receive notifications while closed (on iPhone, add the app to the Home Screen first)'
-                    : isRTL ? 'تعذر تسجيل الجهاز، جرّب مرة تانية' : 'Could not register the device, try again'}
+                    ? isRTL ? 'هذا الجهاز لا يدعم الإشعارات والتطبيق مغلق (على الآيفون ثبّت التطبيق على الشاشة الرئيسية أولًا)' : 'This device cannot receive notifications while closed (on iPhone, add the app to the Home Screen first)'
+                    : isRTL ? 'تعذر تسجيل الجهاز، جرّب مرة أخرى' : 'Could not register the device, try again'}
                 </span>
               )}
             </div>

@@ -79,7 +79,7 @@ export const InstallAppButton: React.FC<{ isRTL: boolean }> = ({ isRTL }) => {
             </p>
             <p className="text-xs text-slate-400 leading-relaxed">
               {isRTL
-                ? 'دوس على زرار المشاركة (المربع وفوقه سهم) تحت في متصفح Safari، بعدين اختار "Add to Home Screen".'
+                ? 'اضغط على زر المشاركة (المربع وفوقه سهم) في أسفل متصفح Safari، ثم اختر "Add to Home Screen".'
                 : 'Tap the Share button in Safari, then choose "Add to Home Screen".'}
             </p>
           </div>

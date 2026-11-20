@@ -43,7 +43,7 @@ export const NurseryBulkSend: React.FC<{ day: string; children: Child[]; logs: R
     try {
       const r = await sendReportViaWhatsApp(blob, safe, phoneOf(c), msg);
       setStates((s) => ({ ...s, [c.id]: 'sent' }));
-      if (r === 'downloaded') showToast(tx('اتحمّل الـ PDF وفتحنا واتساب، أرفق الملف في المحادثة', 'PDF downloaded and WhatsApp opened, attach the file'));
+      if (r === 'downloaded') showToast(tx('تم تنزيل ملف PDF وفتح واتساب، أرفق الملف في المحادثة', 'PDF downloaded and WhatsApp opened, attach the file'));
     } catch (e: any) {
       showToast(e?.message || 'Error');
     }
@@ -64,9 +64,9 @@ export const NurseryBulkSend: React.FC<{ day: string; children: Child[]; logs: R
       }
     >
       <p className="text-[11px] text-slate-400">
-        {tx(`الإرسال عبر واتساب بيتم تقرير تقرير (المتصفح بيطلب ضغطة لكل رسالة). تم إرسال ${sentCount} من ${items.length}.`, `WhatsApp sends one report at a time. Sent ${sentCount} of ${items.length}.`)}
+        {tx(`يتم الإرسال عبر واتساب تقريراً تلو الآخر (يتطلب المتصفح ضغطة لكل رسالة). تم إرسال ${sentCount} من ${items.length}.`, `WhatsApp sends one report at a time. Sent ${sentCount} of ${items.length}.`)}
       </p>
-      {items.length === 0 && <p className="py-6 text-center text-xs text-slate-500">{tx('مفيش تقارير مسجلة لليوم ده', 'No reports recorded for this day')}</p>}
+      {items.length === 0 && <p className="py-6 text-center text-xs text-slate-500">{tx('لا توجد تقارير مسجلة لهذا اليوم', 'No reports recorded for this day')}</p>}
       <div className="space-y-2">
         {items.map((c) => {
           const st = states[c.id];
@@ -75,7 +75,7 @@ export const NurseryBulkSend: React.FC<{ day: string; children: Child[]; logs: R
             <div key={c.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-800 p-3">
               <div className="min-w-0">
                 <p className="truncate text-xs font-bold text-white">{c.full_name}</p>
-                <p className="text-[11px] text-slate-500" dir="ltr">{phone || tx('مفيش رقم موبايل', 'No phone')}</p>
+                <p className="text-[11px] text-slate-500" dir="ltr">{phone || tx('لا يوجد رقم هاتف', 'No phone')}</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {st === 'preparing' && <Loader2 className="h-4 w-4 animate-spin text-slate-400" />}
