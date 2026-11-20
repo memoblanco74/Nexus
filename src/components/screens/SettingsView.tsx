@@ -220,7 +220,7 @@ export const SupportView: React.FC = () => {
   const [input, setInput] = React.useState('');
 
   React.useEffect(() => {
-    document.getElementById('founder-chat-end')?.scrollIntoView({ block: 'end' });
+    const el = document.getElementById('founder-chat-end')?.parentElement; if (el) el.scrollTop = el.scrollHeight;
   }, [founderChatMessages.length]);
 
   const handleSend = (e: React.FormEvent) => {

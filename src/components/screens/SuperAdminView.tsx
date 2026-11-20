@@ -181,7 +181,7 @@ export const SuperAdminView: React.FC = () => {
   const selectedChat = chats.find((c) => c.id === selectedChatId);
 
   useEffect(() => {
-    document.getElementById('admin-chat-end')?.scrollIntoView({ block: 'end' });
+    const el = document.getElementById('admin-chat-end')?.parentElement; if (el) el.scrollTop = el.scrollHeight;
   }, [selectedChat?.id, selectedChat?.messages.length]);
 
   const handleSendMessage = (e: React.FormEvent) => {
