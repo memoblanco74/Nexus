@@ -159,6 +159,7 @@ export const Header: React.FC = () => {
           {/* Notification Button & Dropdown */}
           <div className="relative">
             <button
+              data-tour="header-notifications"
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white dark:border-slate-800 dark:bg-slate-900/60 light:border-[#cbd5e1] light:bg-[#f1f5f9] light:text-[#334155] transition"
             >
@@ -232,7 +233,7 @@ export const Header: React.FC = () => {
               <span className="text-xs font-semibold text-white">{profile?.fullName || profile?.username}</span>
               <span className="text-[10px] text-slate-400 capitalize">{profile?.roleCode.replace('_', ' ')}</span>
             </div>
-            <button onClick={() => setShowProfileMenu((v) => !v)} className="relative" title={isRTL ? 'حسابي' : 'My Account'}>
+            <button data-tour="header-profile" onClick={() => setShowProfileMenu((v) => !v)} className="relative" title={isRTL ? 'حسابي' : 'My Account'}>
               {profile?.avatarUrl ? (
                 <img
                   src={profile.avatarUrl}

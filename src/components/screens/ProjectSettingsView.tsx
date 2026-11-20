@@ -8,6 +8,7 @@ import { UserManagementCard } from './AccountSecurityCards';
 import { AssistantsView } from './AssistantsView';
 import { ProjectDataCard } from './MyDataCard';
 import { DemoDataCard } from './DemoDataCard';
+import { TourRestartCard } from '../layout/OnboardingTour';
 import { ClinicOnlineCard } from '../clinic/ClinicOnlineCard';
 import { SubscriptionHistoryList } from '../modals/SubscriptionHistory';
 
@@ -159,6 +160,7 @@ export const ProjectSettingsView: React.FC = () => {
       {systemKey !== 'nursery' && <AssistantsView />}
       <UserManagementCard />
       <DemoDataCard />
+      <TourRestartCard />
       <ProjectDataCard />
     </div>
   );

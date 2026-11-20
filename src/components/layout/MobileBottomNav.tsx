@@ -99,6 +99,7 @@ export const MobileBottomNav: React.FC = () => {
     return (
       <button
         key={tab.id}
+        data-tour={`nav-${tab.id}`}
         onClick={() => setScreen(tab.id)}
         className={`flex flex-col items-center justify-center gap-1 py-1 px-3 text-[10px] font-medium transition ${
           isActive

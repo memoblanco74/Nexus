@@ -253,6 +253,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
             return (
               <button
                 key={item.id}
+                data-tour={`nav-${item.id}`}
                 onClick={() => handleNavClick(item.id)}
                 className={`group flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-all ${
                   isActive
