@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { buildReportHtml, renderReportPdf } from '../nursery/reportPdf';
 import { Child, DailyLog, rowToLog } from '../nursery/nurseryApi';
+import { ParentChat, parseMsgs, seenKey } from './ParentChat';
 
 interface PortalData {
   child: { full_name: string; birth_date: string | null; allergies: string | null };
@@ -14,7 +15,8 @@ interface PortalData {
 export const ParentPortal: React.FC<{ token: string }> = ({ token }) => {
   const [ar, setAr] = useState(true);
   const [data, setData] = useState<PortalData | null | undefined>(undefined);
-  const [tab, setTab] = useState<'report' | 'payments' | 'vaccines'>('report');
+  const [tab, setTab] = useState<'report' | 'payments' | 'vaccines' | 'chat'>('report');
+  const [unread, setUnread] = useState(0);
   const [day, setDay] = useState('');
   const [busy, setBusy] = useState(false);
   const tx = (a: string, e: string) => (ar ? a : e);
@@ -31,6 +33,22 @@ export const ParentPortal: React.FC<{ token: string }> = ({ token }) => {
       if (parsed?.logs?.length) setDay(parsed.logs[0].day);
     });
   }, [token]);
+
+  const markSeen = React.useCallback(() => setUnread(0), []);
+  const refreshUnread = React.useCallback(async () => {
+    const { data: list } = await supabase.rpc('fn_parent_chat_list', { p_token: token });
+    if (!Array.isArray(list)) return;
+    let seen = '';
+    try { seen = localStorage.getItem(seenKey(token)) || ''; } catch { /* ignore */ }
+    setUnread(parseMsgs(list).filter((m) => m.kind === 'staff' && (!seen || m.at > seen)).length);
+  }, [token]);
+
+  useEffect(() => {
+    if (!data) return;
+    refreshUnread();
+    const t = window.setInterval(refreshUnread, 30000);
+    return () => window.clearInterval(t);
+  }, [data, refreshUnread]);
 
   const nurseryName = data?.nursery ? (ar ? data.nursery.name_ar || data.nursery.name : data.nursery.name) : '';
   const log: DailyLog | null = useMemo(() => {
@@ -88,12 +106,14 @@ export const ParentPortal: React.FC<{ token: string }> = ({ token }) => {
         {data.child.allergies && <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"><b>{tx('حساسية مسجلة:', 'Allergies on file:')}</b> {data.child.allergies}</div>}
 
         <div className="flex gap-2">
-          {(['report', 'payments', 'vaccines'] as const).map((k) => (
+          {(['report', 'payments', 'vaccines', 'chat'] as const).map((k) => (
             <button key={k} onClick={() => setTab(k)} className={`flex-1 rounded-xl py-2.5 text-xs font-bold ${tab === k ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 shadow-sm'}`}>
-              {k === 'report' ? tx('تقرير اليوم', 'Daily report') : k === 'payments' ? tx('المدفوعات', 'Payments') : tx('التطعيمات', 'Vaccines')}
+              {k === 'report' ? tx('تقرير اليوم', 'Daily report') : k === 'payments' ? tx('المدفوعات', 'Payments') : k === 'chat' ? tx('محادثة', 'Chat') : tx('التطعيمات', 'Vaccines')}{k === 'chat' && unread > 0 && tab !== 'chat' && <span className="ms-1 rounded-full bg-red-500 px-1.5 text-[9px] text-white">{unread}</span>}
             </button>
           ))}
         </div>
+
+        {tab === 'chat' && <ParentChat token={token} ar={ar} onSeen={markSeen} />}
 
         {tab === 'report' && (
           <div className="space-y-3">

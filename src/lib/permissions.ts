@@ -6,6 +6,7 @@ export const PERM_GROUPS: Array<{ id: string; ar: string; en: string }> = [
   { id: 'payments', ar: 'تحصيل الاشتراكات', en: 'Fee collection' },
   { id: 'fees', ar: 'أنواع الاشتراكات', en: 'Subscription types' },
   { id: 'money', ar: 'المصاريف والمرتبات', en: 'Expenses & payroll' },
+  { id: 'chat', ar: 'محادثات أولياء الأمور', en: 'Parent chats' },
   { id: 'home', ar: 'الصفحة الرئيسية', en: 'Home page' },
 ];
 
@@ -30,6 +31,8 @@ export const PERMISSIONS: PermDef[] = [
   { key: 'staff.attendance', group: 'money', ar: 'تسجيل حضور الموظفين', en: 'Record staff attendance' },
   { key: 'staff.payroll', group: 'money', ar: 'رؤية وصرف المرتبات', en: 'View and pay salaries' },
   { key: 'reports.view', group: 'money', ar: 'رؤية الأرباح والخسائر', en: 'View profit and loss' },
+  { key: 'chat.view', group: 'chat', ar: 'رؤية محادثات أولياء الأمور (للفصول المسموحة)', en: 'View parent chats (allowed classes)' },
+  { key: 'chat.reply', group: 'chat', ar: 'الرد على أولياء الأمور', en: 'Reply to parents' },
   { key: 'home.attendance', group: 'home', ar: 'بطاقة الحضور حسب الفصل', en: 'Attendance by class card' },
   { key: 'home.birthdays', group: 'home', ar: 'بطاقة أعياد الميلاد', en: 'Birthdays card' },
   { key: 'home.quick_actions', group: 'home', ar: 'أزرار الإجراءات السريعة', en: 'Quick actions' },
@@ -52,7 +55,7 @@ export const canDo = (role: string | undefined, actions: string[] | null | undef
 export const deriveScreens = (actions: string[]): string[] => {
   const has = (...keys: string[]) => keys.some((k) => actions.includes(k));
   const out: string[] = [];
-  if (has('children.add', 'children.edit', 'children.import', 'children.contacts', 'children.health', 'vaccines.edit', 'classes.manage', 'portal.manage', 'messages.send', 'daily.view', 'daily.mark', 'payments.view', 'payments.collect')) out.push('patients');
+  if (has('children.add', 'children.edit', 'children.import', 'children.contacts', 'children.health', 'vaccines.edit', 'classes.manage', 'portal.manage', 'messages.send', 'daily.view', 'daily.mark', 'payments.view', 'payments.collect', 'chat.view', 'chat.reply')) out.push('patients');
   if (has('fees.view', 'fees.edit')) out.push('subscriptions');
   if (has('expenses.view', 'expenses.add', 'staff.attendance', 'staff.payroll', 'reports.view')) out.push('accounting');
   return out;
